@@ -15,8 +15,8 @@ block content
         #dropdown-content
           - for(let item of data.allCategories)
             p(onClick="getCategory(" + item.id + ")" title="Auswahl der Category" style="padding: 10px; margin:5px") #{item.name}
-          p(style="background-color: lightgrey; padding: 10px; margin:5px") bearbeiten: 
-            span(id="pencil" title="Bearbeiten" style="color:grey;padding: 10px; margin:5px; font-size: 14px" onclick="edit_categories()") 
+          p(style="background-color: lightgrey; padding: 10px; margin:5px") Neue Kategorie: 
+            span(id="pencil" title="Bearbeiten" style="color:grey;padding: 10px; margin:5px; font-size: 14px" onclick="new_category()") 
               i.fa.fa-pencil
 
       .single_right
@@ -24,6 +24,8 @@ block content
           i.fa-solid.fa-square-plus
           
       h1#category_name #{data.category.name}
+        span(id="pencil" title="Bearbeiten" style="color:grey;padding: 10px; margin:5px; font-size: 14px" onclick="edit_category()") 
+          i.fa.fa-pencil
 
     #prodlist
       - for(let item of data.products)
