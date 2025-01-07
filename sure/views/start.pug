@@ -1,0 +1,28 @@
+extends ../../templates/base
+
+block content
+
+  div.app
+
+    div#header
+      .single_left 
+        img(src="/mhd.png" width=52 height=52 alt="Logo")
+      .single_right
+        button.darkgrey(onclick="selectCategories()")
+            i.fa.fa-caret-down
+      .single_right
+        button.orange(title="Neues Produkt hinzufügen" onclick="newProdukt()")
+          i.fa-solid.fa-square-plus
+          
+      h1 #{data.category.name}
+
+    div#prodlist
+      - for(let item of data.products)
+        div.prod(id="prod" + item.id index=item.id)
+
+      noscript 
+        .box
+          h4.center Zur Anzeige wird Javascript benötigt. Bitte einschalten.
+
+  script(type='text/javascript').
+    appReady();

@@ -1,0 +1,38 @@
+
+*********  Aufräumen:
+docker system prune
+
+docker kill mhd; docker rm mhd
+docker rmi raiblue72/mhd:0.6.1
+
+*********  Docker commands:
+1. ggf. Repository anlegen, raiblue72/mhd
+
+2. Build-Prozess:
+//docker build . --tag raiblue72/mhd:0.6.1
+docker buildx build . --platform linux/amd64,linux/arm64 --tag raiblue72/mhd:0.6.1
+
+3. Mit Repository-Name taggen und hochladen
+//docker tag mhd:0.6.1 raiblue72/mhd:0.6.1
+docker push raiblue72/mhd:0.6.1
+
+4. lokal starten (evtl.: -d = detached):
+docker run \
+  --name mhd \
+  -p 8080:8080 \
+  -e TZ=Europe/Berlin \
+  -e PUSHOVER_URL=https://api.pushover.net/1/messages.json \
+  -e PUSHOVER_TOKEN=amj9hnx3dtf27rygs7enjt5m97gfhb \
+  -e PUSHOVER_USER=g4qa4jzyhanu5cey8eej5wqwz9nfax \
+  --mount type=bind,source=/Users/Rai/Downloads/mhd_data,target=/home/node/data \
+  --restart=on-failure:3 \
+  raiblue72/mhd:0.6.1
+
+4. lokal starten ohne Pushover (evtl.: -d = detached):
+  docker run \
+  --name mhd \
+  -p 8080:8080 \
+  -e TZ=Europe/Berlin \
+  --mount type=bind,source=/Users/Rai/Downloads/mhd_data,target=/home/node/data \
+  --restart=on-failure:3 \
+  raiblue72/mhd:0.6.1

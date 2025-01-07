@@ -1,0 +1,162 @@
+
+body {
+  /* background-color: rgb(231, 230, 230); */
+  background-color: rgb(237, 234, 234);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0px;
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 0px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  text-align: left;
+  padding-left: 5px
+}
+
+div.app {
+  margin: 0;
+  padding: 10px;
+  background-color: lightgrey;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 600px;
+}
+
+div.prod {
+  margin-bottom: 10px
+}
+
+div#header {
+  /* background-color: lightgrey; */
+  padding: 0px;
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+  display: block;
+  text-align: center;
+  overflow: hidden;
+}
+
+div.box {
+  display: block;
+  background-color: white;
+  text-align: center;
+  margin: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  overflow: hidden;
+}
+
+.menu_left {
+  float: left;
+  width: calc(50% - 26px);
+}
+
+.menu_right {
+  float: right;
+  width: calc(50% - 26px);
+}
+
+.single_left {
+  float: left;
+  margin-right: 0px;
+}
+
+.single_right {
+  float: right;
+  margin-left: 0px;
+}
+
+.tab {
+  text-align: center;
+  border: 2px solid rgb(189, 189, 189);
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px;
+}
+
+#pencil,
+.tab td {
+  cursor: pointer;
+}
+
+td,
+th {
+  padding: 4px 8px;
+}
+
+button {
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  height: 52px;
+  width: 52px;
+}
+
+button_breit {
+  border: none;
+  padding: 12px 16px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  height: 52px;
+  width: 100%;
+}
+
+.orange {
+  background-color: #FF8800;
+  /* orange */
+  color: white;
+}
+
+.yellow {
+  background-color: #FFD342;
+  /* yelllow */
+  color: black;
+}
+
+.darkgrey {
+  background-color: darkgrey;
+  color: black;
+}
+
+.white {
+  background-color: white;
+  color: black;
+}
+
+select {
+  appearance: none;
+  font-size: 16px;
+  border-radius: 0.1px;
+  background-color: #fff;
+  padding: 5px;
+  border: 1px solid #caced1;
+  cursor: pointer;
+}
+
+input {
+  font-size: 16px;
+  width: 48px;
+}
