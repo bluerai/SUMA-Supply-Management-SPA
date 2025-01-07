@@ -86,7 +86,7 @@ export function getData() {
   }
 };
 
-export function getProducts(categoryId) {
+export function getCategory(categoryId) {
   try {
     const selectAllCategoriesStmt = DB.prepare(`SELECT id, name, sort_index FROM category order by sort_index asc`);
     const categories = selectAllCategoriesStmt.all();
@@ -99,10 +99,10 @@ export function getProducts(categoryId) {
     const products = selectProductsStmt.all(categoryId);
 
 
-    return { "category": category, "products": products, "allCategories": categories};
+    return { "category": category, "products": products, "allCategories": categories };
 
   } catch (error) {
-    logger.error(error); return {x: "xxx"}
+    logger.error(error); return {}
   }
 };
 
@@ -114,21 +114,22 @@ export function getItem(id) {
     return item;
 
   } catch (error) {
-    logger.info("getItem: item " + id + " could not be retrieved.");
+    logger.error("getItem: item " + id + " could not be retrieved.");
     logger.error(error); throw error
   }
 }
 
-export function createItem(itemName) {
+export function createItem(categoryId, itemName) {
   try {
-    const insertStmt = DB.prepare(`INSERT INTO product (name, entry_list) VALUES (?, ?)`);
-    //logger.info("createItem: item: " + itemName);
-    const { lastInsertRowid } = insertStmt.run(itemName, "[]");
-    logger.info("createItem: item " + lastInsertRowid + " created");
+    const insertStmt = DB.prepare(`INSERT INTO product (name, category_id, entry_list) VALUES (?, ?, ?)`);
+    //TODO: Doubletten?
+    logger.debug("createItem: item: " + itemName + ", categoryId=" + categoryId);
+    const { lastInsertRowid } = insertStmt.run(itemName, categoryId, "[]");
+    logger.debug("createItem: item " + lastInsertRowid + " created");
     return lastInsertRowid;
 
   } catch (error) {
-    logger.info("createItem: item '" + itemName + "' could not be created.");
+    logger.error("createItem: item '" + itemName + "' could not be created.");
     logger.error(error); throw error
   }
 }
@@ -185,7 +186,8 @@ export function updateItemEntry(itemId, year, month, count) {
     evalItem(item);
 
   } catch (error) {
-    logger.info("updateItemEntry: item " + itemId + " could not be updated."); logger.error(error); throw error
+    logger.error("updateItemEntry: item " + itemId + " could not be updated."); 
+    logger.error(error); throw error
   }
 }
 
@@ -200,7 +202,8 @@ export function renameItem(id, name) {
     return selectByIdStmt.get(id).timestamp;
 
   } catch (error) {
-    logger.info("updatedbItem: item " + id + " could not be renamed."); logger.error(error); throw error
+    logger.error("updatedbItem: item " + id + " could not be renamed."); 
+    logger.error(error); throw error
   }
 }
 

@@ -2,27 +2,32 @@ extends ../../templates/base
 
 block content
 
-  div.app
+  #transparent(onclick="hideDropdownMenu()")
 
-    div#header
+  .app
+    input(type="hidden" id="category_id" value=data.category.id)
+    #header
       .single_left 
         img(src="/mhd.png" width=52 height=52 alt="Logo")
-      .single_right
-        button.darkgrey(onclick="selectCategories()")
-            i.fa.fa-caret-down
+      .single_right#dropdown
+        button.darkgrey(onClick="showDropdownMenu()")
+          i.fa.fa-bars(aria-hidden="true")
+        #dropdown-content
+          - for(let item of data.allCategories)
+            p(onClick="getCategory(" + item.id + ")" title="Auswahl der Category" style="padding: 10px; margin:5px") #{item.name}
+          p(style="background-color: lightgrey; padding: 10px; margin:5px") bearbeiten: 
+            span(id="pencil" title="Bearbeiten" style="color:grey;padding: 10px; margin:5px; font-size: 14px" onclick="edit_categories()") 
+              i.fa.fa-pencil
+
       .single_right
         button.orange(title="Neues Produkt hinzufügen" onclick="newProdukt()")
           i.fa-solid.fa-square-plus
           
-      h1 #{data.category.name}
+      h1#category_name #{data.category.name}
 
-    div#prodlist
+    #prodlist
       - for(let item of data.products)
-        div.prod(id="prod" + item.id index=item.id)
-
-      noscript 
-        .box
-          h4.center Zur Anzeige wird Javascript benötigt. Bitte einschalten.
+        .prod(id="prod" + item.id index=item.id)
 
   script(type='text/javascript').
     appReady();

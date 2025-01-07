@@ -3,7 +3,8 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from '../log.js'
 
-import { getProducts, getData, createItem, getItem, updateItemEntry, renameItem, deleteItem, 
+import {
+  getCategory, getData, createItem, getItem, updateItemEntry, renameItem, deleteItem, 
   evalItem, connectDb, unconnectDb } from './model.js';
 
 const PUSHOVER_URL = process.env.PUSHOVER_URL;
@@ -13,11 +14,22 @@ const PUSHOVER_USER = process.env.PUSHOVER_USER;
 export async function startAction(request, response) {
   logger.info("startAction: request.url=" + JSON.stringify(request.url));
   try {
-    let data = getProducts();
+    const data = getCategory();
     logger.debug("startAction: data=" + JSON.stringify(data));
     response.render(dirname(fileURLToPath(import.meta.url)) + '/views/start', { data })
   }
   catch (error) { errorHandler(error, 'startAction', response) }
+}
+
+export async function categoryAction(request, response) {
+  logger.info("categoryAction: request.params=" + JSON.stringify(request.params));
+  try {
+    const categoryId = parseInt(request.params.id);
+    let data = getCategory(categoryId);
+    logger.debug("categoryAction: data=" + JSON.stringify(data));
+    response.send(data);
+  }
+  catch (error) { errorHandler(error, 'categoryAction', response) }
 }
 
 export async function getHeadAction(request, response) {
@@ -28,7 +40,7 @@ export async function getHeadAction(request, response) {
     logger.debug("getHeadAction: item=" + JSON.stringify(item));
     response.render(dirname(fileURLToPath(import.meta.url)) + '/views/itemHead', { item: item }, function (error, html) {
       if (error) {
-        console.logger.info(error);
+        logger.info(error);
       } else {
         logger.debug("getHeadAction: html.length=" + html.length);
         response.send({ html });
@@ -102,26 +114,31 @@ export async function renameAction(request, response) {
   catch (error) { errorHandler(error, 'renameAction', response) }
 }
 
-export async function newAction(request, response) {
-  logger.info("newAction: request.params=" + JSON.stringify(request.params));
+export async function newProductAction(request, response) {
+  logger.info("newProductAction: request.params=" + JSON.stringify(request.params));
   try {
     const itemName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
-
-    const newItemId = createItem(itemName);
-    logger.info("newAction: itemId=" + newItemId);
+    const categoryId = (request.params.cat) && parseInt(request.params.cat, 10);
+    const newItemId = createItem(categoryId, itemName);
+    logger.info("newProductAction: itemId=" + newItemId);
     const item = getItem(newItemId);
 
     response.render(dirname(fileURLToPath(import.meta.url)) + '/views/itemHead', { item: item }, function (error, html) {
       if (error) {
         console.logger.info(error);
       } else {
-        logger.info("newAction: html.length=" + html.length);
+        logger.info("newProductAction: html.length=" + html.length);
 
         response.send({ html });
       }
     })
   }
   catch (error) { errorHandler(error, 'newAction', response) }
+}
+
+export async function newCategoryAction(request, response) {
+  logger.info("newCategoryAction: request.params=" + JSON.stringify(request.params));
+  // TODO
 }
 
 export async function deleteAction(request, response) {  //TODO

@@ -23,10 +23,26 @@ function toggleEdit(itemId) {
   }
 }
 
+async function getCategory(id) {
+  const response = await fetch("/sure/category/" + parseInt(id));
+  const data = await response.json();
+
+  document.getElementById('category_id').value = data.category.id;
+  document.getElementById('category_name').innerHTML = data.category.name;
+  const prodlist = document.getElementById("prodlist");
+  prodlist.innerHTML = "";
+  for (let item of data.products) {
+    const response = await fetch("/sure/head/" + item.id);
+    const data = await response.json();
+    prodlist.insertAdjacentHTML("beforeend", data.html);
+  }
+  hideDropdownMenu();
+}
+
 async function newProdukt() {
   const prodName = prompt("Name des Produkts:")
   if (prodName && prodName.trim().length != 0) {
-    const response = await fetch("/sure/new/" + encodeURI(prodName.trim()));
+    const response = await fetch("/sure/new/" + document.getElementById("category_id").value + "/" + encodeURI(prodName.trim()));
     const data = await response.json();
 
     const prodlist = document.getElementById("prodlist");
@@ -97,6 +113,17 @@ async function updateItemEntry(itemId, action) {
   }
 }
 
+function showDropdownMenu() {
+  document.getElementById('dropdown-content').style.display = 'block';
+  document.getElementById('transparent').style.display = 'block';
+}
+
+function hideDropdownMenu() {
+  document.getElementById('transparent').style.display = 'none';
+  document.getElementById('dropdown-content').style.display = 'none';
+}
+
+
 async function appReady() {
   const prods = document.getElementsByClassName("prod");
   for (let i = 0; i < prods.length; i++) {
@@ -107,5 +134,6 @@ async function appReady() {
       prods[i].outerHTML = data.html;
     }
   };
+
 }
 

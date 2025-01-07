@@ -1,9 +1,10 @@
 .box(id="details" + item.id style="position: relative")
+
   table.tab
     if item.entry_list && item.entry_list.length > 0
       thead
         tr
-          th(align="center" bgcolor="#dddddd") MHD
+          th(align="center" bgcolor="#dddddd") Verbrauch bis ...
           th(align="center" bgcolor="#dddddd") Anzahl
       tbody
         - for(let entry of item.entry_list)
@@ -18,22 +19,20 @@
   div(id="edit" + item.id style="display: none")
     table.tab
       tr
-        th(align="center" bgcolor="#dddddd")
-          label(for="year") MHD/Jahr
-        th(align="center" bgcolor="#dddddd")
-          label(for="month") MHD/Monat
+        th(align="center" bgcolor="#dddddd" colspan=2)
+          label(for="year") Verbrauch bis ...
         th(align="center" bgcolor="#dddddd")
           label(for="count") Anzahl
       tr
         td(align="center")
           select(name="year" id="year" + item.id)
             option(value="-") Auswahl
-            option(value="2024") 2024
             option(value="2025") 2025
             option(value="2026") 2026
             option(value="2027") 2027
             option(value="2028") 2028
-
+            option(value="2029") 2029
+            option(value="2030") 2030
         td(align="center")
           select(name="month" id="month" + item.id)
             option(value="-") Auswahl
@@ -55,7 +54,7 @@
 
       .single_right
         button.white
-        
+
     .menu_right
       button_breit.yellow(title="Artikel hinzufügen" onClick="updateItemEntry(" + item.id + ", 'add')") Hinzufügen
     .menu_right
@@ -70,4 +69,7 @@
 
   p(id="metainfo" + item.id style="margin: 5px; text-align: right; position: absolute; bottom: 0px; right: 0px") [ID #{item.id}] 
     span(id="timestamp" + item.id) #{item.timestamp}
+
+
+
   
