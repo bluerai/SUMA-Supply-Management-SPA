@@ -1,10 +1,9 @@
-
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from '../log.js'
 
 import {
-  getCategory, getData, createItem, getItem, updateItemEntry, renameItem, deleteItem, 
+  getCategory, getData, createItem, getItem, createCategory, updateItemEntry, renameItem, deleteItem, deleteCategory,
   evalItem, connectDb, unconnectDb } from './model.js';
 
 const PUSHOVER_URL = process.env.PUSHOVER_URL;
@@ -118,7 +117,7 @@ export async function newProductAction(request, response) {
   logger.info("newProductAction: request.params=" + JSON.stringify(request.params));
   try {
     const itemName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
-    const categoryId = (request.params.cat) && parseInt(request.params.cat, 10);
+    const categoryId = (request.params.catid) && parseInt(request.params.catid, 10);
     const newItemId = createItem(categoryId, itemName);
     logger.info("newProductAction: itemId=" + newItemId);
     const item = getItem(newItemId);
@@ -133,23 +132,53 @@ export async function newProductAction(request, response) {
       }
     })
   }
-  catch (error) { errorHandler(error, 'newAction', response) }
+  catch (error) { errorHandler(error, 'newProductAction', response) }
 }
+
 
 export async function newCategoryAction(request, response) {
   logger.info("newCategoryAction: request.params=" + JSON.stringify(request.params));
-  // TODO
+  try {
+    const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
+    const categoryId = (request.params.id) && parseInt(request.params.id, 10);
+    if (categoryId) {
+      //TODO  updateCategory(categoryId, categoryName);
+      logger.info("newCategoryAction: update id=" + categoryId);
+      response.writeHead(200, 'Category "' + categoryId + " successfully updated.", { 'content-type': 'text/html' });
+      response.end();
+    } else {
+      const categoryId = createCategory(categoryName);
+      logger.info("newCategoryAction: created id=" + categoryId);
+      let data = getCategory(categoryId);
+      logger.debug("newCategoryAction: data=" + JSON.stringify(data));
+      response.status(201).send(data);
+    }
+  }
+  catch (error) { errorHandler(error, 'newCategoryAction', response) } 
 }
 
-export async function deleteAction(request, response) {  //TODO
-  logger.info("deleteAction: request.params=" + JSON.stringify(request.params));
+
+export async function deleteProductAction(request, response) {  //TODO
+  logger.info("deleteProductAction: request.params=" + JSON.stringify(request.params));
   try {
     const id = (request.params.id) && parseInt(request.params.id, 10);
     deleteItem(id);
     response.writeHead(200, "Änderungen gesichert.", { 'content-type': 'text/html' });
     response.end();
   }
-  catch (error) { errorHandler(error, 'deleteAction', response) }
+  catch (error) { errorHandler(error, 'deleteProductAction', response) }
+}
+
+
+export async function deleteCategoryAction(request, response) {  //TODO
+  logger.info("deleteCategoryAction: request.params=" + JSON.stringify(request.params));
+  try {
+    const id = (request.params.id) && parseInt(request.params.id, 10);
+    deleteCategory(id);
+    response.writeHead(200, "Änderungen gesichert.", { 'content-type': 'text/html' });
+    response.end();
+  }
+  catch (error) { errorHandler(error, 'deleteCategoryAction', response) }
 }
 
 export function evalAction(request, response) {
@@ -226,9 +255,8 @@ export async function healthAction(request, response) {
 }
 
 function errorHandler(error, actionName, response) {
-  logger.error(error);
   const message = "Cassis: Interner Server-Fehler in '" + actionName + "': " + error.message;
-  logger.info(message, 2);
+  logger.error(message);
   if (response) {
     response.writeHead(500, message, { 'content-type': 'text/html' });
     response.end();

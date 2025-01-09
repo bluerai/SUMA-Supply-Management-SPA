@@ -6,8 +6,14 @@ async function toggleDetails(itemId) {
   } else {
     const url = "/sure/details/" + itemId;
     const response = await fetch(url);
-    const data = await response.json();
-    prod.insertAdjacentHTML("beforeend", data.html);
+
+    if (response.status === 200) {
+      const data = await response.json();
+      prod.insertAdjacentHTML("beforeend", data.html);
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
   }
 }
 
@@ -25,30 +31,47 @@ function toggleEdit(itemId) {
 
 async function getCategory(id) {
   const response = await fetch("/sure/category/" + parseInt(id));
-  const data = await response.json();
 
-  document.getElementById('category_id').value = data.category.id;
-  document.getElementById('category_name').innerHTML = data.category.name;
-  const prodlist = document.getElementById("prodlist");
-  prodlist.innerHTML = "";
-  for (let item of data.products) {
-    const response = await fetch("/sure/head/" + item.id);
+  if (response.status === 200) {
     const data = await response.json();
-    prodlist.insertAdjacentHTML("beforeend", data.html);
+    document.getElementById('category_id').value = data.category.id;
+    document.getElementById('category_name').innerHTML = data.category.name;
+    const prodlist = document.getElementById("prodlist");
+    prodlist.innerHTML = "";
+    for (let item of data.products) {
+      const response = await fetch("/sure/head/" + item.id);
+
+      if (response.status === 200) {
+        const data = await response.json();
+        prodlist.insertAdjacentHTML("beforeend", data.html);
+      } else {
+        alert(response.statusText + " (#" + response.status + ")");
+        return;
+      }
+    }
   }
-  hideDropdownMenu();
+  else {
+    alert(response.statusText + " (#" + response.status + ")");
+    return;
+  }
+  hideMenues();
 }
 
 async function newProdukt() {
   const prodName = prompt("Name des Produkts:")
   if (prodName && prodName.trim().length != 0) {
-    const response = await fetch("/sure/new/" + document.getElementById("category_id").value + "/" + encodeURI(prodName.trim()));
-    const data = await response.json();
+    const response = await fetch("/sure/pro/" + encodeURI(prodName.trim()) + "/" + document.getElementById("category_id").value);
 
-    const prodlist = document.getElementById("prodlist");
-    prodlist.insertAdjacentHTML("beforeend", data.html);
-    const newProd = document.querySelector("div.prod:last-child");
-    if (newProd) newProd.scrollIntoView();
+    if (response.status === 200) {
+      const data = await response.json();
+      const prodlist = document.getElementById("prodlist");
+      prodlist.insertAdjacentHTML("beforeend", data.html);
+      const newProd = document.querySelector("div.prod:last-child");
+      if (newProd) newProd.scrollIntoView();
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
   }
 }
 
@@ -58,9 +81,15 @@ async function rename(itemId) {
   const newName = prompt("Neuer Produktname:", oldName);
   if (newName && newName.trim().length != 0) {
     const response = await fetch("/sure/nam/" + itemId + "/" + encodeURI(newName));
-    const data = await response.json();
-    nameElement.innerHTML = data.name;
-    document.getElementById("timestamp" + itemId).innerHTML = data.timestamp;
+
+    if (response.status === 200) {
+      const data = await response.json();
+      nameElement.innerHTML = data.name;
+      document.getElementById("timestamp" + itemId).innerHTML = data.timestamp;
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
   }
 }
 
@@ -68,13 +97,38 @@ async function deleteItem(itemId) {
   const name = document.getElementById("name" + itemId).innerHTML;
   if (confirm('"' + name + '" löschen?')) {
     const response = await fetch("/sure/del/" + itemId);
+
     if (response.status === 200) {
       const prodlist = document.getElementById("prodlist");
       const prod = document.getElementById('prod' + itemId);
       prodlist.removeChild(prod);
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
     }
   }
 }
+
+async function delete_category() {
+  if (document.getElementsByClassName('prod').length === 0) {
+    const id = document.getElementById('category_id').value;
+    const response = await fetch("/sure/del/cat/" + id);
+
+    if (response.status === 200) {
+      getCategory();
+      const category_list = document.getElementById("category_list");
+      const category = document.getElementById('category_list' + id);
+      category_list.removeChild(category);
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
+  } else {
+    alert("Zum Löschen müssen zunächst alle Produkte dieser Kategorie entfernt werden.")
+  }
+  hideMenues();
+}
+
 function handleGetEntry(itemId, year, month) {
   if (document.getElementById('edit' + itemId).style.display === "none") {
     document.getElementById('edit' + itemId).style.display = "block";
@@ -93,36 +147,86 @@ async function updateItemEntry(itemId, action) {
     return;
   }
   if (action === "sub") count *= -1;
-  try {
-    const response = await fetch("/sure/upd/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ "id": itemId, "year": year, "month": month, "count": count })
-    });
 
-    if (response.status !== 200) {
-      alert(response.statusText + " (#" + response.status + ")");
-    } else {
-      const data = await response.json();
-      document.getElementById('sum' + itemId).innerHTML = data.sum;
-      document.getElementById('details' + itemId).outerHTML = data.html;
-    }
+  const response = await fetch("/sure/upd/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ "id": itemId, "year": year, "month": month, "count": count })
+  });
 
-  } catch (error) {
-    alert("Fehler: " + error.message);
+  if (response.status == 200) {
+    const data = await response.json();
+    document.getElementById('sum' + itemId).innerHTML = data.sum;
+    document.getElementById('details' + itemId).outerHTML = data.html;
+  } else {
+    alert(response.statusText + " (#" + response.status + ")");
+    return;
   }
 }
 
-function showDropdownMenu() {
-  document.getElementById('dropdown-content').style.display = 'block';
+function select_category() {
+  document.getElementById('select_category').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
 }
 
-function hideDropdownMenu() {
-  document.getElementById('transparent').style.display = 'none';
-  document.getElementById('dropdown-content').style.display = 'none';
+function new_category() {
+  document.getElementById('new_category').style.display = 'block';
+  document.getElementById('transparent').style.display = 'block';
+  document.getElementById('select_category').style.display = 'none';
 }
 
+async function save_new_category() {
+  const catName = document.getElementById("new_category_name").value;
+  if (catName && catName.trim().length != 0) {
+    const response = await fetch("/sure/cat/" + encodeURI(catName.trim()));
+
+    if (response.status === 201) {
+      const data = await response.json();
+      document.getElementById('category_id').value = data.category.id;
+      document.getElementById('category_name').innerHTML = data.category.name;
+      const prodlist = document.getElementById("prodlist");
+      prodlist.innerHTML = "";
+      const categorylist = document.getElementById("category_list");
+      categorylist.innerHTML = "";
+      for (let item of data.allCategories) {
+        const html = `<p onClick = "getCategory(" + item.id + ")" title = "Auswahl der Category" style = "padding: 10px; margin: 5px">` + item.name + "</p>";
+        categorylist.insertAdjacentHTML("beforeend", html);
+      }
+      hideMenues();
+
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
+  }
+}
+
+function edit_category() {
+  document.getElementById('edit_category_name').value = document.getElementById('category_name').innerHTML
+  document.getElementById('edit_category').style.display = 'block';
+  document.getElementById('transparent').style.display = 'block';
+}
+
+async function save_edited_category() {
+  const response = await fetch("/sure/cat/" + document.getElementById('edit_category_name').value + "/" + document.getElementById('category_id').value);
+
+  if (response.status === 200) {
+    document.getElementById('category_name').innerHTML = document.getElementById('edit_category_name').value 
+    hideMenues();
+  } else {
+    alert(response.statusText + " (#" + response.status + ")");
+    return;
+  }
+}
+
+function hideMenues() {
+  document.getElementById('transparent').style.display = 'none';
+  document.getElementById('select_category').style.display = 'none';
+  document.getElementById('new_category').style.display = 'none';
+  document.getElementById('edit_category').style.display = 'none';
+  document.getElementById("new_category_name").value = "";
+  document.getElementById('edit_category_name').value = "";
+}
 
 async function appReady() {
   const prods = document.getElementsByClassName("prod");
@@ -130,8 +234,14 @@ async function appReady() {
     if (prods[i].attributes["index"]) {
       const itemId = prods[i].attributes["index"].value;
       const response = await fetch("/sure/head/" + itemId);
-      const data = await response.json();
-      prods[i].outerHTML = data.html;
+
+      if (response.status === 200) {
+        const data = await response.json();
+        prods[i].outerHTML = data.html;
+      } else {
+        alert(response.statusText + " (#" + response.status + ")");
+        return;
+      }
     }
   };
 

@@ -2,30 +2,41 @@ extends ../../templates/base
 
 block content
 
-  #transparent(onclick="hideDropdownMenu()")
+  #transparent(onclick="hideMenues()")
 
   .app
-    input(type="hidden" id="category_id" value=data.category.id)
+    input#category_id(type="hidden" value=data.category.id)
     #header
       .single_left 
         img(src="/mhd.png" width=52 height=52 alt="Logo")
       .single_right#dropdown
-        button.darkgrey(onClick="showDropdownMenu()")
+        button.darkgrey(onClick="select_category()")
           i.fa.fa-bars(aria-hidden="true")
-        #dropdown-content
-          - for(let item of data.allCategories)
-            p(onClick="getCategory(" + item.id + ")" title="Auswahl der Category" style="padding: 10px; margin:5px") #{item.name}
-          p(style="background-color: lightgrey; padding: 10px; margin:5px") Neue Kategorie: 
-            span(id="pencil" title="Bearbeiten" style="color:grey;padding: 10px; margin:5px; font-size: 14px" onclick="new_category()") 
-              i.fa.fa-pencil
+        #select_category
+          #category_list
+            - for(let item of data.allCategories)
+              p(id="category_list" + item.id onClick="getCategory(" + item.id + ")" title="Auswahl der Category" style="padding: 10px; margin: 5px") #{item.name}
+          p(onclick="new_category()" style="background-color: lightgrey; text-align: center; padding: 0px; margin: 0px")
+            i.fa-regular.fa-square-plus(style="font-size: 24px")
+        #new_category
+          input#new_category_name(type="text" placeholder="Neue Kategorie" autofocus title="" style="padding: 10px; margin: 5px")
+          i.fa-regular.fa-square-check(onclick="save_new_category()" style="font-size: 24px")
 
       .single_right
         button.orange(title="Neues Produkt hinzufügen" onclick="newProdukt()")
-          i.fa-solid.fa-square-plus
-          
-      h1#category_name #{data.category.name}
-        span(id="pencil" title="Bearbeiten" style="color:grey;padding: 10px; margin:5px; font-size: 14px" onclick="edit_category()") 
+          i.fa-solid.fa-square-plus(style="font-size: 24px")
+      h1
+        span#category_star(title="Bearbeiten" style="margin:5px; font-size: 14px" onclick="toggle_star()")
+          i.fa-regular.fa-star
+        span#category_name #{data.category.name}
+        span(title="Bearbeiten" style="margin:5px; font-size: 14px" onclick="edit_category()")
           i.fa.fa-pencil
+      #edit_category
+        input#edit_category_name(type="text" placeholder="Kategorie" autofocus title=""  style="padding: 10px; margin: 5px")
+        div.single_left(style="margin-left: auto; margin-right: auto;width: 50%")
+          i.fa-solid.fa-trash-can(onclick="delete_category()" style="font-size: 24px")
+        div.single_right(style="margin-left: auto; margin-right: auto;width: 50%")
+          i.fa-regular.fa-square-check(onclick="save_edited_category()" style="font-size: 24px")
 
     #prodlist
       - for(let item of data.products)

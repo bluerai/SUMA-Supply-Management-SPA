@@ -115,7 +115,7 @@ export function getItem(id) {
 
   } catch (error) {
     logger.error("getItem: item " + id + " could not be retrieved.");
-    logger.error(error); throw error
+    throw error
   }
 }
 
@@ -130,9 +130,25 @@ export function createItem(categoryId, itemName) {
 
   } catch (error) {
     logger.error("createItem: item '" + itemName + "' could not be created.");
-    logger.error(error); throw error
+    throw error
   }
 }
+
+
+export function createCategory(itemName) {
+  try {
+    const insertStmt = DB.prepare(`INSERT INTO category (name) VALUES (?)`);
+    //TODO: Doubletten?
+    const { lastInsertRowid } = insertStmt.run(itemName);
+    logger.debug("createCategory: category " + lastInsertRowid + " created");
+    return lastInsertRowid;
+
+  } catch (error) {
+    logger.error("createCategory: category '" + itemName + "' could not be created.");
+    throw error
+  }
+}
+
 
 export function deleteItem(id) {
   try {
@@ -142,7 +158,20 @@ export function deleteItem(id) {
 
   } catch (error) {
     logger.info("deleteItem: item " + id + " could not be deleted.");
-    logger.error(error); throw error
+    throw error
+  }
+}
+
+
+export function deleteCategory(id) {
+  try {
+    const deleteStmt = DB.prepare(`DELETE FROM category WHERE id = ?`);
+    const { changes } = deleteStmt.run(id);
+    logger.info("deleteCategory: category " + id + " deleted - rows deleted=" + changes);
+
+  } catch (error) {
+    logger.info("deleteCategory: category " + id + " could not be deleted.");
+    throw error
   }
 }
 
@@ -187,7 +216,7 @@ export function updateItemEntry(itemId, year, month, count) {
 
   } catch (error) {
     logger.error("updateItemEntry: item " + itemId + " could not be updated."); 
-    logger.error(error); throw error
+    throw error
   }
 }
 
@@ -203,7 +232,7 @@ export function renameItem(id, name) {
 
   } catch (error) {
     logger.error("updatedbItem: item " + id + " could not be renamed."); 
-    logger.error(error); throw error
+    throw error
   }
 }
 
