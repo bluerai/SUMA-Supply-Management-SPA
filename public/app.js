@@ -1,3 +1,54 @@
+
+// read database 
+
+async function appReady() {
+  const prods = document.getElementsByClassName("prod");
+  for (let i = 0; i < prods.length; i++) {
+    if (prods[i].attributes["index"]) {
+      const itemId = prods[i].attributes["index"].value;
+      const response = await fetch("/sure/head/" + itemId);
+
+      if (response.status === 200) {
+        const data = await response.json();
+        prods[i].outerHTML = data.html;
+      } else {
+        alert(response.statusText + " (#" + response.status + ")");
+        return;
+      }
+    }
+  };
+}
+
+async function getCategory(id) {
+  const response = await fetch("/sure/get/" + parseInt(id));
+
+  if (response.status === 200) {
+    const data = await response.json();
+    document.getElementById('category_id').value = data.category.id;
+    document.getElementById('category_name').innerHTML = data.category.name;
+    document.getElementById('category_star').style.color = data.category.star;
+
+    const prodlist = document.getElementById("prodlist");
+    prodlist.innerHTML = "";
+    for (let item of data.products) {
+      const response = await fetch("/sure/head/" + item.id);
+
+      if (response.status === 200) {
+        const data = await response.json();
+        prodlist.insertAdjacentHTML("beforeend", data.html);
+      } else {
+        alert(response.statusText + " (#" + response.status + ")");
+        return;
+      }
+    }
+  }
+  else {
+    alert(response.statusText + " (#" + response.status + ")");
+    return;
+  }
+  hidePanels();
+}
+
 async function toggleDetails(itemId) {
   const prod = document.getElementById('prod' + itemId);
   const details = document.getElementById('details' + itemId);
@@ -29,38 +80,113 @@ function toggleEdit(itemId) {
   }
 }
 
-async function getCategory(id) {
-  const response = await fetch("/sure/category/" + parseInt(id));
+// read/write database 
+
+// Categories
+
+async function renameCategory() {
+  const catName = document.getElementById("edit_category_name").value;
+  if (catName && catName.trim().length != 0) {
+    const response = await fetch("/sure/cat/" + encodeURIComponent(catName.trim()) + "/" + document.getElementById('category_id').value);
+
+    if (response.status === 200) {
+      document.getElementById('category_name').innerHTML = document.getElementById('edit_category_name').value
+      document.getElementById('category_list' + document.getElementById('category_id').value).innerHTML = document.getElementById('edit_category_name').value
+      hidePanels();
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
+  }
+}
+
+async function createCategory() {
+  const catName = document.getElementById("new_category_name").value;
+  if (catName && catName.trim().length != 0) {
+    const response = await fetch("/sure/cat/" + encodeURIComponent(catName.trim()));
+
+    if (response.status === 201) {
+      const data = await response.json();
+      document.getElementById('category_id').value = data.category.id;
+      document.getElementById('category_name').innerHTML = data.category.name;
+      document.getElementById('category_star').style.color = data.category.star;
+      const prodlist = document.getElementById("prodlist");
+      prodlist.innerHTML = "";
+      const categorylist = document.getElementById("category_list");
+      categorylist.innerHTML = "";
+      for (let item of data.allCategories) {
+        const html = `<p onClick = "getCategory(` + item.id + `)" title = "Auswahl der Category" style = "padding: 10px; margin: 5px">` + item.name + "</p>";
+        categorylist.insertAdjacentHTML("beforeend", html);
+      }
+      hidePanels();
+
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
+  }
+}
+
+async function deleteCategory() {
+  if (!document.getElementsByClassName('prod')[0]) {
+    const id = document.getElementById('category_id').value;
+    const response = await fetch("/sure/cat/del/" + id);
+
+    if (response.status === 200) {
+      getCategory();
+      const category_list = document.getElementById("category_list");
+      const category = document.getElementById('category_list' + id);
+      category_list.removeChild(category);
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
+  } else {
+    alert("Zum Löschen müssen zunächst alle Produkte dieser Kategorie entfernt werden.")
+  }
+  hidePanels();
+}
+
+async function toggleCategoryPrio() {
+  const response = await fetch("/sure/cat/star/" + document.getElementById('category_id').value);
 
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_id').value = data.category.id;
-    document.getElementById('category_name').innerHTML = data.category.name;
-    const prodlist = document.getElementById("prodlist");
-    prodlist.innerHTML = "";
-    for (let item of data.products) {
-      const response = await fetch("/sure/head/" + item.id);
-
-      if (response.status === 200) {
-        const data = await response.json();
-        prodlist.insertAdjacentHTML("beforeend", data.html);
-      } else {
-        alert(response.statusText + " (#" + response.status + ")");
-        return;
-      }
+    document.getElementById('category_star').style.color = data.category.star;
+    const categorylist = document.getElementById("category_list");
+    categorylist.innerHTML = "";
+    for (let item of data.allCategories) {
+      const html = `<p onClick = "getCategory(` + item.id + `)" title = "Auswahl der Category" style = "padding: 10px; margin: 5px">` + item.name + "</p>";
+      categorylist.insertAdjacentHTML("beforeend", html);
     }
-  }
-  else {
+  } else {
     alert(response.statusText + " (#" + response.status + ")");
     return;
   }
-  hideMenues();
 }
 
-async function newProdukt() {
-  const prodName = prompt("Name des Produkts:")
+// Products
+
+async function renameProduct(itemId) {
+  const prodName = prompt("Neuer Produktname:", document.getElementById("name" + itemId).innerHTML);
   if (prodName && prodName.trim().length != 0) {
-    const response = await fetch("/sure/pro/" + encodeURI(prodName.trim()) + "/" + document.getElementById("category_id").value);
+    const response = await fetch("/sure/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + itemId);
+
+    if (response.status === 200) {
+      const data = await response.json();
+      document.getElementById("name" + itemId).innerHTML = data.name;
+      if (document.getElementById("timestamp" + itemId)) document.getElementById("timestamp" + itemId).innerHTML = data.timestamp;
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
+  }
+}
+
+async function createProdukt() {
+  const prodName = prompt("Name des Produkts:")
+  if (prodName && prodName.trim().length !== 0) {
+    const response = await fetch("/sure/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()));
 
     if (response.status === 200) {
       const data = await response.json();
@@ -75,28 +201,10 @@ async function newProdukt() {
   }
 }
 
-async function rename(itemId) {
-  const nameElement = document.getElementById("name" + itemId);
-  const oldName = nameElement.innerHTML;
-  const newName = prompt("Neuer Produktname:", oldName);
-  if (newName && newName.trim().length != 0) {
-    const response = await fetch("/sure/nam/" + itemId + "/" + encodeURI(newName));
-
-    if (response.status === 200) {
-      const data = await response.json();
-      nameElement.innerHTML = data.name;
-      document.getElementById("timestamp" + itemId).innerHTML = data.timestamp;
-    } else {
-      alert(response.statusText + " (#" + response.status + ")");
-      return;
-    }
-  }
-}
-
-async function deleteItem(itemId) {
+async function deleteProduct(itemId) {
   const name = document.getElementById("name" + itemId).innerHTML;
   if (confirm('"' + name + '" löschen?')) {
-    const response = await fetch("/sure/del/" + itemId);
+    const response = await fetch("/sure/pro/del/" + itemId);
 
     if (response.status === 200) {
       const prodlist = document.getElementById("prodlist");
@@ -109,25 +217,7 @@ async function deleteItem(itemId) {
   }
 }
 
-async function delete_category() {
-  if (document.getElementsByClassName('prod').length === 0) {
-    const id = document.getElementById('category_id').value;
-    const response = await fetch("/sure/del/cat/" + id);
-
-    if (response.status === 200) {
-      getCategory();
-      const category_list = document.getElementById("category_list");
-      const category = document.getElementById('category_list' + id);
-      category_list.removeChild(category);
-    } else {
-      alert(response.statusText + " (#" + response.status + ")");
-      return;
-    }
-  } else {
-    alert("Zum Löschen müssen zunächst alle Produkte dieser Kategorie entfernt werden.")
-  }
-  hideMenues();
-}
+// Entry list
 
 function handleGetEntry(itemId, year, month) {
   if (document.getElementById('edit' + itemId).style.display === "none") {
@@ -164,62 +254,27 @@ async function updateItemEntry(itemId, action) {
   }
 }
 
-function select_category() {
+// on Page
+function selectCategoryPanel() {
   document.getElementById('select_category').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
 }
 
-function new_category() {
+function newCategoryPanel() {
   document.getElementById('new_category').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
   document.getElementById('select_category').style.display = 'none';
+  document.getElementById('new_category_name').focus();
 }
 
-async function save_new_category() {
-  const catName = document.getElementById("new_category_name").value;
-  if (catName && catName.trim().length != 0) {
-    const response = await fetch("/sure/cat/" + encodeURI(catName.trim()));
-
-    if (response.status === 201) {
-      const data = await response.json();
-      document.getElementById('category_id').value = data.category.id;
-      document.getElementById('category_name').innerHTML = data.category.name;
-      const prodlist = document.getElementById("prodlist");
-      prodlist.innerHTML = "";
-      const categorylist = document.getElementById("category_list");
-      categorylist.innerHTML = "";
-      for (let item of data.allCategories) {
-        const html = `<p onClick = "getCategory(" + item.id + ")" title = "Auswahl der Category" style = "padding: 10px; margin: 5px">` + item.name + "</p>";
-        categorylist.insertAdjacentHTML("beforeend", html);
-      }
-      hideMenues();
-
-    } else {
-      alert(response.statusText + " (#" + response.status + ")");
-      return;
-    }
-  }
-}
-
-function edit_category() {
+function renameCategoryPanel() {
   document.getElementById('edit_category_name').value = document.getElementById('category_name').innerHTML
   document.getElementById('edit_category').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
+  document.getElementById('edit_category_name').focus();
 }
 
-async function save_edited_category() {
-  const response = await fetch("/sure/cat/" + document.getElementById('edit_category_name').value + "/" + document.getElementById('category_id').value);
-
-  if (response.status === 200) {
-    document.getElementById('category_name').innerHTML = document.getElementById('edit_category_name').value 
-    hideMenues();
-  } else {
-    alert(response.statusText + " (#" + response.status + ")");
-    return;
-  }
-}
-
-function hideMenues() {
+function hidePanels() {
   document.getElementById('transparent').style.display = 'none';
   document.getElementById('select_category').style.display = 'none';
   document.getElementById('new_category').style.display = 'none';
@@ -228,22 +283,4 @@ function hideMenues() {
   document.getElementById('edit_category_name').value = "";
 }
 
-async function appReady() {
-  const prods = document.getElementsByClassName("prod");
-  for (let i = 0; i < prods.length; i++) {
-    if (prods[i].attributes["index"]) {
-      const itemId = prods[i].attributes["index"].value;
-      const response = await fetch("/sure/head/" + itemId);
-
-      if (response.status === 200) {
-        const data = await response.json();
-        prods[i].outerHTML = data.html;
-      } else {
-        alert(response.statusText + " (#" + response.status + ")");
-        return;
-      }
-    }
-  };
-
-}
 

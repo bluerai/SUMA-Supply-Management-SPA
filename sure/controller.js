@@ -3,8 +3,11 @@ import { fileURLToPath } from 'url';
 import { logger } from '../log.js'
 
 import {
-  getCategory, getData, createItem, getItem, createCategory, updateItemEntry, renameItem, deleteItem, deleteCategory,
-  evalItem, connectDb, unconnectDb } from './model.js';
+  getCategory, getItem, getAllItems,
+  createCategory, renameCategory, deleteCategory, toggleCategoryStar, 
+  createItem, renameItem, deleteItem,
+  updateItemEntry, evalItem, connectDb, unconnectDb
+} from './model.js';
 
 const PUSHOVER_URL = process.env.PUSHOVER_URL;
 const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
@@ -20,15 +23,15 @@ export async function startAction(request, response) {
   catch (error) { errorHandler(error, 'startAction', response) }
 }
 
-export async function categoryAction(request, response) {
-  logger.info("categoryAction: request.params=" + JSON.stringify(request.params));
+export async function getCategoryAction(request, response) {
+  logger.info("getCategoryAction: request.params=" + JSON.stringify(request.params));
   try {
     const categoryId = parseInt(request.params.id);
     let data = getCategory(categoryId);
-    logger.debug("categoryAction: data=" + JSON.stringify(data));
+    logger.debug("getCategoryAction: data=" + JSON.stringify(data));
     response.send(data);
   }
-  catch (error) { errorHandler(error, 'categoryAction', response) }
+  catch (error) { errorHandler(error, 'getCategoryAction', response) }
 }
 
 export async function getHeadAction(request, response) {
@@ -57,7 +60,7 @@ export async function getDetailsAction(request, response) {
     //logger.info("getDetailsAction: item=" + JSON.stringify(item));
     response.render(dirname(fileURLToPath(import.meta.url)) + '/views/itemDetails', { item: item }, function (error, html) {
       if (error) {
-        console.logger.info(error);
+        errorHandler(error, 'getDetailsAction', response)
       } else {
         //logger.info("getDetailsAction: html.length=" + html.length);
         response.send({ html });
@@ -84,7 +87,7 @@ export async function updateAction(request, response) {
         response.locals.sum = item.sum;
         response.render(dirname(fileURLToPath(import.meta.url)) + '/views/itemDetails', { item: item }, function (error, html) {
           if (error) {
-            console.logger.info(error);
+            errorHandler(error, 'updateAction render', response)
           } else {
             //logger.info("getDetailsAction: html.length=" + html.length);
             response.send({ html: html, sum: response.locals.sum });
@@ -99,7 +102,54 @@ export async function updateAction(request, response) {
   catch (error) { errorHandler(error, 'updateAction', response) }
 }
 
-export async function renameAction(request, response) {
+export async function renameCategoryAction(request, response) {
+  logger.info("renameCategoryAction: request.params=" + JSON.stringify(request.params));
+  try {
+    const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
+    const categoryId = (request.params.id) && parseInt(request.params.id, 10);
+    renameCategory(categoryId, categoryName);
+    response.writeHead(200, 'Category "' + categoryId + " successfully updated.", { 'content-type': 'text/html' });
+    response.end();
+  }
+  catch (error) { errorHandler(error, 'renameCategoryAction', response) }
+}
+
+export async function createCategoryAction(request, response) {
+  logger.info("createCategoryAction: request.params=" + JSON.stringify(request.params));
+  try {
+    const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
+    const categoryId = createCategory(categoryName);
+    logger.info("createCategoryAction: created id=" + categoryId);
+    let data = getCategory(categoryId);
+    logger.debug("createCategoryAction: data=" + JSON.stringify(data));
+    response.status(201).send(data);
+  }
+  catch (error) { errorHandler(error, 'createCategoryAction', response) }
+}
+
+export async function deleteCategoryAction(request, response) {  //TODO
+  logger.info("deleteCategoryAction: request.params=" + JSON.stringify(request.params));
+  try {
+    const id = (request.params.id) && parseInt(request.params.id, 10);
+    deleteCategory(id);
+    response.writeHead(200, "Änderungen gesichert.", { 'content-type': 'text/html' });
+    response.end();
+  }
+  catch (error) { errorHandler(error, 'deleteCategoryAction', response) }
+}
+
+export async function toggleCategoryStarAction(request, response) {
+  logger.info("toggleCategoryStarAction" + JSON.stringify(request.params));
+  try {
+    const categoryId = parseInt(request.params.id);
+    let data = toggleCategoryStar(categoryId);
+    logger.debug("toggleCategoryStarAction: data=" + JSON.stringify(data));
+    response.send(data);
+  }
+  catch (error) { errorHandler(error, 'toggleCategoryStarAction', response) }
+}
+
+export async function renameProductAction(request, response) {
   logger.info("renameAction: request.params=" + JSON.stringify(request.params));
   try {
     const id = (request.params.id) && parseInt(request.params.id, 10);
@@ -113,52 +163,23 @@ export async function renameAction(request, response) {
   catch (error) { errorHandler(error, 'renameAction', response) }
 }
 
-export async function newProductAction(request, response) {
-  logger.info("newProductAction: request.params=" + JSON.stringify(request.params));
+export async function createProductAction(request, response) {
+  logger.info("createProductAction: request.params=" + JSON.stringify(request.params));
   try {
     const itemName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
     const categoryId = (request.params.catid) && parseInt(request.params.catid, 10);
     const newItemId = createItem(categoryId, itemName);
-    logger.info("newProductAction: itemId=" + newItemId);
+
+    logger.info("createProductAction: id=" + newItemId);
     const item = getItem(newItemId);
-
     response.render(dirname(fileURLToPath(import.meta.url)) + '/views/itemHead', { item: item }, function (error, html) {
-      if (error) {
-        console.logger.info(error);
-      } else {
-        logger.info("newProductAction: html.length=" + html.length);
-
-        response.send({ html });
-      }
-    })
+      response.send({ html });
+    });
   }
-  catch (error) { errorHandler(error, 'newProductAction', response) }
+  catch (error) { errorHandler(error, 'productAction', response) }
 }
 
-
-export async function newCategoryAction(request, response) {
-  logger.info("newCategoryAction: request.params=" + JSON.stringify(request.params));
-  try {
-    const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
-    const categoryId = (request.params.id) && parseInt(request.params.id, 10);
-    if (categoryId) {
-      //TODO  updateCategory(categoryId, categoryName);
-      logger.info("newCategoryAction: update id=" + categoryId);
-      response.writeHead(200, 'Category "' + categoryId + " successfully updated.", { 'content-type': 'text/html' });
-      response.end();
-    } else {
-      const categoryId = createCategory(categoryName);
-      logger.info("newCategoryAction: created id=" + categoryId);
-      let data = getCategory(categoryId);
-      logger.debug("newCategoryAction: data=" + JSON.stringify(data));
-      response.status(201).send(data);
-    }
-  }
-  catch (error) { errorHandler(error, 'newCategoryAction', response) } 
-}
-
-
-export async function deleteProductAction(request, response) {  //TODO
+export async function deleteProductAction(request, response) {
   logger.info("deleteProductAction: request.params=" + JSON.stringify(request.params));
   try {
     const id = (request.params.id) && parseInt(request.params.id, 10);
@@ -169,24 +190,10 @@ export async function deleteProductAction(request, response) {  //TODO
   catch (error) { errorHandler(error, 'deleteProductAction', response) }
 }
 
-
-export async function deleteCategoryAction(request, response) {  //TODO
-  logger.info("deleteCategoryAction: request.params=" + JSON.stringify(request.params));
-  try {
-    const id = (request.params.id) && parseInt(request.params.id, 10);
-    deleteCategory(id);
-    response.writeHead(200, "Änderungen gesichert.", { 'content-type': 'text/html' });
-    response.end();
-  }
-  catch (error) { errorHandler(error, 'deleteCategoryAction', response) }
-}
-
 export function evalAction(request, response) {
   try {
     connectDb();
-    let data = getData();
-    //logger.info("evalAction: data=" + JSON.stringify(data));
-
+    let data = getAllItems();
     let changeCount = 0;
     for (let item of data) {
       (item.entry_list) && (evalItem(item)) && changeCount++;
@@ -199,7 +206,6 @@ export function evalAction(request, response) {
     response.json({ state: true, msg: msg });
   }
   catch (error) {
-    console.error(error);
     const msg = "SURE: Interner Server-Fehler in 'evalAction': " + error.message;
     logger.info(msg, 2);
     pushover(msg, "Warnung", 0, "pushover");
@@ -209,43 +215,41 @@ export function evalAction(request, response) {
 
 export async function dbAction(request, response) {
   try {
-    //logger.info("dbAction: request.url=" + request.url);
     const result = (request.url === "/unconnectdb") ? unconnectDb() : connectDb();
+    logger.debug(result);
     response.json(result);
   }
   catch (error) { errorHandler(error, 'dbAction') }
 }
 
 async function pushover(msg, title, prio, sound) {
-  try {
-    if (!PUSHOVER_URL || !PUSHOVER_TOKEN || !PUSHOVER_USER) {
-      logger.info("pushover: No pushover url or no credentials supplied.", 0)
-      return;
-    }
-    const headers = { "Content-Type": "application/json" };
-    const body = JSON.stringify({
-      token: PUSHOVER_TOKEN,
-      user: PUSHOVER_USER,
-      title: title,
-      priority: prio,
-      sound: sound,
-      message: msg,
-    });
-    const response = await fetch(PUSHOVER_URL, {
-      method: "POST", headers, body
-    });
-    if (!response.ok) {
-      throw new Error("Sending Pushover message failed: " + response.status, 2);
-    }
-    const data = await response.json();
-    logger.info("Pushover message successfully sent: " + JSON.stringify(data), 0);
-  } catch (error) { console(error) }
+  if (!PUSHOVER_URL || !PUSHOVER_TOKEN || !PUSHOVER_USER) {
+    logger.info("pushover: No pushover url or no credentials supplied.", 0)
+    return;
+  }
+  const headers = { "Content-Type": "application/json" };
+  const body = JSON.stringify({
+    token: PUSHOVER_TOKEN,
+    user: PUSHOVER_USER,
+    title: title,
+    priority: prio,
+    sound: sound,
+    message: msg,
+  });
+  const response = await fetch(PUSHOVER_URL, {
+    method: "POST", headers, body
+  });
+  if (!response.ok) {
+    throw new Error("Sending Pushover message failed: " + response.status, 2);
+  }
+  const data = await response.json();
+  logger.info("Pushover message successfully sent: " + JSON.stringify(data), 0);
 }
 
 export async function healthAction(request, response) {
-  logger.info("healthAction");
+  logger.debug("healthAction");
   try {
-    const count = getData().length;
+    const count = getAllItems().length;
     response.json({ healthy: true, count });
   }
   catch (error) {
@@ -253,6 +257,7 @@ export async function healthAction(request, response) {
     response.json({ healthy: false, error: error.message });
   }
 }
+
 
 function errorHandler(error, actionName, response) {
   const message = "Cassis: Interner Server-Fehler in '" + actionName + "': " + error.message;

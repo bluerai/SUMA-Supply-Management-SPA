@@ -7,7 +7,7 @@ div.prod(id="prod" + item.id)
       span 
         i.fa-solid.fa-circle(style="position:relative;bottom:1px;font-size:12px;margin-right: 5px;color: " + item.state)
       span(id="name" + item.id) #{item.name}
-      span(id="pencil" title="Umbenennen" style="color:grey;padding-left: 5px; font-size: 14px" onclick="rename('" + item.id + "')")
+      span(id="pencil" title="Umbenennen" style="color:grey;padding-left: 5px; font-size: 14px" onclick="renameProduct('" + item.id + "')")
         i.fa.fa-pencil
       span(style="font-weight: normal;float: right; padding-right: 5px;font-size: 16px") Bestand: 
         span(id="sum" + item.id) #{item.sum || 0}

@@ -1,24 +1,29 @@
 import { Router } from 'express';
 
 import {
-  startAction, categoryAction, getHeadAction, getDetailsAction, newProductAction, newCategoryAction, updateAction, renameAction,
-  deleteProductAction, deleteCategoryAction, evalAction, healthAction, dbAction
+  startAction, getHeadAction, getDetailsAction, getCategoryAction,
+  renameCategoryAction, createCategoryAction, deleteCategoryAction, toggleCategoryStarAction,
+  renameProductAction, createProductAction, deleteProductAction,
+  updateAction, evalAction, healthAction, dbAction
 } from './controller.js';
 
 const router = Router();
 
 router.get('/', startAction);
+router.get('/get/:id', getCategoryAction);
 router.get('/head/:id', getHeadAction);
 router.get('/details/:id', getDetailsAction);
-router.get('/category/:id', categoryAction);
 
-router.get('/pro/:nam/:catid', newProductAction);
-router.get('/cat/:nam/:id?', newCategoryAction);
+router.get('/cat/star/:id', toggleCategoryStarAction);
+router.get('/cat/del/:id', deleteCategoryAction);
+router.get('/cat/:nam/:id', renameCategoryAction);
+router.get('/cat/:nam/', createCategoryAction);
+
+router.get('/pro/del/:id', deleteProductAction);
+router.get('/pro/:catid/:nam/:id', renameProductAction);
+router.get('/pro/:catid/:nam', createProductAction);
+
 router.post('/upd', updateAction);
-
-router.get('/del/pro/:id', deleteProductAction); 
-router.get('/del/cat/:id', deleteCategoryAction);
-router.get('/nam/:id/:nam', renameAction);
 router.get('/eval', evalAction);
 router.get('/health', healthAction);
 

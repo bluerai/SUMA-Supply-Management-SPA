@@ -176,6 +176,10 @@ select {
   cursor: pointer;
 }
 
+#category_star {
+  cursor: pointer;
+}
+
 #edit_category {
   right: calc(50% - 100px);
 }
