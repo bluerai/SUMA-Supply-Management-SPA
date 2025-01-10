@@ -16,10 +16,35 @@ fs.pathExists(SURE_DB, (err, exists) => {
       logger.info('Connected to SURE database at "' + SURE_DB + '".');
     }
   } else {
-    /*   DDL   */
-    /*   DB.exec(` ... `);
-         DB.exec(`...`);
-         logger.info('A new SURE database was successfully created and opened at "' + SURE_DB + '".'); */
+    DB.exec(`CREATE TABLE IF NOT EXISTS category (
+    id   INTEGER   PRIMARY KEY ON CONFLICT ROLLBACK AUTOINCREMENT UNIQUE NOT NULL,
+    name TEXT (16) NOT NULL UNIQUE,
+    prio INTEGER   DEFAULT (0) 
+);
+`);
+    DB.exec(`CREATE TABLE IF NOT EXISTS product (
+    id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    category_id INTEGER REFERENCES category (id) ON DELETE RESTRICT,
+    name        TEXT    NOT NULL,
+    notes       TEXT,
+    sum         INTEGER,
+    state       TEXT,
+    entry_list  TEXT,
+    moddate     INTEGER DEFAULT (strftime('%s') ) 
+);
+`);
+    /* not used:
+    DB.exec(`CREATE TABLE IF NOT EXISTS entry (
+    id                     PRIMARY KEY,
+    product_id INTEGER     REFERENCES product (id) ON DELETE RESTRICT
+                           NOT NULL,
+    year       INTEGER (4) NOT NULL ON CONFLICT FAIL,
+    month      INTEGER (2) NOT NULL ON CONFLICT FAIL,
+    count      INTEGER     NOT NULL,
+    moddate    INTEGER     DEFAULT (strftime('%s') ) 
+);
+`); */
+    logger.info('A new SURE database was successfully created and opened at "' + SURE_DB + '".'); 
   }
 })
 
@@ -35,7 +60,7 @@ export function connectDb() {  // open database
 export function unconnectDb() {  // close database 
   try {
     DB.close();
-    return("SURE unconnectDb: DB closed", 1);
+    return ("SURE unconnectDb: DB closed", 1);
   } catch (error) {
     return "SURE unconnectDb: " + error;
   }
@@ -43,18 +68,65 @@ export function unconnectDb() {  // close database
 
 const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
 
-export function getCategory(categoryId) {
-  const selectAllCategoriesStmt = DB.prepare(`SELECT id, name, prio, CASE WHEN prio = 0 THEN 'white' ELSE 'blue' END as star FROM category order by prio desc, name asc `);
-  const categories = selectAllCategoriesStmt.all();
 
+function oneCategory(id) {
+  const getCategoryStmt = DB.prepare(`SELECT id, name, prio FROM category where id = ?`);
+  return getCategoryStmt.get(id);
+}
+
+export function allCategories() {
+  const selectAllCategoriesStmt = DB.prepare(`SELECT id, name, prio FROM category order by prio desc, name asc `);
+  return selectAllCategoriesStmt.all();
+}
+
+export function getCategory(categoryId) {
+  const categories = allCategories();
+
+  if (categories.length === 0) return null;
+  
   categoryId = categoryId || categories[0].id;
-  const category = categories.find(cat => cat.id === categoryId);
+  const category = oneCategory(categoryId);
   logger.debug("getProducts: category=" + JSON.stringify(category));
 
   const selectProductsStmt = DB.prepare(`SELECT id FROM product where category_id = ? order by name asc`);
   const products = selectProductsStmt.all(categoryId);
-  return { "category": category, "products": products, "allCategories": categories };
+
+  return { "category": category, "products": products };
 };
+
+export function createCategory(itemName) {
+  const insertStmt = DB.prepare(`INSERT INTO category (name) VALUES (?)`);
+  const { lastInsertRowid } = insertStmt.run(itemName);
+  logger.debug("createCategory: category " + lastInsertRowid + " created");
+  return { category: oneCategory(lastInsertRowid) }
+}
+
+export function renameCategory(id, name) {
+  const updateNameStmt = DB.prepare(`UPDATE category SET name = ? WHERE id = ?`);
+  const { changes } = updateNameStmt.run(name, id);
+  logger.debug("renameCategorie: item renamed - rows changed=" + changes);
+  return { category: oneCategory(id) }
+}
+
+export function deleteCategory(id) {
+  const deleteStmt = DB.prepare(`DELETE FROM category WHERE id = ?`);
+  const { changes } = deleteStmt.run(id);
+  logger.debug("deleteCategory: category " + id + " deleted - rows deleted=" + changes);
+}
+
+export function toggleCategoryStar(categoryId) {
+  const toggleStmt = DB.prepare(`UPDATE category SET prio = CASE WHEN prio = 0 THEN 1 ELSE 0 END WHERE id = ?`);
+  const { changes } = toggleStmt.run(categoryId);
+  logger.debug("toggleCategoryStar: category " + categoryId + " toggled - rows changed=" + changes);
+  return { category: oneCategory(categoryId) }
+}
+
+export function createItem(categoryId, itemName) {
+  const insertStmt = DB.prepare(`INSERT INTO product (name, category_id, entry_list) VALUES (?, ?, ?)`);
+  const { lastInsertRowid } = insertStmt.run(itemName, categoryId, "[]");
+  logger.debug("createItem: item " + lastInsertRowid + " created");
+  return lastInsertRowid;
+}
 
 export function getItem(id) {
   const selectByIdStmt = DB.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product where id=?`);
@@ -73,45 +145,6 @@ export function getAllItems() {
   return data;
 };
 
-export function createCategory(itemName) {
-  const insertStmt = DB.prepare(`INSERT INTO category (name) VALUES (?)`);
-  const { lastInsertRowid } = insertStmt.run(itemName);
-  logger.debug("createCategory: category " + lastInsertRowid + " created");
-  return lastInsertRowid;
-}
-
-export function renameCategory(id, name) {
-  const updateNameStmt = DB.prepare(`UPDATE category SET name = ? WHERE id = ?`);
-  const { changes } = updateNameStmt.run(name, id);
-  logger.debug("renameCategorie: item renamed - rows changed=" + changes);
-}
-
-export function deleteCategory(id) {
-  const deleteStmt = DB.prepare(`DELETE FROM category WHERE id = ?`);
-  const { changes } = deleteStmt.run(id);
-  logger.debug("deleteCategory: category " + id + " deleted - rows deleted=" + changes);
-}
-
-export function toggleCategoryStar(categoryId) {
-  const toggleStmt = DB.prepare(`UPDATE category SET prio = CASE WHEN prio = 0 THEN 1 ELSE 0 END WHERE id = ?`);
-  const { changes } = toggleStmt.run(categoryId);
-  logger.debug("deleteCategory: category " + categoryId + " toggled - rows changed=" + changes);
-
-  const selectAllCategoriesStmt = DB.prepare(`SELECT id, name, prio, CASE WHEN prio = 0 THEN 'white' ELSE 'blue' END as star FROM category order by prio desc, name asc `);
-  const categories = selectAllCategoriesStmt.all();
-
-  categoryId = categoryId || categories[0].id;
-  const category = categories.find(cat => cat.id === categoryId);
-
-  return { "category": category, "allCategories": categories };
-}
-
-export function createItem(categoryId, itemName) {
-  const insertStmt = DB.prepare(`INSERT INTO product (name, category_id, entry_list) VALUES (?, ?, ?)`);
-  const { lastInsertRowid } = insertStmt.run(itemName, categoryId, "[]");
-  logger.debug("createItem: item " + lastInsertRowid + " created");
-  return lastInsertRowid;
-}
 
 export function renameItem(id, name) {
   const updateNameStmt = DB.prepare(`UPDATE product SET name = ? WHERE id = ?`);

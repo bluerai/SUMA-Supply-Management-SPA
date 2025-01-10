@@ -1,0 +1,5 @@
+#category_list
+  - for(let item of allCategories)
+    p(onClick="getCategory(" + item.id + ")" title="Auswahl der Category")
+      i.fa-solid.fa-star(style="font-size: 12px" class="prio" + item.prio)
+      span #{item.name}

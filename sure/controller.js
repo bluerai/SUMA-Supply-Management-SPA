@@ -3,8 +3,8 @@ import { fileURLToPath } from 'url';
 import { logger } from '../log.js'
 
 import {
-  getCategory, getItem, getAllItems,
-  createCategory, renameCategory, deleteCategory, toggleCategoryStar, 
+  getCategory, getItem, getAllItems, allCategories,
+  createCategory, renameCategory, deleteCategory, toggleCategoryStar,
   createItem, renameItem, deleteItem,
   updateItemEntry, evalItem, connectDb, unconnectDb
 } from './model.js';
@@ -16,22 +16,40 @@ const PUSHOVER_USER = process.env.PUSHOVER_USER;
 export async function startAction(request, response) {
   logger.info("startAction: request.url=" + JSON.stringify(request.url));
   try {
-    const data = getCategory();
-    logger.debug("startAction: data=" + JSON.stringify(data));
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/start', { data })
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/start')
   }
   catch (error) { errorHandler(error, 'startAction', response) }
+}
+
+export async function getCategoryListAction(request, response) {
+  logger.info("getCategoryListAction: request.params=" + JSON.stringify(request.params));
+  try {
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_list', { allCategories: allCategories() }, function (error, html) {
+      if (error) { logger.error(error); logger.debug(error.stack); return }
+      logger.debug("Category_list: html.length=" + html.length);
+      response.status(200).send({ category: response.locals.category, html: html });
+    })
+  }
+  catch (error) { errorHandler(error, 'renameCategoryAction', response) }
 }
 
 export async function getCategoryAction(request, response) {
   logger.info("getCategoryAction: request.params=" + JSON.stringify(request.params));
   try {
-    const categoryId = parseInt(request.params.id);
-    let data = getCategory(categoryId);
+    const categoryId = (request.params.id) && parseInt(request.params.id, 10);
+    const data = getCategory(categoryId);
+
+    logger.info("getCategoryAction: categoryId=" + data.category.id);
     logger.debug("getCategoryAction: data=" + JSON.stringify(data));
-    response.send(data);
+    response.locals.products = data.products;
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+      if (error) { logger.error(error); logger.debug(error.stack); return }
+      logger.debug("Category_list: html.length=" + html.length);
+      response.status(200).send({ html: html, products: response.locals.products });
+    })
   }
-  catch (error) { errorHandler(error, 'getCategoryAction', response) }
+  catch (error) { errorHandler(error, 'renameCategoryAction', response) }
+
 }
 
 export async function getHeadAction(request, response) {
@@ -107,9 +125,16 @@ export async function renameCategoryAction(request, response) {
   try {
     const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
     const categoryId = (request.params.id) && parseInt(request.params.id, 10);
-    renameCategory(categoryId, categoryName);
-    response.writeHead(200, 'Category "' + categoryId + " successfully updated.", { 'content-type': 'text/html' });
-    response.end();
+    const data = renameCategory(categoryId, categoryName);
+
+    logger.info("renameCategoryAction: id=" + data.category.id);
+    logger.debug("renameCategoryAction: data=" + JSON.stringify(data));
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+      if (error) { logger.error(error); logger.debug(error.stack); return }
+      logger.debug("Category_list: html=" + html);
+      logger.debug("Category_head: html.length=" + html.length);
+      response.status(200).send({ html: html });
+    })
   }
   catch (error) { errorHandler(error, 'renameCategoryAction', response) }
 }
@@ -118,11 +143,16 @@ export async function createCategoryAction(request, response) {
   logger.info("createCategoryAction: request.params=" + JSON.stringify(request.params));
   try {
     const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
-    const categoryId = createCategory(categoryName);
-    logger.info("createCategoryAction: created id=" + categoryId);
-    let data = getCategory(categoryId);
+    const data = createCategory(categoryName);
+
+    logger.info("createCategoryAction: categoryId=" + data.category.id);
     logger.debug("createCategoryAction: data=" + JSON.stringify(data));
-    response.status(201).send(data);
+
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+      if (error) { logger.error(error); logger.debug(error.stack); return }
+      logger.debug("Category_list: html.length=" + html.length);
+      response.status(200).send({ html: html });
+    })
   }
   catch (error) { errorHandler(error, 'createCategoryAction', response) }
 }
@@ -132,8 +162,20 @@ export async function deleteCategoryAction(request, response) {  //TODO
   try {
     const id = (request.params.id) && parseInt(request.params.id, 10);
     deleteCategory(id);
-    response.writeHead(200, "Änderungen gesichert.", { 'content-type': 'text/html' });
-    response.end();
+
+    const data = getCategory();
+
+    if (!data) { response.status(200).send({ html: "", products: [] }); return; }
+
+    logger.info("deleteCategoryAction: categoryId=" + data.category.id);
+    logger.debug("deleteCategoryAction: data=" + JSON.stringify(data));
+    response.locals.products = data.products;
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+      if (error) { logger.error(error); logger.debug(error.stack); return }
+      logger.debug("Category_list: html.length=" + html.length);
+      response.status(200).send({ html: html, products: response.locals.products });
+
+    })
   }
   catch (error) { errorHandler(error, 'deleteCategoryAction', response) }
 }
@@ -143,8 +185,14 @@ export async function toggleCategoryStarAction(request, response) {
   try {
     const categoryId = parseInt(request.params.id);
     let data = toggleCategoryStar(categoryId);
+
+    logger.info("toggleCategoryStarAction: id=" + data.category.id);
     logger.debug("toggleCategoryStarAction: data=" + JSON.stringify(data));
-    response.send(data);
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+      if (error) { logger.error(error); logger.debug(error.stack); return }
+      logger.debug("Category_head: html.length=" + html.length);
+      response.status(200).send({ html: html });
+    })
   }
   catch (error) { errorHandler(error, 'toggleCategoryStarAction', response) }
 }
@@ -262,6 +310,7 @@ export async function healthAction(request, response) {
 function errorHandler(error, actionName, response) {
   const message = "Cassis: Interner Server-Fehler in '" + actionName + "': " + error.message;
   logger.error(message);
+  logger.debug(error.stack);
   if (response) {
     response.writeHead(500, message, { 'content-type': 'text/html' });
     response.end();

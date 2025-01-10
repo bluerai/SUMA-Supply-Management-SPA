@@ -89,7 +89,6 @@ div.box {
   margin-bottom: 20px;
 }
 
-#pencil,
 .tab td {
   cursor: pointer;
 }
@@ -172,30 +171,51 @@ select {
   box-shadow: -12px 12px 5px 0px hsla(200, 3%, 64%, 0.66);
   border: 2px solid hsla(200, 3%, 64%, 0.66);
   z-index: 100;
-  width: 200px;
+  min-width: 200px;
   cursor: pointer;
 }
 
+.fa,
+.fa-solid,
+.fa-regular {
+  font-size: 24px;
+  color: black;
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+.fa-pencil,
 #category_star {
   cursor: pointer;
+}
+
+.prio1 {
+  color: blue;
+}
+
+.prio0 {
+  color: white;
 }
 
 #edit_category {
   right: calc(50% - 100px);
 }
 
-/* Style the links inside the dropdown */
 #select_category p,
 #new_category input,
 #edit_category input {
   float: none;
   font-size: 18px;
-  padding: 5px 10px;
   background-color: white;
   text-decoration: none;
   display: block;
   text-align: left;
   color: black;
+}
+
+#select_category p {
+  padding: 10px;
+  margin: 5px;
 }
 
 #new_category input,

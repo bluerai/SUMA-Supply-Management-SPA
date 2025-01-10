@@ -2,21 +2,7 @@
 // read database 
 
 async function appReady() {
-  const prods = document.getElementsByClassName("prod");
-  for (let i = 0; i < prods.length; i++) {
-    if (prods[i].attributes["index"]) {
-      const itemId = prods[i].attributes["index"].value;
-      const response = await fetch("/sure/head/" + itemId);
-
-      if (response.status === 200) {
-        const data = await response.json();
-        prods[i].outerHTML = data.html;
-      } else {
-        alert(response.statusText + " (#" + response.status + ")");
-        return;
-      }
-    }
-  };
+  getCategory();
 }
 
 async function getCategory(id) {
@@ -24,29 +10,43 @@ async function getCategory(id) {
 
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_id').value = data.category.id;
-    document.getElementById('category_name').innerHTML = data.category.name;
-    document.getElementById('category_star').style.color = data.category.star;
+    document.getElementById('category_head').innerHTML = data.html;
 
-    const prodlist = document.getElementById("prodlist");
-    prodlist.innerHTML = "";
-    for (let item of data.products) {
-      const response = await fetch("/sure/head/" + item.id);
-
-      if (response.status === 200) {
-        const data = await response.json();
-        prodlist.insertAdjacentHTML("beforeend", data.html);
-      } else {
-        alert(response.statusText + " (#" + response.status + ")");
-        return;
-      }
-    }
+    updateProductList(data.products);
+    updateCategoryList();
   }
   else {
     alert(response.statusText + " (#" + response.status + ")");
     return;
   }
   hidePanels();
+}
+
+async function updateCategoryList() {
+  const response = await fetch("/sure/list");
+  if (response.status === 200) {
+    const data = await response.json();
+    document.getElementById('category_list').innerHTML = data.html;
+  } else {
+    alert(response.statusText + " (#" + response.status + ")");
+    return;
+  }
+}
+
+async function updateProductList(products) {
+  const prodlist = document.getElementById("prodlist");
+  prodlist.innerHTML = "";
+  for (let item of products) {
+    const response = await fetch("/sure/head/" + item.id);
+
+    if (response.status === 200) {
+      const data = await response.json();
+      prodlist.insertAdjacentHTML("beforeend", data.html);
+    } else {
+      alert(response.statusText + " (#" + response.status + ")");
+      return;
+    }
+  }
 }
 
 async function toggleDetails(itemId) {
@@ -90,14 +90,17 @@ async function renameCategory() {
     const response = await fetch("/sure/cat/" + encodeURIComponent(catName.trim()) + "/" + document.getElementById('category_id').value);
 
     if (response.status === 200) {
-      document.getElementById('category_name').innerHTML = document.getElementById('edit_category_name').value
-      document.getElementById('category_list' + document.getElementById('category_id').value).innerHTML = document.getElementById('edit_category_name').value
+      const data = await response.json();
+
+      document.getElementById('category_head').innerHTML = data.html;
+      updateCategoryList();
       hidePanels();
     } else {
       alert(response.statusText + " (#" + response.status + ")");
       return;
     }
   }
+  hidePanels();
 }
 
 async function createCategory() {
@@ -105,19 +108,11 @@ async function createCategory() {
   if (catName && catName.trim().length != 0) {
     const response = await fetch("/sure/cat/" + encodeURIComponent(catName.trim()));
 
-    if (response.status === 201) {
+    if (response.status === 200) {
       const data = await response.json();
-      document.getElementById('category_id').value = data.category.id;
-      document.getElementById('category_name').innerHTML = data.category.name;
-      document.getElementById('category_star').style.color = data.category.star;
-      const prodlist = document.getElementById("prodlist");
-      prodlist.innerHTML = "";
-      const categorylist = document.getElementById("category_list");
-      categorylist.innerHTML = "";
-      for (let item of data.allCategories) {
-        const html = `<p onClick = "getCategory(` + item.id + `)" title = "Auswahl der Category" style = "padding: 10px; margin: 5px">` + item.name + "</p>";
-        categorylist.insertAdjacentHTML("beforeend", html);
-      }
+      document.getElementById('category_head').innerHTML = data.html;
+      document.getElementById('prodlist').innerHTML = "";
+      updateCategoryList();
       hidePanels();
 
     } else {
@@ -133,10 +128,13 @@ async function deleteCategory() {
     const response = await fetch("/sure/cat/del/" + id);
 
     if (response.status === 200) {
-      getCategory();
-      const category_list = document.getElementById("category_list");
-      const category = document.getElementById('category_list' + id);
-      category_list.removeChild(category);
+      const data = await response.json();
+      document.getElementById('category_head').innerHTML = data.html;
+
+      updateProductList(data.products);
+      updateCategoryList();
+      hidePanels();
+
     } else {
       alert(response.statusText + " (#" + response.status + ")");
       return;
@@ -152,13 +150,9 @@ async function toggleCategoryPrio() {
 
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_star').style.color = data.category.star;
-    const categorylist = document.getElementById("category_list");
-    categorylist.innerHTML = "";
-    for (let item of data.allCategories) {
-      const html = `<p onClick = "getCategory(` + item.id + `)" title = "Auswahl der Category" style = "padding: 10px; margin: 5px">` + item.name + "</p>";
-      categorylist.insertAdjacentHTML("beforeend", html);
-    }
+    document.getElementById('category_head').innerHTML = data.html;
+    updateCategoryList();
+    hidePanels();
   } else {
     alert(response.statusText + " (#" + response.status + ")");
     return;

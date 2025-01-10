@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import {
-  startAction, getHeadAction, getDetailsAction, getCategoryAction,
+  startAction, getHeadAction, getDetailsAction, getCategoryAction, getCategoryListAction,
   renameCategoryAction, createCategoryAction, deleteCategoryAction, toggleCategoryStarAction,
   renameProductAction, createProductAction, deleteProductAction,
   updateAction, evalAction, healthAction, dbAction
@@ -11,6 +11,7 @@ const router = Router();
 
 router.get('/', startAction);
 router.get('/get/:id', getCategoryAction);
+router.get('/list', getCategoryListAction);
 router.get('/head/:id', getHeadAction);
 router.get('/details/:id', getDetailsAction);
 
