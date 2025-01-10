@@ -139,4 +139,4 @@ node_modules
 _notes
 logs
 sure/.DS_Store
-.env
+.env.dev
