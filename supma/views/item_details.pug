@@ -13,7 +13,7 @@
             td #{entry.count}
 
   .single_right(style="position: absolute; top: 0px; right: 0px")
-    button.image(title="Bearbeiten" onClick="toggleEdit(" + item.id + ")")
+    button.yellow(title="Bearbeiten" onClick="toggleEdit(" + item.id + ")")
       i.fa.fa-pencil
         
   div(id="edit" + item.id style="display: none")
