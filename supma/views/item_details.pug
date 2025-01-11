@@ -1,7 +1,7 @@
 .box(id="details" + item.id style="position: relative")
 
-  table.tab
-    if item.entry_list && item.entry_list.length > 0
+  if item.entry_list && item.entry_list.length > 0
+    table.tab
       thead
         tr
           th(align="center" bgcolor="#dddddd") Verbrauch bis ...
@@ -12,9 +12,9 @@
             td #{entry.year}/#{entry.month}
             td #{entry.count}
 
-    .single_right
-      button.yellow(title="Bearbeiten" onClick="toggleEdit(" + item.id + ")")
-        i.fa.fa-pencil
+  .single_right(style="position: absolute; top: 0px; right: 0px")
+    button.image(title="Bearbeiten" onClick="toggleEdit(" + item.id + ")")
+      i.fa.fa-pencil
         
   div(id="edit" + item.id style="display: none")
     table.tab
@@ -52,8 +52,6 @@
         td(align="center")
           input(type="number" id="count" + item.id name="count")
 
-      .single_right
-        button.white
 
     .menu_right
       button_breit.yellow(title="Artikel hinzufügen" onClick="updateItemEntry(" + item.id + ", 'add')") Hinzufügen
@@ -67,7 +65,7 @@
     button.darkgrey(type="submit" title="Produkt löschen" onclick="deleteProduct(" + item.id + ")")
       i.fa-solid.fa-trash-can
 
-  p(id="metainfo" + item.id style="margin: 5px; text-align: right; position: absolute; bottom: 0px; right: 0px") [ID #{item.id}] 
+  p.metainfo(id="metainfo" + item.id) [ID #{item.id}] 
     span(id="timestamp" + item.id) #{item.timestamp}
 
 

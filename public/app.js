@@ -26,7 +26,7 @@ async function updateCategoryList() {
   const response = await fetch("/supma/list");
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_list').innerHTML = data.html;
+    document.getElementById('category_list').outerHTML = data.html;
   } else {
     alert(response.statusText + " (#" + response.status + ")");
     return;

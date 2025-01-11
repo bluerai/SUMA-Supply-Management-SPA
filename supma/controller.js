@@ -282,7 +282,7 @@ export async function healthAction(request, response) {
 }
 
 function errorHandler(error, actionName, response) {
-  const message = "Cassis: Interner Server-Fehler in '" + actionName + "': " + error.message;
+  const message = "SUPMA: Interner Server-Fehler in '" + actionName + "': " + error.message;
   logger.error(message);
   logger.debug(error.stack);
   if (response) {

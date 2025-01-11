@@ -13,25 +13,28 @@ block content
           i.fa.fa-bars(aria-hidden="true")
         #select_category
           #category_list
-          //- Inserted here: Dropdown list with categories
-          p(onclick="newCategoryPanel()" style="background-color: lightgrey; text-align: center; padding: 0px; margin: 0px")
+          //- Inserted here: category_list.pug
+          p(onclick="newCategoryPanel()" style="background-color: #FFD342; text-align: center; padding: 5px; margin: 0px")
             i.fa-regular.fa-square-plus
         #new_category
           input#new_category_name(type="text" placeholder="Neue Kategorie" autofocus title="" style="padding: 10px; margin: 5px")
-          i.fa-regular.fa-square-check(onclick="createCategory()")
+          p(onclick="createCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
+            i.fa-regular.fa-square-check()
 
       .single_right
-        button.orange(title="Neues Produkt hinzufügen" onclick="createProdukt()")
-          i.fa-solid.fa-square-plus
+        button.image(title="Neues Produkt hinzufügen" onclick="createProdukt()")
+          i.fa-regular.fa-square-plus
       h1#category_head
-          //- Inserted here: Category name 
+          //- Inserted here: category_head.pug 
           
       #edit_category
         input#edit_category_name(type="text" placeholder="Kategorie" autofocus title=""  style="padding: 10px; margin: 5px")
-        div.single_left(style="margin-left: auto; margin-right: auto;width: 50%")
-          i.fa-solid.fa-trash-can(onclick="deleteCategory()")
-        div.single_right(style="margin-left: auto; margin-right: auto;width: 50%")
-          i.fa-regular.fa-square-check(onclick="renameCategory()")
+        div.single_left(style="margin-left: auto; margin-right: auto; width: 50%")
+          p(onclick="deleteCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
+            i.fa-solid.fa-trash-can
+        div.single_right(style="margin-left: auto; margin-right: auto; width: 50%")
+          p(onclick="renameCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
+            i.fa-regular.fa-square-check
 
     #prodlist
           //- Inserted here: product list 
