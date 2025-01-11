@@ -7,7 +7,7 @@ class PushMessage {
   }
   "name";
   "valid";
-  warn(msg) { };
+  error(msg) { };
   info(msg) { };
   _send(msg, title, prio, sound) { };
 }
@@ -54,3 +54,5 @@ class Pushover extends PushMessage {
 }
 
 export const push = new Pushover({ "url": process.env.PUSHOVER_URL, "user": process.env.PUSHOVER_USER, "token": process.env.PUSHOVER_TOKEN });
+
+//push.info("Test Test Test Test Test Test Test Test Test Test ")

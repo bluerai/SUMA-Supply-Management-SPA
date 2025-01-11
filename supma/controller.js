@@ -255,7 +255,7 @@ export function evalAction(request, response) {
     const msg = "SUPMA: Interner Server-Fehler in 'evalAction': " + error.message;
     logger.error(msg);
     logger.debug(getSystemErrorMap.stack);
-    push.warn(msg);
+    push.error(msg);
     response.json({ state: false, msg: msg });
   }
 }
