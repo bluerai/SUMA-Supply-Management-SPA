@@ -138,5 +138,5 @@ cert
 node_modules
 _notes
 logs
-sure/.DS_Store
+*/.DS_Store
 .env.dev

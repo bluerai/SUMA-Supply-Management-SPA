@@ -12,7 +12,7 @@ RUN mkdir -p /home/node/data
 VOLUME /home/node/data
 
 ENV PORT=8080
-ENV MHD_DB=/home/node/data/mhd.db
+ENV SUPMA_DB=/home/node/data/SUPMA.db
 
 HEALTHCHECK --interval=5m --timeout=5s --retries=3 \
   CMD ["node", "healthcheck.js"]

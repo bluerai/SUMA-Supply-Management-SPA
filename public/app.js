@@ -1,12 +1,12 @@
 
 // read database 
 
-async function appReady() {
+async function docReady() {
   getCategory();
 }
 
 async function getCategory(id) {
-  const response = await fetch("/sure/get/" + parseInt(id));
+  const response = await fetch("/supma/get/" + parseInt(id));
 
   if (response.status === 200) {
     const data = await response.json();
@@ -23,7 +23,7 @@ async function getCategory(id) {
 }
 
 async function updateCategoryList() {
-  const response = await fetch("/sure/list");
+  const response = await fetch("/supma/list");
   if (response.status === 200) {
     const data = await response.json();
     document.getElementById('category_list').innerHTML = data.html;
@@ -37,7 +37,7 @@ async function updateProductList(products) {
   const prodlist = document.getElementById("prodlist");
   prodlist.innerHTML = "";
   for (let item of products) {
-    const response = await fetch("/sure/head/" + item.id);
+    const response = await fetch("/supma/head/" + item.id);
 
     if (response.status === 200) {
       const data = await response.json();
@@ -55,7 +55,7 @@ async function toggleDetails(itemId) {
   if (details) {
     prod.removeChild(details);
   } else {
-    const url = "/sure/details/" + itemId;
+    const url = "/supma/details/" + itemId;
     const response = await fetch(url);
 
     if (response.status === 200) {
@@ -87,7 +87,7 @@ function toggleEdit(itemId) {
 async function renameCategory() {
   const catName = document.getElementById("edit_category_name").value;
   if (catName && catName.trim().length != 0) {
-    const response = await fetch("/sure/cat/" + encodeURIComponent(catName.trim()) + "/" + document.getElementById('category_id').value);
+    const response = await fetch("/supma/cat/" + encodeURIComponent(catName.trim()) + "/" + document.getElementById('category_id').value);
 
     if (response.status === 200) {
       const data = await response.json();
@@ -106,7 +106,7 @@ async function renameCategory() {
 async function createCategory() {
   const catName = document.getElementById("new_category_name").value;
   if (catName && catName.trim().length != 0) {
-    const response = await fetch("/sure/cat/" + encodeURIComponent(catName.trim()));
+    const response = await fetch("/supma/cat/" + encodeURIComponent(catName.trim()));
 
     if (response.status === 200) {
       const data = await response.json();
@@ -125,7 +125,7 @@ async function createCategory() {
 async function deleteCategory() {
   if (!document.getElementsByClassName('prod')[0]) {
     const id = document.getElementById('category_id').value;
-    const response = await fetch("/sure/cat/del/" + id);
+    const response = await fetch("/supma/cat/del/" + id);
 
     if (response.status === 200) {
       const data = await response.json();
@@ -146,7 +146,7 @@ async function deleteCategory() {
 }
 
 async function toggleCategoryPrio() {
-  const response = await fetch("/sure/cat/star/" + document.getElementById('category_id').value);
+  const response = await fetch("/supma/cat/star/" + document.getElementById('category_id').value);
 
   if (response.status === 200) {
     const data = await response.json();
@@ -164,7 +164,7 @@ async function toggleCategoryPrio() {
 async function renameProduct(itemId) {
   const prodName = prompt("Neuer Produktname:", document.getElementById("name" + itemId).innerHTML);
   if (prodName && prodName.trim().length != 0) {
-    const response = await fetch("/sure/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + itemId);
+    const response = await fetch("/supma/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + itemId);
 
     if (response.status === 200) {
       const data = await response.json();
@@ -180,7 +180,7 @@ async function renameProduct(itemId) {
 async function createProdukt() {
   const prodName = prompt("Name des Produkts:")
   if (prodName && prodName.trim().length !== 0) {
-    const response = await fetch("/sure/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()));
+    const response = await fetch("/supma/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()));
 
     if (response.status === 200) {
       const data = await response.json();
@@ -198,7 +198,7 @@ async function createProdukt() {
 async function deleteProduct(itemId) {
   const name = document.getElementById("name" + itemId).innerHTML;
   if (confirm('"' + name + '" löschen?')) {
-    const response = await fetch("/sure/pro/del/" + itemId);
+    const response = await fetch("/supma/pro/del/" + itemId);
 
     if (response.status === 200) {
       const prodlist = document.getElementById("prodlist");
@@ -232,7 +232,7 @@ async function updateItemEntry(itemId, action) {
   }
   if (action === "sub") count *= -1;
 
-  const response = await fetch("/sure/upd/", {
+  const response = await fetch("/supma/upd/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ "id": itemId, "year": year, "month": month, "count": count })

@@ -7,13 +7,13 @@ block content
   .app
     #header
       .single_left 
-        img(src="/mhd.png" width=52 height=52 alt="Logo")
+        img(src="/supma.png" width=52 height=52 alt="Logo")
       .single_right#dropdown
         button.darkgrey(onClick="selectCategoryPanel()")
           i.fa.fa-bars(aria-hidden="true")
         #select_category
           #category_list
-          
+          //- Inserted here: Dropdown list with categories
           p(onclick="newCategoryPanel()" style="background-color: lightgrey; text-align: center; padding: 0px; margin: 0px")
             i.fa-regular.fa-square-plus
         #new_category
@@ -24,6 +24,7 @@ block content
         button.orange(title="Neues Produkt hinzufügen" onclick="createProdukt()")
           i.fa-solid.fa-square-plus
       h1#category_head
+          //- Inserted here: Category name 
           
       #edit_category
         input#edit_category_name(type="text" placeholder="Kategorie" autofocus title=""  style="padding: 10px; margin: 5px")
@@ -33,6 +34,7 @@ block content
           i.fa-regular.fa-square-check(onclick="renameCategory()")
 
     #prodlist
+          //- Inserted here: product list 
 
   script(type='text/javascript').
-    appReady();
+    docReady();

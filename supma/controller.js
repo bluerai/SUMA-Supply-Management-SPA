@@ -1,6 +1,7 @@
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { logger } from '../log.js'
+import { logger } from '../log.js';
+import { push } from '../push_message.js';
 
 import {
   getCategory, getItem, getAllItems, allCategories,
@@ -9,9 +10,6 @@ import {
   updateItemEntry, evalItem, connectDb, unconnectDb
 } from './model.js';
 
-const PUSHOVER_URL = process.env.PUSHOVER_URL;
-const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
-const PUSHOVER_USER = process.env.PUSHOVER_USER;
 
 export async function startAction(request, response) {
   logger.info("startAction: request.url=" + JSON.stringify(request.url));
@@ -58,7 +56,7 @@ export async function getHeadAction(request, response) {
     const itemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     let item = getItem(itemId);
     logger.debug("getHeadAction: item=" + JSON.stringify(item));
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/itemHead', { item: item }, function (error, html) {
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/item_head', { item: item }, function (error, html) {
       if (error) {
         logger.info(error);
       } else {
@@ -76,7 +74,7 @@ export async function getDetailsAction(request, response) {
     const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     let item = getItem(curItemId);
     //logger.info("getDetailsAction: item=" + JSON.stringify(item));
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/itemDetails', { item: item }, function (error, html) {
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/item_details', { item: item }, function (error, html) {
       if (error) {
         errorHandler(error, 'getDetailsAction', response)
       } else {
@@ -103,7 +101,7 @@ export async function updateAction(request, response) {
 
       if (item) {
         response.locals.sum = item.sum;
-        response.render(dirname(fileURLToPath(import.meta.url)) + '/views/itemDetails', { item: item }, function (error, html) {
+        response.render(dirname(fileURLToPath(import.meta.url)) + '/views/item_details', { item: item }, function (error, html) {
           if (error) {
             errorHandler(error, 'updateAction render', response)
           } else {
@@ -220,7 +218,7 @@ export async function createProductAction(request, response) {
 
     logger.info("createProductAction: id=" + newItemId);
     const item = getItem(newItemId);
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/itemHead', { item: item }, function (error, html) {
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/item_head', { item: item }, function (error, html) {
       response.send({ html });
     });
   }
@@ -246,17 +244,18 @@ export function evalAction(request, response) {
     for (let item of data) {
       (item.entry_list) && (evalItem(item)) && changeCount++;
     }
-    const msg = "SURE: " + data.length + " Produkte wurden überprüft. " +
+    const msg = "SUPMA: " + data.length + " Produkte wurden überprüft. " +
       ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
       " einen neuen Status erhalten.";
     logger.info(msg);
-    pushover(msg, "Hinweis", -1, "pushover");
+    push.info(msg);
     response.json({ state: true, msg: msg });
   }
   catch (error) {
-    const msg = "SURE: Interner Server-Fehler in 'evalAction': " + error.message;
-    logger.info(msg, 2);
-    pushover(msg, "Warnung", 0, "pushover");
+    const msg = "SUPMA: Interner Server-Fehler in 'evalAction': " + error.message;
+    logger.error(msg);
+    logger.debug(getSystemErrorMap.stack);
+    push.warn(msg);
     response.json({ state: false, msg: msg });
   }
 }
@@ -270,30 +269,6 @@ export async function dbAction(request, response) {
   catch (error) { errorHandler(error, 'dbAction') }
 }
 
-async function pushover(msg, title, prio, sound) {
-  if (!PUSHOVER_URL || !PUSHOVER_TOKEN || !PUSHOVER_USER) {
-    logger.info("pushover: No pushover url or no credentials supplied.", 0)
-    return;
-  }
-  const headers = { "Content-Type": "application/json" };
-  const body = JSON.stringify({
-    token: PUSHOVER_TOKEN,
-    user: PUSHOVER_USER,
-    title: title,
-    priority: prio,
-    sound: sound,
-    message: msg,
-  });
-  const response = await fetch(PUSHOVER_URL, {
-    method: "POST", headers, body
-  });
-  if (!response.ok) {
-    throw new Error("Sending Pushover message failed: " + response.status, 2);
-  }
-  const data = await response.json();
-  logger.info("Pushover message successfully sent: " + JSON.stringify(data), 0);
-}
-
 export async function healthAction(request, response) {
   logger.debug("healthAction");
   try {
@@ -305,7 +280,6 @@ export async function healthAction(request, response) {
     response.json({ healthy: false, error: error.message });
   }
 }
-
 
 function errorHandler(error, actionName, response) {
   const message = "Cassis: Interner Server-Fehler in '" + actionName + "': " + error.message;
