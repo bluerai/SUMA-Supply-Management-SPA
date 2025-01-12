@@ -131,7 +131,9 @@ dist
 
 ###
 Docker.cli
-data_dev
+Docker.cli/
+dev_data
+dev_data/
 Cache
 cert
 .DS_Store
