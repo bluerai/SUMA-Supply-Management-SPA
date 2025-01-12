@@ -9,32 +9,35 @@ block content
       .single_left 
         img(src="/supma.png" width=52 height=52 alt="Logo")
       .single_right#dropdown
-        button.darkgrey(onClick="selectCategoryPanel()")
+        button.darkgrey(title="Kategorie auswählen" onClick="selectCategoryPanel()")
           i.fa.fa-bars(aria-hidden="true")
         #select_category
           #category_list
           //- Inserted here: category_list.pug
-          p(onclick="newCategoryPanel()" style="background-color: #FFD342; text-align: center; padding: 5px; margin: 0px")
-            i.fa-regular.fa-square-plus
+          p(title="Neue Kategorie" onclick="newCategoryPanel()" style="background-color: #FFD342; text-align: center; padding: 5px; margin: 0px")
+            i.fa-regular.fa-square-plus(aria-hidden="true")
         #new_category
           input#new_category_name(type="text" placeholder="Neue Kategorie" autofocus title="" style="padding: 10px; margin: 5px")
-          p(onclick="createCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
-            i.fa-regular.fa-square-check()
+          p(title="Neue Kategorie speichern" onclick="createCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
+            i.fa-regular.fa-square-check()(aria-hidden="true")
 
       .single_right
         button.orange(title="Neues Produkt hinzufügen" onclick="createProdukt()")
-          i.fa-regular.fa-square-plus
-      h1#category_head
+          i.fa-regular.fa-square-plus(aria-hidden="true")
+
+      #category_head
           //- Inserted here: category_head.pug 
           
       #edit_category
         input#edit_category_name(type="text" placeholder="Kategorie" autofocus title=""  style="padding: 10px; margin: 5px")
-        div.single_left(style="margin-left: auto; margin-right: auto; width: 50%")
-          p(onclick="deleteCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
-            i.fa-solid.fa-trash-can
-        div.single_right(style="margin-left: auto; margin-right: auto; width: 50%")
-          p(onclick="renameCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
-            i.fa-regular.fa-square-check
+
+        div.single_left(style="margin-left: auto; margin-right: auto; width: 34%")
+          p(title="Kategorie löschen" onclick="deleteCategory()" style="background-color:lightgrey ;padding: 5px; margin: 0px")
+            i.fa-solid.fa-trash-can(aria-hidden="true")
+
+        div.single_right(style="margin-left: auto; margin-right: auto; width: 66%")
+          p(title="Neuen Namen der Kategorie speichen" onclick="renameCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
+            i.fa-regular.fa-square-check(aria-hidden="true")
 
     #prodlist
           //- Inserted here: product list 

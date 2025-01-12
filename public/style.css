@@ -169,7 +169,8 @@ input[type="number"] {
 
 #select_category,
 #new_category,
-#edit_category {
+#edit_category,
+#edit_product {
   display: none;
   position: absolute;
   right: 30px;
@@ -204,10 +205,12 @@ input[type="number"] {
   color: white;
 }
 
+#edit_product,
 #edit_category {
   right: calc(50% - 100px);
 }
 
+#edit_product input,
 #select_category p,
 #new_category input,
 #edit_category input {
@@ -226,7 +229,8 @@ input[type="number"] {
 }
 
 #new_category input,
-#edit_category input {
+#edit_category input,
+#edit_product input {
   color: black;
   width: calc(100% - 10px);
 }
@@ -237,7 +241,8 @@ input[type="number"] {
 }
 
 #new_category i:hover,
-#edit_category i:hover {
+#edit_category i:hover,
+#edit_product i:hover{
   color: white;
 }
 
@@ -255,6 +260,39 @@ input[type="number"] {
   z-Index: 90;
 }
 
+#category_head {
+  display: flex;
+  text-align: left;
+  height: 60px;
+}
+
+#category_name {
+  overflow: hidden;
+  font-size: 22px;
+  font-weight: bold;
+  word-wrap: break-all;
+  overflow-wrap: break-word;
+  display: flex;
+  align-items: center;
+}
+
+#flex_left {
+  width: 60px;
+  margin-left: auto;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  padding-right: 8px;
+}
+
+#flex_right {
+  width: 10px;
+  margin-right: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .metainfo {
   width: calc(100% - 110px);
   position: absolute;
@@ -264,4 +302,16 @@ input[type="number"] {
   margin-bottom: 0px;
   margin-left: 55px;
   margin-right: 55px;
+
+}
+
+
+/*****************************************************************************/
+/********************** Bildschirm: Breite unter 720 px **********************/
+/*****************************************************************************/
+
+@media screen and (max-width: 720px) {
+  #category_name {
+    font-size: 18px;
+  }
 }

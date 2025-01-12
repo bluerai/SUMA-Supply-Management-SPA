@@ -10,7 +10,7 @@ async function getCategory(id) {
 
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_head').innerHTML = data.html;
+    document.getElementById('category_head').outerHTML = data.html;
 
     updateProductList(data.products);
     updateCategoryList();
@@ -92,7 +92,7 @@ async function renameCategory() {
     if (response.status === 200) {
       const data = await response.json();
 
-      document.getElementById('category_head').innerHTML = data.html;
+      document.getElementById('category_head').outerHTML = data.html;
       updateCategoryList();
       hidePanels();
     } else {
@@ -110,7 +110,7 @@ async function createCategory() {
 
     if (response.status === 200) {
       const data = await response.json();
-      document.getElementById('category_head').innerHTML = data.html;
+      document.getElementById('category_head').outerHTML = data.html;
       document.getElementById('prodlist').innerHTML = "";
       updateCategoryList();
       hidePanels();
@@ -129,7 +129,7 @@ async function deleteCategory() {
 
     if (response.status === 200) {
       const data = await response.json();
-      document.getElementById('category_head').innerHTML = data.html;
+      document.getElementById('category_head').outerHTML = data.html;
 
       updateProductList(data.products);
       updateCategoryList();
@@ -150,7 +150,7 @@ async function toggleCategoryPrio() {
 
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_head').innerHTML = data.html;
+    document.getElementById('category_head').outerHTML = data.html;
     updateCategoryList();
     hidePanels();
   } else {
@@ -277,4 +277,9 @@ function hidePanels() {
   document.getElementById('edit_category_name').value = "";
 }
 
+let textarea = document.querySelector('textarea');
 
+textarea.addEventListener('input', () => {
+  textarea.style.height = "auto";
+  textarea.style.height = textarea.scrollHeight + "px";
+});

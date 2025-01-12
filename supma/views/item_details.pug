@@ -8,12 +8,12 @@
           th(align="center" bgcolor="#dddddd") Anzahl
       tbody
         - for(let entry of item.entry_list)
-          tr(onClick="handleGetEntry('" + item.id + "', '" + entry.year + "', '" + entry.month + "')")
+          tr(title="Eintrag für 1 Artikel übernehmen" onClick="handleGetEntry('" + item.id + "', '" + entry.year + "', '" + entry.month + "')")
             td #{entry.year}/#{entry.month}
             td #{entry.count}
 
   .single_right(style="position: absolute; top: 0px; right: 0px")
-    button.yellow(title="Bearbeiten" onClick="toggleEdit(" + item.id + ")")
+    button.yellow(title="Artkel hinzufüghen/entnehmen" onClick="toggleEdit(" + item.id + ")")
       i.fa.fa-pencil
         
   div(id="edit" + item.id style="display: none")
@@ -62,10 +62,10 @@
         button_breit.orange(style="color: lightgrey; cursor: auto;") Entnehmen
 
   .single_left.edit
-    button.darkgrey(type="submit" title="Produkt löschen" onclick="deleteProduct(" + item.id + ")")
+    button.darkgrey(type="submit" title="Gesamtes Produkt entfernen" onclick="deleteProduct(" + item.id + ")")
       i.fa-solid.fa-trash-can
 
-  p.metainfo(id="metainfo" + item.id) [ID #{item.id}] 
+  p.metainfo(title="Letzte Änderung" id="metainfo" + item.id) [ID #{item.id}] 
     span(id="timestamp" + item.id) #{item.timestamp}
 
 
