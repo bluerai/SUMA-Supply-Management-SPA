@@ -130,6 +130,7 @@ dist
 .pnp.*
 
 ###
+Docker.cli
 Cache
 cert
 .DS_Store

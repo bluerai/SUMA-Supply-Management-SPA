@@ -7,8 +7,8 @@ const SUPMA_DB = process.env.SUPMA_DB;
 let database;
 
 fs.pathExists(SUPMA_DB, (err, exists) => {
+  database = new DatabaseSync(SUPMA_DB, { open: true });
   if (exists) {
-    database = new DatabaseSync(SUPMA_DB, { open: true });
     if (!database) {
       logger.info('Could not connect to SUPMA database at "' + SUPMA_DB + '".');
       process.exit(1);
@@ -82,7 +82,11 @@ export function allCategories() {
 export function getCategory(categoryId) {
   const categories = allCategories();
 
-  if (categories.length === 0) return null;
+  if (categories.length === 0) {
+    const result = createCategory('SUPMA');
+    result.products = [];
+    return result;
+  }
   
   categoryId = categoryId || categories[0].id;
   const category = oneCategory(categoryId);

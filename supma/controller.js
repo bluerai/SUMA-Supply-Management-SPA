@@ -46,7 +46,7 @@ export async function getCategoryAction(request, response) {
       response.status(200).send({ html: html, products: response.locals.products });
     })
   }
-  catch (error) { errorHandler(error, 'renameCategoryAction', response) }
+  catch (error) { errorHandler(error, 'getCategoryAction', response) }
 
 }
 

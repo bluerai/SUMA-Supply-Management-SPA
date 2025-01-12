@@ -1,4 +1,4 @@
-node_modules
+node_modules/
 .env.dev
 dev_data
-Docker.cli
+Docker.cli/
