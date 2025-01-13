@@ -11,3 +11,5 @@ SUMA benutzt den von Node zur Verfügung gestellten Webserver, der auf eine sqli
 Der Client, auf dem die Single-Page-App läuft, kann ein beliebiges Gerät mit ausreichend modernen Browser sein: Smartphone, Tablet, E-Reader, Desktop- oder Laptop-PC. 
 
 Die Sprache der Oberfläche ist zurzeit ausschließlich Deutsch.
+
+Am besten das Docker-Image verwenden: bluerai72/suma
