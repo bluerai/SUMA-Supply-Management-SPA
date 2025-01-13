@@ -6,40 +6,42 @@ block content
 
   .app
     #header
-      .single_left 
+      .left 
         img(src="/supma.png" width=52 height=52 alt="Logo")
-      .single_right#dropdown
-        button.darkgrey(title="Kategorie auswählen" onClick="selectCategoryPanel()")
+
+      .right#dropdown
+        button.yellow(title="Kategorie auswählen" onClick="selectCategoryPanel()")
           i.fa.fa-bars(aria-hidden="true")
-        #select_category
+
+        .panel#select_category
           #category_list
+
           //- Inserted here: category_list.pug
-          p(title="Neue Kategorie" onclick="newCategoryPanel()" style="background-color: #FFD342; text-align: center; padding: 5px; margin: 0px")
+
+          p.orange(title="Neue Kategorie" onclick="createCategoryPanel()")
             i.fa-regular.fa-square-plus(aria-hidden="true")
-        #new_category
-          input#new_category_name(type="text" placeholder="Neue Kategorie" autofocus title="" style="padding: 10px; margin: 5px")
-          p(title="Neue Kategorie speichern" onclick="createCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
-            i.fa-regular.fa-square-check()(aria-hidden="true")
 
-      .single_right
-        button.orange(title="Neues Produkt hinzufügen" onclick="createProdukt()")
-          i.fa-regular.fa-square-plus(aria-hidden="true")
-
-      #category_head
-          //- Inserted here: category_head.pug 
-          
-      #edit_category
-        input#edit_category_name(type="text" placeholder="Kategorie" autofocus title=""  style="padding: 10px; margin: 5px")
-
-        div.single_left(style="margin-left: auto; margin-right: auto; width: 34%")
-          p(title="Kategorie löschen" onclick="deleteCategory()" style="background-color:lightgrey ;padding: 5px; margin: 0px")
-            i.fa-solid.fa-trash-can(aria-hidden="true")
-
-        div.single_right(style="margin-left: auto; margin-right: auto; width: 66%")
-          p(title="Neuen Namen der Kategorie speichen" onclick="renameCategory()" style="background-color: #FFD342;padding: 5px; margin: 0px")
+        .panel#new_category
+          input#new_category_name(type="text" placeholder="Neue Kategorie" autofocus title="")
+          p.orange(title="Neue Kategorie erstellen" onclick="createCategory()")
             i.fa-regular.fa-square-check(aria-hidden="true")
 
+      .right
+        button.orange(title="Neues Produkt hinzufügen" onclick="createProductPanel()")
+          i.fa-regular.fa-square-plus(aria-hidden="true")
+
+        .panel#new_product
+          input#new_product_name(type="text" placeholder="Neues Product" autofocus title="" )
+          p.orange(title="Neues Produkt erstellen" onclick="createProduct()")
+            i.fa-regular.fa-square-check(aria-hidden="true")
+
+      #category_head
+
+          //- Inserted here: category_head.pug 
+
+
     #prodlist
+
           //- Inserted here: product list 
 
   script(type='text/javascript').

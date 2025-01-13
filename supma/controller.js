@@ -4,10 +4,10 @@ import { logger } from '../log.js';
 import { push } from '../push_message.js';
 
 import {
-  getCategory, getItem, getAllItems, allCategories,
+  getCategory, getProduct, getAllProducts, allCategories,
   createCategory, renameCategory, deleteCategory, toggleCategoryStar,
-  createItem, renameItem, deleteItem,
-  updateItemEntry, evalItem, connectDb, unconnectDb
+  createProduct, renameProduct, deleteProduct,
+  updateEntry, evalProduct, connectDb, unconnectDb
 } from './model.js';
 
 
@@ -54,9 +54,9 @@ export async function getHeadAction(request, response) {
   logger.info("getHeadAction: request.params=" + JSON.stringify(request.params));
   try {
     const itemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
-    let item = getItem(itemId);
+    let item = getProduct(itemId);
     logger.debug("getHeadAction: item=" + JSON.stringify(item));
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/item_head', { item: item }, function (error, html) {
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_head', { item: item }, function (error, html) {
       if (error) {
         logger.info(error);
       } else {
@@ -72,13 +72,13 @@ export async function getDetailsAction(request, response) {
   logger.info("getDetailsAction: request.params=" + JSON.stringify(request.params));
   try {
     const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
-    let item = getItem(curItemId);
-    //logger.info("getDetailsAction: item=" + JSON.stringify(item));
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/item_details', { item: item }, function (error, html) {
+    let item = getProduct(curItemId);
+    logger.debug("getDetailsAction: item=" + JSON.stringify(item));
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_details', { item: item }, function (error, html) {
       if (error) {
         errorHandler(error, 'getDetailsAction', response)
       } else {
-        //logger.info("getDetailsAction: html.length=" + html.length);
+        logger.debug("getDetailsAction: html.length=" + html.length);
         response.send({ html });
       }
     })
@@ -96,16 +96,16 @@ export async function updateAction(request, response) {
     });
     request.on('end', () => {
       let data = JSON.parse(body);
-      updateItemEntry(data.id, data.year, data.month, data.count);
-      const item = getItem(data.id)
+      updateEntry(data.id, data.year, data.month, data.count);
+      const item = getProduct(data.id)
 
       if (item) {
         response.locals.sum = item.sum;
-        response.render(dirname(fileURLToPath(import.meta.url)) + '/views/item_details', { item: item }, function (error, html) {
+        response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_details', { item: item }, function (error, html) {
           if (error) {
             errorHandler(error, 'updateAction render', response)
           } else {
-            //logger.info("getDetailsAction: html.length=" + html.length);
+            //logger.info("updateAction: html.length=" + html.length);
             response.send({ html: html, sum: response.locals.sum });
           }
         })
@@ -202,7 +202,7 @@ export async function renameProductAction(request, response) {
     let name = decodeURI(request.params.nam);
     name = (!name || name.trim() === "") ? "Produkt" : name.trim();
     if (id) {
-      const timestamp = renameItem(id, name);
+      const timestamp = renameProduct(id, name);
       response.send({ name, timestamp });
     }
   }
@@ -214,11 +214,11 @@ export async function createProductAction(request, response) {
   try {
     const itemName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
     const categoryId = (request.params.catid) && parseInt(request.params.catid, 10);
-    const newItemId = createItem(categoryId, itemName);
+    const newItemId = createProduct(categoryId, itemName);
 
     logger.info("createProductAction: id=" + newItemId);
-    const item = getItem(newItemId);
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/item_head', { item: item }, function (error, html) {
+    const item = getProduct(newItemId);
+    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_head', { item: item }, function (error, html) {
       response.send({ html });
     });
   }
@@ -229,7 +229,7 @@ export async function deleteProductAction(request, response) {
   logger.info("deleteProductAction: request.params=" + JSON.stringify(request.params));
   try {
     const id = (request.params.id) && parseInt(request.params.id, 10);
-    deleteItem(id);
+    deleteProduct(id);
     response.writeHead(200, "Änderungen gesichert.", { 'content-type': 'text/html' });
     response.end();
   }
@@ -239,10 +239,10 @@ export async function deleteProductAction(request, response) {
 export function evalAction(request, response) {
   try {
     connectDb();
-    let data = getAllItems();
+    let data = getAllProducts();
     let changeCount = 0;
     for (let item of data) {
-      (item.entry_list) && (evalItem(item)) && changeCount++;
+      (item.entry_list) && (evalProduct(item)) && changeCount++;
     }
     const msg = "SUPMA: " + data.length + " Produkte wurden überprüft. " +
       ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
@@ -252,7 +252,7 @@ export function evalAction(request, response) {
     response.json({ state: true, msg: msg });
   }
   catch (error) {
-    const msg = "SUPMA: Interner Server-Fehler in 'evalAction': " + error.message;
+    const msg = "SUPMA: Interner Fehler in 'evalAction': " + error.message;
     logger.error(msg);
     logger.debug(getSystemErrorMap.stack);
     push.error(msg);
@@ -272,7 +272,7 @@ export async function dbAction(request, response) {
 export async function healthAction(request, response) {
   logger.debug("healthAction");
   try {
-    const count = getAllItems().length;
+    const count = getAllProducts().length;
     response.json({ healthy: true, count });
   }
   catch (error) {
@@ -282,7 +282,7 @@ export async function healthAction(request, response) {
 }
 
 function errorHandler(error, actionName, response) {
-  const message = "SUPMA: Interner Server-Fehler in '" + actionName + "': " + error.message;
+  const message = "SUPMA: Interner Fehler in '" + actionName + "': " + error.message;
   logger.error(message);
   logger.debug(error.stack);
   if (response) {

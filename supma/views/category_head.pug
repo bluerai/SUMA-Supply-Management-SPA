@@ -2,11 +2,25 @@
 #category_head
 
   #flex_left
-    i.fa-solid.fa-star#category_star(class="prio" + prio style="font-size: 14px" title="Priorität bearbeiten" onclick="toggleCategoryPrio()")
+    i.fa-solid.fa-star(class="prio" + prio style="font-size: 14px")
 
-  #category_name(onclick="renameCategoryPanel()") #{name}
+  #category_name(onclick="renameCategoryPanel('" + name + "')") #{name}
 
   #flex_right
    
-
   input#category_id(type="hidden" value=id)
+
+  .panel#edit_category
+    input#edit_category_name(type="text" placeholder="Kategorie" autofocus title="" value=name)
+
+    .left(style="width: 34%")
+      p.lightgrey(title="Kategorie löschen" onclick="deleteCategory()")
+        i.fa-solid.fa-trash-can(aria-hidden="true")
+
+    .right(style="width: 33%")
+      p.orange(title="Neuen Namen der Kategorie speichen" onclick="renameCategory()")
+        i.fa-regular.fa-square-check(aria-hidden="true")
+
+    .right(style="width: 33%")
+      p.yellow(title="Priorität bearbeiten" onclick="toggleCategoryPrio()")
+         i.fa-solid.fa-star#category_star(class="prio" + prio aria-hidden="true")

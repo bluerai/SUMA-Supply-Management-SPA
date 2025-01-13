@@ -36,8 +36,8 @@ async function updateCategoryList() {
 async function updateProductList(products) {
   const prodlist = document.getElementById("prodlist");
   prodlist.innerHTML = "";
-  for (let item of products) {
-    const response = await fetch("/supma/head/" + item.id);
+  for (let product of products) {
+    const response = await fetch("/supma/head/" + product.id);
 
     if (response.status === 200) {
       const data = await response.json();
@@ -49,13 +49,13 @@ async function updateProductList(products) {
   }
 }
 
-async function toggleDetails(itemId) {
-  const prod = document.getElementById('prod' + itemId);
-  const details = document.getElementById('details' + itemId);
+async function toggleDetails(id) {
+  const prod = document.getElementById('prod' + id);
+  const details = document.getElementById('details' + id);
   if (details) {
     prod.removeChild(details);
   } else {
-    const url = "/supma/details/" + itemId;
+    const url = "/supma/details/" + id;
     const response = await fetch(url);
 
     if (response.status === 200) {
@@ -68,15 +68,12 @@ async function toggleDetails(itemId) {
   }
 }
 
-function toggleEdit(itemId) {
-  const edit = document.getElementById('edit' + itemId).style;
-  const metainfo = document.getElementById('metainfo' + itemId).style;
+function toggleEdit(id) {
+  const edit = document.getElementById('edit' + id).style;
   if (edit.display === "none") {
     edit.display = "block";
-    metainfo.position = "static";
   } else {
     edit.display = "none";
-    metainfo.position = "absolute";
   }
 }
 
@@ -161,24 +158,25 @@ async function toggleCategoryPrio() {
 
 // Products
 
-async function renameProduct(itemId) {
-  const prodName = prompt("Neuer Produktname:", document.getElementById("name" + itemId).innerHTML);
+async function renameProduct(id) {
+  const prodName = document.getElementById("edit_product_name").value;
   if (prodName && prodName.trim().length != 0) {
-    const response = await fetch("/supma/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + itemId);
+    const response = await fetch("/supma/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + id);
 
     if (response.status === 200) {
       const data = await response.json();
-      document.getElementById("name" + itemId).innerHTML = data.name;
-      if (document.getElementById("timestamp" + itemId)) document.getElementById("timestamp" + itemId).innerHTML = data.timestamp;
+      document.getElementById("product_name" + id).innerHTML = data.name;
+      if (document.getElementById("timestamp" + id)) document.getElementById("timestamp" + id).innerHTML = data.timestamp;
     } else {
       alert(response.statusText + " (#" + response.status + ")");
       return;
     }
   }
+  hidePanels(id);
 }
 
-async function createProdukt() {
-  const prodName = prompt("Name des Produkts:")
+async function createProduct() {
+  const prodName = document.getElementById("new_product_name").value;
   if (prodName && prodName.trim().length !== 0) {
     const response = await fetch("/supma/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()));
 
@@ -193,39 +191,41 @@ async function createProdukt() {
       return;
     }
   }
+  hidePanels();
 }
 
-async function deleteProduct(itemId) {
-  const name = document.getElementById("name" + itemId).innerHTML;
-  if (confirm('"' + name + '" löschen?')) {
-    const response = await fetch("/supma/pro/del/" + itemId);
+async function deleteProduct(id) {
+  const prodName = document.getElementById("product_name" + id).innerHTML;
+  if (confirm('"' + prodName + '" löschen?')) {
+    const response = await fetch("/supma/pro/del/" + id);
 
     if (response.status === 200) {
       const prodlist = document.getElementById("prodlist");
-      const prod = document.getElementById('prod' + itemId);
+      const prod = document.getElementById('prod' + id);
       prodlist.removeChild(prod);
     } else {
       alert(response.statusText + " (#" + response.status + ")");
       return;
     }
   }
+  hidePanels(id);
 }
 
 // Entry list
 
-function handleGetEntry(itemId, year, month) {
-  if (document.getElementById('edit' + itemId).style.display === "none") {
-    document.getElementById('edit' + itemId).style.display = "block";
+function transferEntry(id, year, month) {
+  if (document.getElementById('edit' + id).style.display === "none") {
+    document.getElementById('edit' + id).style.display = "block";
   }
-  document.getElementById("year" + itemId).value = year;
-  document.getElementById("month" + itemId).value = month;
-  document.getElementById("count" + itemId).value = 1;
+  document.getElementById("year" + id).value = year;
+  document.getElementById("month" + id).value = month;
+  document.getElementById("count" + id).value = 1;
 }
 
-async function updateItemEntry(itemId, action) {
-  const year = document.getElementById("year" + itemId).value;
-  const month = document.getElementById("month" + itemId).value;
-  let count = parseInt(document.getElementById("count" + itemId).value, 10);
+async function updateEntry(id, action) {
+  const year = document.getElementById("year" + id).value;
+  const month = document.getElementById("month" + id).value;
+  let count = parseInt(document.getElementById("count" + id).value, 10);
   if (year === "-" || month === "-" || isNaN(count)) {
     alert("Eingaben unvollständig");
     return;
@@ -235,13 +235,13 @@ async function updateItemEntry(itemId, action) {
   const response = await fetch("/supma/upd/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ "id": itemId, "year": year, "month": month, "count": count })
+    body: JSON.stringify({ "id": id, "year": year, "month": month, "count": count })
   });
 
   if (response.status == 200) {
     const data = await response.json();
-    document.getElementById('sum' + itemId).innerHTML = data.sum;
-    document.getElementById('details' + itemId).outerHTML = data.html;
+    document.getElementById('sum' + id).innerHTML = data.sum;
+    document.getElementById('details' + id).outerHTML = data.html;
   } else {
     alert(response.statusText + " (#" + response.status + ")");
     return;
@@ -254,32 +254,54 @@ function selectCategoryPanel() {
   document.getElementById('transparent').style.display = 'block';
 }
 
-function newCategoryPanel() {
+function createCategoryPanel() {
   document.getElementById('new_category').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
   document.getElementById('select_category').style.display = 'none';
   document.getElementById('new_category_name').focus();
 }
 
-function renameCategoryPanel() {
-  document.getElementById('edit_category_name').value = document.getElementById('category_name').innerHTML
+function renameCategoryPanel(oldName) {
   document.getElementById('edit_category').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
+  document.getElementById('edit_category_name').value = oldName;
   document.getElementById('edit_category_name').focus();
 }
 
-function hidePanels() {
-  document.getElementById('transparent').style.display = 'none';
+function createProductPanel() {
+  document.getElementById('new_product').style.display = 'block';
+  document.getElementById('transparent').style.display = 'block';
   document.getElementById('select_category').style.display = 'none';
-  document.getElementById('new_category').style.display = 'none';
-  document.getElementById('edit_category').style.display = 'none';
-  document.getElementById("new_category_name").value = "";
-  document.getElementById('edit_category_name').value = "";
+  document.getElementById('new_product_name').focus();
 }
 
-let textarea = document.querySelector('textarea');
+function renameProductPanel(oldName) {
+  document.getElementById('edit_product').style.display = 'block';
+  document.getElementById('transparent').style.display = 'block';
+  document.getElementById('edit_product_name').value = oldName;
+  document.getElementById('edit_product_name').focus();
+}
+
+function hidePanels() {  //productId nur für edited Products
+  document.getElementById('select_category').style.display = 'none';
+
+  document.getElementById('new_category').style.display = 'none';
+  document.getElementById('edit_category').style.display = 'none';
+  document.getElementById('new_product').style.display = 'none';
+  document.getElementById('new_product').style.display = 'none';
+  if (document.getElementById('edit_product')) document.getElementById('edit_product').style.display = 'none';
+
+  document.getElementById("new_category_name").value = "";
+  document.getElementById('edit_category_name').value = "";
+  document.getElementById("new_product_name").value = "";
+  if (document.getElementById("edit_product_name")) document.getElementById("edit_product_name").value = "";
+
+  document.getElementById('transparent').style.display = 'none';
+}
+
+/* let textarea = document.querySelector('textarea');
 
 textarea.addEventListener('input', () => {
   textarea.style.height = "auto";
   textarea.style.height = textarea.scrollHeight + "px";
-});
+}); */

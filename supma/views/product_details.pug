@@ -1,4 +1,4 @@
-.box(id="details" + item.id style="position: relative")
+.box(id="details" + item.id style="position: relative; min-height: 52px")
 
   if item.entry_list && item.entry_list.length > 0
     table.tab
@@ -8,12 +8,12 @@
           th(align="center" bgcolor="#dddddd") Anzahl
       tbody
         - for(let entry of item.entry_list)
-          tr(title="Eintrag für 1 Artikel übernehmen" onClick="handleGetEntry('" + item.id + "', '" + entry.year + "', '" + entry.month + "')")
+          tr(title="Eintrag für 1 Artikel übernehmen" onClick="transferEntry('" + item.id + "', '" + entry.year + "', '" + entry.month + "')")
             td #{entry.year}/#{entry.month}
             td #{entry.count}
 
-  .single_right(style="position: absolute; top: 0px; right: 0px")
-    button.yellow(title="Artkel hinzufüghen/entnehmen" onClick="toggleEdit(" + item.id + ")")
+  .right(style="position: absolute; top: 0px; right: 0px")
+    button.orange(title="Artkel hinzufüghen/entnehmen" onClick="toggleEdit(" + item.id + ")")
       i.fa.fa-pencil
         
   div(id="edit" + item.id style="display: none")
@@ -52,22 +52,18 @@
         td(align="center")
           input(type="number" id="count" + item.id name="count")
 
+    
 
-    .menu_right
-      button_breit.yellow(title="Artikel hinzufügen" onClick="updateItemEntry(" + item.id + ", 'add')") Hinzufügen
-    .menu_right
-      if (item.entry_list && item.entry_list.length>0)  
-        button_breit.orange(title="Artikel entnehmen" onClick="updateItemEntry(" + item.id + ", 'sub')") Entnehmen
-      else 
-        button_breit.orange(style="color: lightgrey; cursor: auto;") Entnehmen
+    if (item.entry_list && item.entry_list.length>0)  
+      button_breit.orange(title="Artikel entnehmen" onClick="updateEntry(" + item.id + ", 'sub')" style="width: 50%") Entnehmen
+    else 
+      button_breit.orange(style="color: lightgrey; cursor: auto; width: 50%") Entnehmen
+      
+    button_breit.yellow(title="Artikel hinzufügen" onClick="updateEntry(" + item.id + ", 'add')" style="width: 50%") Hinzufügen
 
-  .single_left.edit
-    button.darkgrey(type="submit" title="Gesamtes Produkt entfernen" onclick="deleteProduct(" + item.id + ")")
-      i.fa-solid.fa-trash-can
-
-  p.metainfo(title="Letzte Änderung" id="metainfo" + item.id) [ID #{item.id}] 
-    span(id="timestamp" + item.id) #{item.timestamp}
-
-
+    div(colspan=2 id="info" + item.id style="font-size: 12px; white-space: nowrap") 
+      span [ID #{item.id}] 
+      span zuletzt geändert: 
+      span(id="timestamp" + item.id) #{item.timestamp}
 
   

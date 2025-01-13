@@ -1,0 +1,25 @@
+div.prod(id="prod" + item.id )
+  
+  .box
+
+    .right
+      button.darkgrey(title="Produktdetails bearbeiten" onclick="toggleDetails('" + item.id + "')")
+          i.fa.fa-caret-down(aria-hidden="true")
+          
+    h2(style="text-align: left") 
+      i.fa-solid.fa-circle(style="font-size:14px; padding-left: 5px; padding-right: 5px; color: " + item.state)
+      span(id="product_name" + item.id title="Produkt bearbeiten"  onclick="renameProductPanel('" + item.name + "')") #{item.name}
+      
+      .panel#edit_product
+        input(id='edit_product_name' type="text" placeholder="Produktname" autofocus title="Produktname"  value=item.name)
+
+        .left(style="margin-left: auto; margin-right: auto; width: 33%")
+          p.lightgrey(itle="Gesamtes Produkt entfernen" onclick="deleteProduct(" + item.id + ")")
+            i.fa-solid.fa-trash-can(aria-hidden="true")
+
+        .left(style="margin-left: auto; margin-right: auto; width: 67%")
+          p.orange(title="Neuen Namen des Produkts speichen" onclick="renameProduct('" + item.id + "')")
+            i.fa-regular.fa-square-check(aria-hidden="true")
+
+      span(style="font-weight: normal;float: right; padding-right: 5px;font-size: 16px") Bestand: 
+        span(id="sum" + item.id) #{item.sum || 0}

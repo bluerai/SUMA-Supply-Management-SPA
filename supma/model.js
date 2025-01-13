@@ -125,48 +125,48 @@ export function toggleCategoryStar(categoryId) {
   return { category: oneCategory(categoryId) }
 }
 
-export function createItem(categoryId, itemName) {
+export function createProduct(categoryId, itemName) {
   const insertStmt = database.prepare(`INSERT INTO product (name, category_id, entry_list) VALUES (?, ?, ?)`);
   const { lastInsertRowid } = insertStmt.run(itemName, categoryId, "[]");
-  logger.debug("createItem: item " + lastInsertRowid + " created");
+  logger.debug("createProduct: item " + lastInsertRowid + " created");
   return lastInsertRowid;
 }
 
-export function getItem(id) {
+export function getProduct(id) {
   const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product where id=?`);
   const item = selectByIdStmt.get(id);
   item.entry_list = JSON.parse(item.entry_list);
   return item;
 }
 
-export function getAllItems() {
+export function getAllProducts() {
   const selectAllStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product order by name asc`);
   const data = selectAllStmt.all();
   for (let item of data) {
     if (item.entry_list) item.entry_list = JSON.parse(item.entry_list);
   }
-  logger.debug("getAllItems: data.length=" + data.length);
+  logger.debug("getAllProducts: data.length=" + data.length);
   return data;
 };
 
 
-export function renameItem(id, name) {
+export function renameProduct(id, name) {
   const updateNameStmt = database.prepare(`UPDATE product SET name = ? WHERE id = ?`);
   const { changes } = updateNameStmt.run(name, id);
-  logger.debug("renameItem: item renamed - rows changed=" + changes);
+  logger.debug("renameProduct: item renamed - rows changed=" + changes);
 
   const selectByIdStmt = database.prepare(`SELECT datetime(moddate,'unixepoch','localtime') as timestamp FROM product where id=?`);
   return selectByIdStmt.get(id).timestamp;
 }
 
-export function deleteItem(id) {
+export function deleteProduct(id) {
   const deleteStmt = database.prepare(`DELETE FROM product WHERE id = ?`);
   const { changes } = deleteStmt.run(id);
-  logger.debug("deleteItem: item " + id + " deleted - rows deleted=" + changes);
+  logger.debug("deleteProduct: item " + id + " deleted - rows deleted=" + changes);
 }
 
-export function updateItemEntry(itemId, year, month, count) {
-  logger.debug("updateItemEntry: itemId=" + itemId + ", year" + year + ", month=" + month + ", count=" + count);
+export function updateEntry(itemId, year, month, count) {
+  logger.debug("updateEntry: itemId=" + itemId + ", year" + year + ", month=" + month + ", count=" + count);
 
   const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product where id=?`);
   const item = selectByIdStmt.get(itemId);
@@ -200,12 +200,12 @@ export function updateItemEntry(itemId, year, month, count) {
 
   const updateStmt = database.prepare(`UPDATE product SET sum = ?, entry_list = ? WHERE id = ?`);
   const { changes } = updateStmt.run(item.sum, JSON.stringify(item.entry_list), item.id);
-  logger.debug("updateItemEntry: item sum, item entry_list saved - rows changed=" + changes);
+  logger.debug("updateEntry: item sum, item entry_list saved - rows changed=" + changes);
 
-  evalItem(item);
+  evalProduct(item);
 }
 
-export function evalItem(item) {
+export function evalProduct(item) {
   let anyEntryChanged = false;
   item.entry_list.map(entry => {
     const oldEntryState = entry.state;
@@ -221,18 +221,18 @@ export function evalItem(item) {
   if (anyEntryChanged) {
     const oldItemState = item.state;
     item.entry_list.map(entry => {
-      logger.debug("evalItem entry=" + JSON.stringify(entry));
+      logger.debug("evalProduct entry=" + JSON.stringify(entry));
       if (entry.state === "red") item.state = "red";
       else if (entry.state === "yellow" && entry.state === "green") item.state = "yellow";
       else item.state = "green";
     });
     itemChanged = (item.state !== oldItemState);
   }
-  logger.debug("evalItem: item.id=" + item.id + ", item.state=" + item.state);
+  logger.debug("evalProduct: item.id=" + item.id + ", item.state=" + item.state);
   if (itemChanged) {
     const updateStmt = database.prepare(`UPDATE product SET state = ? WHERE id = ?`);
     const { changes } = updateStmt.run(item.state, item.id);
-    logger.debug("evalItem: item state saved - rows changed=" + changes);
+    logger.debug("evalProduct: item state saved - rows changed=" + changes);
   }
   return itemChanged;
 }
