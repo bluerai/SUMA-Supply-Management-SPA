@@ -244,7 +244,7 @@ export function evalAction(request, response) {
     for (let item of data) {
       (item.entry_list) && (evalProduct(item)) && changeCount++;
     }
-    const msg = "SUPMA: " + data.length + " Produkte wurden überprüft. " +
+    const msg = "SUMA: " + data.length + " Produkte wurden überprüft. " +
       ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
       " einen neuen Status erhalten.";
     logger.info(msg);
@@ -252,7 +252,7 @@ export function evalAction(request, response) {
     response.json({ state: true, msg: msg });
   }
   catch (error) {
-    const msg = "SUPMA: Interner Fehler in 'evalAction': " + error.message;
+    const msg = "SUMA: Interner Fehler in 'evalAction': " + error.message;
     logger.error(msg);
     logger.debug(getSystemErrorMap.stack);
     push.error(msg);
@@ -282,7 +282,7 @@ export async function healthAction(request, response) {
 }
 
 function errorHandler(error, actionName, response) {
-  const message = "SUPMA: Interner Fehler in '" + actionName + "': " + error.message;
+  const message = "SUMA: Interner Fehler in '" + actionName + "': " + error.message;
   logger.error(message);
   logger.debug(error.stack);
   if (response) {

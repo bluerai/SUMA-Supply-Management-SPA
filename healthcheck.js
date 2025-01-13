@@ -1,7 +1,7 @@
 
 import { request } from 'node:http';
 
-const options = { hostname: 'localhost', port: process.env.PORT, path: '/supma/health', method: 'GET' };
+const options = { hostname: 'localhost', port: process.env.PORT, path: '/suma/health', method: 'GET' };
 
 request(options, (res) => {
   let body = '';

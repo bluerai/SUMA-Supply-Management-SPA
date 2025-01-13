@@ -3,17 +3,17 @@ import { DatabaseSync } from 'node:sqlite';
 import fs from 'fs-extra';
 import { logger } from '../log.js'
 
-const SUPMA_DB = process.env.SUPMA_DB;
+const SUMA_DB = process.env.SUMA_DB;
 let database;
 
-fs.pathExists(SUPMA_DB, (err, exists) => {
-  database = new DatabaseSync(SUPMA_DB, { open: true });
+fs.pathExists(SUMA_DB, (err, exists) => {
+  database = new DatabaseSync(SUMA_DB, { open: true });
   if (exists) {
     if (!database) {
-      logger.info('Could not connect to SUPMA database at "' + SUPMA_DB + '".');
+      logger.info('Could not connect to SUMA database at "' + SUMA_DB + '".');
       process.exit(1);
     } else {
-      logger.info('Connected to SUPMA database at "' + SUPMA_DB + '".');
+      logger.info('Connected to SUMA database at "' + SUMA_DB + '".');
     }
   } else {
     database.exec(`CREATE TABLE IF NOT EXISTS category (
@@ -44,25 +44,25 @@ fs.pathExists(SUPMA_DB, (err, exists) => {
     moddate    INTEGER     DEFAULT (strftime('%s') ) 
 );
 `); */
-    logger.info('A new SUPMA database was successfully created and opened at "' + SUPMA_DB + '".'); 
+    logger.info('A new SUMA database was successfully created and opened at "' + SUMA_DB + '".'); 
   }
 })
 
 export function connectDb() {  // open database 
   try {
     database.open();
-    return "SUPMA connectDb: DB opened";
+    return "SUMA connectDb: DB opened";
   } catch (error) {
-    return "SUPMA connectDb: " + error;
+    return "SUMA connectDb: " + error;
   }
 }
 
 export function unconnectDb() {  // close database 
   try {
     database.close();
-    return ("SUPMA unconnectDb: DB closed", 1);
+    return ("SUMA unconnectDb: DB closed", 1);
   } catch (error) {
-    return "SUPMA unconnectDb: " + error;
+    return "SUMA unconnectDb: " + error;
   }
 }
 
@@ -83,7 +83,7 @@ export function getCategory(categoryId) {
   const categories = allCategories();
 
   if (categories.length === 0) {
-    const result = createCategory('SUPMA');
+    const result = createCategory('SUMA');
     result.products = [];
     return result;
   }
@@ -211,7 +211,7 @@ export function evalProduct(item) {
     const oldEntryState = entry.state;
     entry.state = evalEntry(entry);
     if ((entry.state !== oldEntryState) && entry.state !== "green") {
-      pushover('SUPMA für ' + item.sum + ' Einheit(en) des Produkts "' + item.name + "' im Monat " + entry.year + "/" + entry.month + " überschritten!",
+      pushover('SUMA für ' + item.sum + ' Einheit(en) des Produkts "' + item.name + "' im Monat " + entry.year + "/" + entry.month + " überschritten!",
         "Warnung", 0, "pushover");
     }
     anyEntryChanged = anyEntryChanged || (entry.state !== oldEntryState);

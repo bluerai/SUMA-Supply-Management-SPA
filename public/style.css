@@ -119,19 +119,9 @@ button_breit {
   color: white;
 }
 
-.orange:hover {
-  color: #FF8800;
-  background-color: darkgrey;
-}
-
 .yellow {
   background-color: #FFD342;
   color: black;
-}
-
-.yellow:hover {
-  color: #FFD342;
-  background-color: darkgrey;
 }
 
 .darkgrey {
@@ -139,29 +129,14 @@ button_breit {
   color: black;
 }
 
-.darkgrey:hover {
-  color: darkgrey;
-  background-color: lightgrey;
-}
-
 .lightgrey {
   background-color: lightgrey;
   color: black;
 }
 
-.lightgrey:hover {
-  color: lightgrey;
-  background-color: darkgrey;
-}
-
 .white {
   background-color: white;
   color: black;
-}
-
-.white:hover {
-  color: white;
-  background-color: darkgrey;
 }
 
 select {
