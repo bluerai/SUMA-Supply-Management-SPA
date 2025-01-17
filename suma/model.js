@@ -153,7 +153,7 @@ export function getAllProducts() {
 export function renameProduct(id, name) {
   const updateNameStmt = database.prepare(`UPDATE product SET name = ? WHERE id = ?`);
   const { changes } = updateNameStmt.run(name, id);
-  logger.debug("renameProduct: item renamed - rows changed=" + changes);
+  logger.debug("renameProduct: item " + id + " renamed - rows changed=" + changes);
 
   const selectByIdStmt = database.prepare(`SELECT datetime(moddate,'unixepoch','localtime') as timestamp FROM product where id=?`);
   return selectByIdStmt.get(id).timestamp;

@@ -26,7 +26,7 @@ class Pushover extends PushMessage {
   }
 
   info(msg) {
-    (this.valid) && this._send(msg, "Hinweis", 0, "pushover");
+    (this.valid) && this._send(msg, "Hinweis", 0, "none");
   }
 
   async _send(msg, title, prio, sound) {

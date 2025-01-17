@@ -218,7 +218,7 @@ input[type="number"] {
 }
 
 #transparent {
-  opacity: 0.5;
+  opacity: 0.4;
   display: none;
   position: fixed;
   background-color: rgb(201, 188, 167);

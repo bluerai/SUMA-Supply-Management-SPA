@@ -39,11 +39,13 @@ export async function getCategoryAction(request, response) {
 
     logger.info("getCategoryAction: categoryId=" + data.category.id);
     logger.debug("getCategoryAction: data=" + JSON.stringify(data));
+    
+    response.locals.categoryId = data.category.id;
     response.locals.products = data.products;
     response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.debug("Category_list: html.length=" + html.length);
-      response.status(200).send({ html: html, products: response.locals.products });
+      response.status(200).send({ html: html, products: response.locals.products, categoryId: response.locals.categoryId });
     })
   }
   catch (error) { errorHandler(error, 'getCategoryAction', response) }
@@ -61,6 +63,7 @@ export async function getHeadAction(request, response) {
         logger.info(error);
       } else {
         logger.debug("getHeadAction: html.length=" + html.length);
+        logger.silly("getHeadAction: html=" + html);
         response.send({ html });
       }
     })

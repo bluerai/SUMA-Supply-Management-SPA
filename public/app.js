@@ -10,8 +10,8 @@ async function getCategory(id) {
 
   if (response.status === 200) {
     const data = await response.json();
+    document.getElementById('category_id').value = data.categoryId;
     document.getElementById('category_head').outerHTML = data.html;
-
     updateProductList(data.products);
     updateCategoryList();
   }
@@ -158,7 +158,8 @@ async function toggleCategoryPrio() {
 
 // Products
 
-async function renameProduct(id) {
+async function renameProduct() {
+  const id = document.getElementById('product_id').value;
   const prodName = document.getElementById("edit_product_name").value;
   if (prodName && prodName.trim().length != 0) {
     const response = await fetch("/suma/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + id);
@@ -194,7 +195,8 @@ async function createProduct() {
   hidePanels();
 }
 
-async function deleteProduct(id) {
+async function deleteProduct() {
+  const id = document.getElementById('product_id').value;
   const prodName = document.getElementById("product_name" + id).innerHTML;
   if (confirm('"' + prodName + '" löschen?')) {
     const response = await fetch("/suma/pro/del/" + id);
@@ -261,10 +263,10 @@ function createCategoryPanel() {
   document.getElementById('new_category_name').focus();
 }
 
-function renameCategoryPanel(oldName) {
+function editCategoryPanel(oldName) {
+  document.getElementById('edit_category_name').value = oldName;
   document.getElementById('edit_category').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
-  document.getElementById('edit_category_name').value = oldName;
   document.getElementById('edit_category_name').focus();
 }
 
@@ -275,33 +277,28 @@ function createProductPanel() {
   document.getElementById('new_product_name').focus();
 }
 
-function renameProductPanel(oldName) {
+function editProductPanel(productId, oldName) {
+  document.getElementById('product_id').value = productId;
+  document.getElementById('edit_product_name').value = oldName;
   document.getElementById('edit_product').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
-  document.getElementById('edit_product_name').value = oldName;
   document.getElementById('edit_product_name').focus();
 }
 
-function hidePanels() {  //productId nur für edited Products
+function hidePanels() {
   document.getElementById('select_category').style.display = 'none';
 
   document.getElementById('new_category').style.display = 'none';
   document.getElementById('edit_category').style.display = 'none';
   document.getElementById('new_product').style.display = 'none';
   document.getElementById('new_product').style.display = 'none';
-  if (document.getElementById('edit_product')) document.getElementById('edit_product').style.display = 'none';
+  document.getElementById('edit_product').style.display = 'none';
 
   document.getElementById("new_category_name").value = "";
   document.getElementById('edit_category_name').value = "";
   document.getElementById("new_product_name").value = "";
-  if (document.getElementById("edit_product_name")) document.getElementById("edit_product_name").value = "";
+  document.getElementById("edit_product_name").value = "";
 
   document.getElementById('transparent').style.display = 'none';
 }
 
-/* let textarea = document.querySelector('textarea');
-
-textarea.addEventListener('input', () => {
-  textarea.style.height = "auto";
-  textarea.style.height = textarea.scrollHeight + "px";
-}); */

@@ -2,8 +2,50 @@ extends ../../templates/base
 
 block content
 
+  //- Transparent pane
   #transparent(onclick="hidePanels()")
 
+  //- Edit category panel
+  input#category_id(type="hidden")
+  input#product_id(type="hidden")
+
+  .panel#edit_category
+    input#edit_category_name(type="text" placeholder="Kategorie" autofocus title="" value=name)
+
+    .left(style="width: 34%")
+      p.lightgrey(title="Kategorie löschen" onclick="deleteCategory()")
+        i.fa-solid.fa-trash-can(aria-hidden="true")
+
+    .right(style="width: 33%")
+      p.orange(title="Neuen Namen der Kategorie speichen" onclick="renameCategory()")
+        i.fa-regular.fa-square-check(aria-hidden="true")
+
+    .right(style="width: 33%")
+      p.yellow(title="Priorität bearbeiten" onclick="toggleCategoryPrio()")
+        i.fa-solid.fa-star#category_star(class="prio" + prio aria-hidden="true")
+
+
+  //- category list panel
+  .panel#select_category
+    #category_list
+    //- Inserted here: category_list.pug
+
+    p.orange(title="Neue Kategorie" onclick="createCategoryPanel()")
+      i.fa-regular.fa-square-plus(aria-hidden="true")
+
+
+  //- Edit product panel
+  .panel(id="edit_product")
+    input(id='edit_product_name' type="text" placeholder="Produktname" autofocus title="Produktname"  value="")
+
+    .left(style="margin-left: auto; margin-right: auto; width: 33%")
+      p.lightgrey(itle="Gesamtes Produkt entfernen" onclick="deleteProduct()")
+        i.fa-solid.fa-trash-can(aria-hidden="true")
+
+    .left(style="margin-left: auto; margin-right: auto; width: 67%")
+      p.orange(title="Neuen Namen des Produkts speichen" onclick="renameProduct()")
+        i.fa-regular.fa-square-check(aria-hidden="true")
+        
   .app
     #header
       .left 
@@ -12,14 +54,6 @@ block content
       .right#dropdown
         button.yellow(title="Kategorie auswählen" onClick="selectCategoryPanel()")
           i.fa.fa-bars(aria-hidden="true")
-
-        .panel#select_category
-          #category_list
-
-          //- Inserted here: category_list.pug
-
-          p.orange(title="Neue Kategorie" onclick="createCategoryPanel()")
-            i.fa-regular.fa-square-plus(aria-hidden="true")
 
         .panel#new_category
           input#new_category_name(type="text" placeholder="Neue Kategorie" autofocus title="")
