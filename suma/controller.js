@@ -45,11 +45,10 @@ export async function getCategoryAction(request, response) {
     response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.debug("Category_list: html.length=" + html.length);
-      response.status(200).send({ html: html, products: response.locals.products, categoryId: response.locals.categoryId });
+      response.status(200).send({ categoryId: response.locals.categoryId, products: response.locals.products, html: html });
     })
   }
   catch (error) { errorHandler(error, 'getCategoryAction', response) }
-
 }
 
 export async function getHeadAction(request, response) {
@@ -148,11 +147,11 @@ export async function createCategoryAction(request, response) {
 
     logger.info("createCategoryAction: categoryId=" + data.category.id);
     logger.debug("createCategoryAction: data=" + JSON.stringify(data));
-
+    response.locals.categoryId = data.category.id;
     response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.debug("Category_list: html.length=" + html.length);
-      response.status(200).send({ html: html });
+      response.status(200).send({ categoryId: response.locals.categoryId, html: html });
     })
   }
   catch (error) { errorHandler(error, 'createCategoryAction', response) }

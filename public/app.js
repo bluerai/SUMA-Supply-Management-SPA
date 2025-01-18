@@ -107,6 +107,8 @@ async function createCategory() {
 
     if (response.status === 200) {
       const data = await response.json();
+
+      document.getElementById('category_id').value = data.categoryId;
       document.getElementById('category_head').outerHTML = data.html;
       document.getElementById('prodlist').innerHTML = "";
       updateCategoryList();
