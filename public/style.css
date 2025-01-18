@@ -161,7 +161,7 @@ input[type="number"] {
 .panel {
   display: none;
   width: 400px;
-  position: absolute;
+  position: fixed;
   left: calc(50% - 200px);
   top: 100px;
   background-color: lightgrey;
