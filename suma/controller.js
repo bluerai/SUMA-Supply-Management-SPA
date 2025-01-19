@@ -264,8 +264,15 @@ export function evalAction(request, response) {
 
 export async function dbAction(request, response) {
   try {
-    const result = (request.url === "/unconnectdb") ? unconnectDb() : connectDb();
-    logger.debug(result);
+    let result;
+
+    switch (request.url) {
+      case "/unconnectdb": result = unconnectDb(); break;
+      case "/connectdb": result = connectDb(); break;
+      default: result = { state: "error", msg: "Cannot GET /suma" + request.url};
+    }
+
+    logger.debug(JSON.stringify(result));
     response.json(result);
   }
   catch (error) { errorHandler(error, 'dbAction') }
@@ -284,9 +291,9 @@ export async function healthAction(request, response) {
 }
 
 function errorHandler(error, actionName, response) {
-  const message = "SUMA: Interner Fehler in '" + actionName + "': " + error.message;
+  const message = "SUMA: Fehler in '" + actionName + "': " + error.message;
   logger.error(message);
-  logger.debug(error.stack);
+  if (error.stack) logger.debug(error.stack);
   if (response) {
     response.writeHead(500, message, { 'content-type': 'text/html' });
     response.end();

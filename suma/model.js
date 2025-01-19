@@ -51,18 +51,18 @@ fs.pathExists(SUMA_DB, (err, exists) => {
 export function connectDb() {  // open database 
   try {
     database.open();
-    return "SUMA connectDb: DB opened";
+    return {state: "open", msg: "SUMA connectDb: DB opened"};
   } catch (error) {
-    return "SUMA connectDb: " + error;
+    return { state: "error", msg: "SUMA connectDb: " + error};
   }
 }
 
 export function unconnectDb() {  // close database 
   try {
     database.close();
-    return ("SUMA unconnectDb: DB closed", 1);
+    return { state: "closed", msg: "SUMA unconnectDb: DB closed" };
   } catch (error) {
-    return "SUMA unconnectDb: " + error;
+    return { state: "error", msg: "SUMA unconnectDb: " + error };
   }
 }
 
