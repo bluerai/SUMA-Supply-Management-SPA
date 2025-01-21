@@ -5,7 +5,7 @@ USER node
 WORKDIR /home/node
 
 ADD --chown=node:node ./package.json .
-RUN npm install; npm audit fix
+RUN npm install
 ADD --chown=node:node . .
 
 RUN mkdir -p /home/node/data
