@@ -165,18 +165,18 @@ export function deleteProduct(id) {
   logger.debug("deleteProduct: item " + id + " deleted - rows deleted=" + changes);
 }
 
-export function updateEntry(itemId, year, month, count) {
-  logger.debug("updateEntry: itemId=" + itemId + ", year" + year + ", month=" + month + ", count=" + count);
+export function updateEntry(data) {
+  logger.debug("updateEntry: data=" + JSON.stringify(data));
 
   const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product where id=?`);
-  const item = selectByIdStmt.get(itemId);
+  const item = selectByIdStmt.get(data.id);
   item.entry_list = JSON.parse(item.entry_list);
 
-  const index = item.entry_list.findIndex((e) => { return e.year === year && e.month === month; });
+  const index = item.entry_list.findIndex((e) => { return e.year === data.year && e.month === data.month; });
   const entry = item.entry_list[index];
 
   if (entry) {
-    entry.count = parseInt(entry.count) + parseInt(count);
+    entry.count = parseInt(entry.count) + parseInt(data.count);
     if (entry.count < 0) {
       //Fehler
       return null;
@@ -185,7 +185,7 @@ export function updateEntry(itemId, year, month, count) {
 
   } else {
     if (count > 0) {
-      item.entry_list.push({ "year": "" + year, "month": "" + month, "count": "" + count });
+      item.entry_list.push({ "year": "" + data.year, "month": "" + data.month, "count": "" + data.count });
       item.entry_list.sort(function (a, b) {
         if (a.year !== b.year) { return parseInt(a.year) - parseInt(b.year) } else { return parseInt(a.month) - parseInt(b.month) }
       });

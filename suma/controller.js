@@ -39,7 +39,7 @@ export async function getCategoryAction(request, response) {
 
     logger.info("getCategoryAction: categoryId=" + data.category.id);
     logger.debug("getCategoryAction: data=" + JSON.stringify(data));
-    
+
     response.locals.categoryId = data.category.id;
     response.locals.products = data.products;
     response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
@@ -91,31 +91,27 @@ export async function getDetailsAction(request, response) {
 export async function updateAction(request, response) {
   logger.info("updateAction");
   try {
-    let body = '';
-    request.on('readable', () => {
-      const temp = request.read();
-      body += temp !== null ? temp : '';
-    });
-    request.on('end', () => {
-      let data = JSON.parse(body);
-      updateEntry(data.id, data.year, data.month, data.count);
-      const item = getProduct(data.id)
+    const data = request.body;
+    logger.debug("updateAction: data=" + data);
 
-      if (item) {
-        response.locals.sum = item.sum;
-        response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_details', { item: item }, function (error, html) {
-          if (error) {
-            errorHandler(error, 'updateAction render', response)
-          } else {
-            //logger.info("updateAction: html.length=" + html.length);
-            response.send({ html: html, sum: response.locals.sum });
-          }
-        })
-      } else {
-        response.writeHead(400, "Unzulässige Eingabe", { 'content-type': 'text/html' });
-        response.end();
-      }
-    });
+    updateEntry(data);
+    const item = getProduct(data.id)
+
+    if (item) {
+      response.locals.sum = item.sum;
+      response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_details', { item: item }, function (error, html) {
+        if (error) {
+          errorHandler(error, 'updateAction render', response)
+        } else {
+          //logger.info("updateAction: html.length=" + html.length);
+          response.send({ html: html, sum: response.locals.sum });
+        }
+      })
+    } else {
+      response.writeHead(400, "Unzulässige Eingabe", { 'content-type': 'text/html' });
+      response.end();
+    }
+
   }
   catch (error) { errorHandler(error, 'updateAction', response) }
 }
@@ -269,7 +265,7 @@ export async function dbAction(request, response) {
     switch (request.url) {
       case "/unconnectdb": result = unconnectDb(); break;
       case "/connectdb": result = connectDb(); break;
-      default: result = { state: "error", msg: "Cannot GET /suma" + request.url};
+      default: result = { state: "error", msg: "Cannot GET /suma" + request.url };
     }
 
     logger.debug(JSON.stringify(result));
