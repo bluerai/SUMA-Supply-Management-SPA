@@ -1,5 +1,3 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { logger } from '../log.js';
 import { push } from '../push_message.js';
 
@@ -14,7 +12,7 @@ import {
 export async function startAction(request, response) {
   logger.info("startAction: request.url=" + JSON.stringify(request.url));
   try {
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/start')
+    response.render(import.meta.dirname + '/views/start')
   }
   catch (error) { errorHandler(error, 'startAction', response) }
 }
@@ -22,7 +20,7 @@ export async function startAction(request, response) {
 export async function getCategoryListAction(request, response) {
   logger.info("getCategoryListAction: request.params=" + JSON.stringify(request.params));
   try {
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_list', { allCategories: allCategories() }, function (error, html) {
+    response.render(import.meta.dirname + '/views/category_list', { allCategories: allCategories() }, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.debug("Category_list: html.length=" + html.length);
       response.status(200).send({ category: response.locals.category, html: html });
@@ -42,7 +40,7 @@ export async function getCategoryAction(request, response) {
 
     response.locals.categoryId = data.category.id;
     response.locals.products = data.products;
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+    response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.debug("Category_list: html.length=" + html.length);
       response.status(200).send({ categoryId: response.locals.categoryId, products: response.locals.products, html: html });
@@ -57,7 +55,7 @@ export async function getHeadAction(request, response) {
     const itemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     let item = getProduct(itemId);
     logger.debug("getHeadAction: item=" + JSON.stringify(item));
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_head', { item: item }, function (error, html) {
+    response.render(import.meta.dirname + '/views/product_head', { item: item }, function (error, html) {
       if (error) {
         logger.info(error);
       } else {
@@ -76,7 +74,7 @@ export async function getDetailsAction(request, response) {
     const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     let item = getProduct(curItemId);
     logger.debug("getDetailsAction: item=" + JSON.stringify(item));
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_details', { item: item }, function (error, html) {
+    response.render(import.meta.dirname + '/views/product_details', { item: item }, function (error, html) {
       if (error) {
         errorHandler(error, 'getDetailsAction', response)
       } else {
@@ -99,7 +97,7 @@ export async function updateAction(request, response) {
 
     if (item) {
       response.locals.sum = item.sum;
-      response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_details', { item: item }, function (error, html) {
+      response.render(import.meta.dirname + '/views/product_details', { item: item }, function (error, html) {
         if (error) {
           errorHandler(error, 'updateAction render', response)
         } else {
@@ -125,7 +123,7 @@ export async function renameCategoryAction(request, response) {
 
     logger.info("renameCategoryAction: id=" + data.category.id);
     logger.debug("renameCategoryAction: data=" + JSON.stringify(data));
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+    response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.debug("Category_list: html=" + html);
       logger.debug("Category_head: html.length=" + html.length);
@@ -144,7 +142,7 @@ export async function createCategoryAction(request, response) {
     logger.info("createCategoryAction: categoryId=" + data.category.id);
     logger.debug("createCategoryAction: data=" + JSON.stringify(data));
     response.locals.categoryId = data.category.id;
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+    response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.debug("Category_list: html.length=" + html.length);
       response.status(200).send({ categoryId: response.locals.categoryId, html: html });
@@ -166,7 +164,7 @@ export async function deleteCategoryAction(request, response) {  //TODO
     logger.info("deleteCategoryAction: categoryId=" + data.category.id);
     logger.debug("deleteCategoryAction: data=" + JSON.stringify(data));
     response.locals.products = data.products;
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+    response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.debug("Category_list: html.length=" + html.length);
       response.status(200).send({ html: html, products: response.locals.products });
@@ -184,7 +182,7 @@ export async function toggleCategoryStarAction(request, response) {
 
     logger.info("toggleCategoryStarAction: id=" + data.category.id);
     logger.debug("toggleCategoryStarAction: data=" + JSON.stringify(data));
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/category_head', data.category, function (error, html) {
+    response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.debug("Category_head: html.length=" + html.length);
       response.status(200).send({ html: html });
@@ -216,7 +214,7 @@ export async function createProductAction(request, response) {
 
     logger.info("createProductAction: id=" + newItemId);
     const item = getProduct(newItemId);
-    response.render(dirname(fileURLToPath(import.meta.url)) + '/views/product_head', { item: item }, function (error, html) {
+    response.render(import.meta.dirname + '/views/product_head', { item: item }, function (error, html) {
       response.send({ html });
     });
   }
@@ -265,7 +263,7 @@ export async function dbAction(request, response) {
     switch (request.url) {
       case "/unconnectdb": result = unconnectDb(); break;
       case "/connectdb": result = connectDb(); break;
-      default: result = { state: "error", msg: "Cannot GET /suma" + request.url };
+      default: result = { state: "error", msg: "Cannot GET /app" + request.url };
     }
 
     logger.debug(JSON.stringify(result));
