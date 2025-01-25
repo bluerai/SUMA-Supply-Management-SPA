@@ -15,7 +15,7 @@ app.use(express.json());
 
 app.use('/app', router);
 
-app.get('/', (request, response) => response.redirect('/app'));
+app.use((request, response) => response.redirect('/app'));
 
 app.listen(process.env.PORT, () => {
   logger.info('Server is listening to Port ' + process.env.PORT);

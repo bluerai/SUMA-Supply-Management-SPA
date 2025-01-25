@@ -184,7 +184,7 @@ export function updateEntry(data) {
     if (entry.count === 0) item.entry_list.splice(index, 1);
 
   } else {
-    if (count > 0) {
+    if (data.count > 0) {
       item.entry_list.push({ "year": "" + data.year, "month": "" + data.month, "count": "" + data.count });
       item.entry_list.sort(function (a, b) {
         if (a.year !== b.year) { return parseInt(a.year) - parseInt(b.year) } else { return parseInt(a.month) - parseInt(b.month) }
