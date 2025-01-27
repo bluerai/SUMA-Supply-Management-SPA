@@ -243,9 +243,9 @@ export function evalAction(request, response) {
     const msg = "SUMA: " + data.length + " Produkte wurden überprüft. " +
       ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
       " einen neuen Status erhalten.";
-    logger.info(msg);
-    push.info(msg);
-    response.json({ state: true, msg: msg });
+    logger.info("SUMA: " + msg);
+    push.info(msg, "SUMA evaluate");
+    response.json({ state: true, msg: "SUMA: " + msg });
   }
   catch (error) {
     const msg = "SUMA: Interner Fehler in 'evalAction': " + error.message;

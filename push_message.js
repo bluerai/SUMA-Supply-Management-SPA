@@ -21,12 +21,12 @@ class Pushover extends PushMessage {
 
   "name" = "Pushover";
 
-  error(msg) {
-    (this.valid) && this._send(msg, "Warnung", -1, "pushover");
+  error(msg, title) {
+    (this.valid) && this._send(msg, title || "Warnung", -1, "pushover");
   }
 
-  info(msg) {
-    (this.valid) && this._send(msg, "Hinweis", 0, "none");
+  info(msg, title) {
+    (this.valid) && this._send(msg, title || "Hinweis", 0, "none");
   }
 
   async _send(msg, title, prio, sound) {
