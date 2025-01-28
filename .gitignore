@@ -130,8 +130,6 @@ dist
 .pnp.*
 
 ###
-Docker.cli
-Docker.cli/
 dev_data
 dev_data/
 Cache

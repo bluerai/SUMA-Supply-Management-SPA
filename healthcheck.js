@@ -1,33 +1,19 @@
 
-import { request } from 'node:http';
+import { logger } from './log.js'
 
-const options = { hostname: 'localhost', port: process.env.PORT, path: '/app/health', method: 'GET' };
+try {
+  const response = await fetch("http://localhost:" + process.env.PORT + "/app/health/");
+  const data = await response.json();
 
-request(options, (res) => {
-  let body = '';
-  res.on('data', (chunk) => {
-    body += chunk;
-  });
-  res.on('end', () => {
-    try {
-      const response = JSON.parse(body);
+  if (data.healthy === true) {
+    logger.debug('Healthy response received: ' + JSON.stringify(data));
+    process.exit(0);
+  }
 
-      if (response.healthy === true) {
-        console.log('Healthy response received: ', body);
-        process.exit(0);
-      }
+  logger.warn('Unhealthy response received: ' + JSON.stringify(data));
+  process.exit(1);
 
-      console.log('Unhealthy response received: ', body);
-      process.exit(1);
-
-    } catch (error) {
-      console.log('Error parsing JSON response body: ', error);
-      process.exit(1);
-    }
-  });
-})
-  .on('error', (err) => {
-    console.log('Error: ', err);
-    process.exit(1);
-  })
-  .end();
+} catch (error) {
+  logger.error('Error parsing JSON response body: ' + JSON.stringify(data));
+  process.exit(1);
+}
