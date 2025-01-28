@@ -49,10 +49,10 @@ class Pushover extends PushMessage {
 
     } else
       logger.error("Pushover: response.statusText " + " (#" + response.status + ")");
-
   }
 }
 
-export const push = new Pushover({ "url": process.env.PUSHOVER_URL, "user": process.env.PUSHOVER_USER, "token": process.env.PUSHOVER_TOKEN });
+const Pushover = new Pushover({ "url": process.env.PUSHOVER_URL, "user": process.env.PUSHOVER_USER, "token": process.env.PUSHOVER_TOKEN });
 
-//push.info("Test Test Test Test Test Test Test Test Test Test ")
+export const push = (Pushover.valid) ? Pushover : new PushMessage({});
+
