@@ -10,4 +10,5 @@ Als Server sind einfache Ein-Platinen-Rechner (ab ca. Raspberry PI 3 oä.) vollk
 
 Die Sprache der Oberfläche ist zurzeit ausschließlich Deutsch.
 
-Am besten das Docker-Image verwenden: bluerai72/suma
+Am besten das Docker-Image verwenden: bluerai72/suma auf DockerHub
+ 
