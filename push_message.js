@@ -52,7 +52,7 @@ class Pushover extends PushMessage {
   }
 }
 
-const Pushover = new Pushover({ "url": process.env.PUSHOVER_URL, "user": process.env.PUSHOVER_USER, "token": process.env.PUSHOVER_TOKEN });
+const Push = new Pushover({ "url": process.env.PUSHOVER_URL, "user": process.env.PUSHOVER_USER, "token": process.env.PUSHOVER_TOKEN });
 
-export const push = (Pushover.valid) ? Pushover : new PushMessage({});
+export const push = (Push.valid) ? Push : new PushMessage({});
 
