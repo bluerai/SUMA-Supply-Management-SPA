@@ -10,19 +10,19 @@ import {
 
 
 export async function startAction(request, response) {
-  logger.info("startAction: request.url=" + JSON.stringify(request.url));
   try {
+    logger.info("startAction: request.url=" + JSON.stringify(request.url));
     response.render(import.meta.dirname + '/views/start')
   }
   catch (error) { errorHandler(error, 'startAction', response) }
 }
 
 export async function getCategoryListAction(request, response) {
-  logger.info("getCategoryListAction: request.params=" + JSON.stringify(request.params));
   try {
+    logger.info("getCategoryListAction: request.params=" + JSON.stringify(request.params));
     response.render(import.meta.dirname + '/views/category_list', { allCategories: allCategories() }, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
-      logger.debug("Category_list: html.length=" + html.length);
+      logger.isLevelEnabled('debug') && ("Category_list: html.length=" + html.length);
       response.status(200).send({ category: response.locals.category, html: html });
     })
   }
@@ -30,19 +30,19 @@ export async function getCategoryListAction(request, response) {
 }
 
 export async function getCategoryAction(request, response) {
-  logger.info("getCategoryAction: request.params=" + JSON.stringify(request.params));
   try {
+    logger.info("getCategoryAction: request.params=" + JSON.stringify(request.params));
     const categoryId = (request.params.id) && parseInt(request.params.id, 10);
     const data = getCategory(categoryId);
 
     logger.info("getCategoryAction: categoryId=" + data.category.id);
-    logger.debug("getCategoryAction: data=" + JSON.stringify(data));
+    logger.isLevelEnabled('debug') && logger.debug("getCategoryAction: data=" + JSON.stringify(data));
 
     response.locals.categoryId = data.category.id;
     response.locals.products = data.products;
     response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
-      logger.debug("Category_list: html.length=" + html.length);
+      logger.isLevelEnabled('debug') && logger.debug("Category_list: html.length=" + html.length);
       response.status(200).send({ categoryId: response.locals.categoryId, products: response.locals.products, html: html });
     })
   }
@@ -50,17 +50,17 @@ export async function getCategoryAction(request, response) {
 }
 
 export async function getHeadAction(request, response) {
-  logger.info("getHeadAction: request.params=" + JSON.stringify(request.params));
   try {
+    //logger.info("getHeadAction: request.params=" + JSON.stringify(request.params));
     const itemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     let item = getProduct(itemId);
-    logger.debug("getHeadAction: item=" + JSON.stringify(item));
+    logger.isLevelEnabled('debug') && logger.debug("getHeadAction: item=" + JSON.stringify(item));
     response.render(import.meta.dirname + '/views/product_head', { item: item }, function (error, html) {
       if (error) {
         logger.info(error);
       } else {
-        logger.debug("getHeadAction: html.length=" + html.length);
-        logger.silly("getHeadAction: html=" + html);
+        logger.isLevelEnabled('debug') && logger.debug("getHeadAction: html.length=" + html.length);
+        logger.isLevelEnabled('silly') && logger.silly("getHeadAction: html=" + html);
         response.send({ html });
       }
     })
@@ -69,16 +69,16 @@ export async function getHeadAction(request, response) {
 }
 
 export async function getDetailsAction(request, response) {
-  logger.info("getDetailsAction: request.params=" + JSON.stringify(request.params));
   try {
+    logger.info("getDetailsAction: request.params=" + JSON.stringify(request.params));
     const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     let item = getProduct(curItemId);
-    logger.debug("getDetailsAction: item=" + JSON.stringify(item));
+    logger.isLevelEnabled('debug') && logger.debug("getDetailsAction: item=" + JSON.stringify(item));
     response.render(import.meta.dirname + '/views/product_details', { item: item }, function (error, html) {
       if (error) {
         errorHandler(error, 'getDetailsAction', response)
       } else {
-        logger.debug("getDetailsAction: html.length=" + html.length);
+        logger.isLevelEnabled('debug') && logger.debug("getDetailsAction: html.length=" + html.length);
         response.send({ html });
       }
     })
@@ -87,10 +87,9 @@ export async function getDetailsAction(request, response) {
 }
 
 export async function updateAction(request, response) {
-  logger.info("updateAction");
   try {
     const data = request.body;
-    logger.debug("updateAction: data=" + data);
+    logger.info("updateAction: data=" + data);
 
     updateEntry(data);
     const item = getProduct(data.id)
@@ -115,18 +114,18 @@ export async function updateAction(request, response) {
 }
 
 export async function renameCategoryAction(request, response) {
-  logger.info("renameCategoryAction: request.params=" + JSON.stringify(request.params));
   try {
+    logger.info("renameCategoryAction: request.params=" + JSON.stringify(request.params));
     const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
     const categoryId = (request.params.id) && parseInt(request.params.id, 10);
     const data = renameCategory(categoryId, categoryName);
 
     logger.info("renameCategoryAction: id=" + data.category.id);
-    logger.debug("renameCategoryAction: data=" + JSON.stringify(data));
+    logger.isLevelEnabled('debug') && logger.debug("renameCategoryAction: data=" + JSON.stringify(data));
     response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
-      logger.debug("Category_list: html=" + html);
-      logger.debug("Category_head: html.length=" + html.length);
+      logger.isLevelEnabled('debug') && logger.debug("Category_list: html=" + html);
+      logger.isLevelEnabled('debug') && logger.debug("Category_head: html.length=" + html.length);
       response.status(200).send({ html: html });
     })
   }
@@ -134,26 +133,26 @@ export async function renameCategoryAction(request, response) {
 }
 
 export async function createCategoryAction(request, response) {
-  logger.info("createCategoryAction: request.params=" + JSON.stringify(request.params));
   try {
+    logger.info("createCategoryAction: request.params=" + JSON.stringify(request.params));
     const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
     const data = createCategory(categoryName);
 
     logger.info("createCategoryAction: categoryId=" + data.category.id);
-    logger.debug("createCategoryAction: data=" + JSON.stringify(data));
+    logger.isLevelEnabled('debug') && logger.debug("createCategoryAction: data=" + JSON.stringify(data));
     response.locals.categoryId = data.category.id;
     response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
-      logger.debug("Category_list: html.length=" + html.length);
+      logger.isLevelEnabled('debug') && logger.debug("Category_list: html.length=" + html.length);
       response.status(200).send({ categoryId: response.locals.categoryId, html: html });
     })
   }
   catch (error) { errorHandler(error, 'createCategoryAction', response) }
 }
 
-export async function deleteCategoryAction(request, response) {  //TODO
-  logger.info("deleteCategoryAction: request.params=" + JSON.stringify(request.params));
+export async function deleteCategoryAction(request, response) {
   try {
+    logger.info("deleteCategoryAction: request.params=" + JSON.stringify(request.params));
     const id = (request.params.id) && parseInt(request.params.id, 10);
     deleteCategory(id);
 
@@ -162,11 +161,11 @@ export async function deleteCategoryAction(request, response) {  //TODO
     if (!data) { response.status(200).send({ html: "", products: [] }); return; }
 
     logger.info("deleteCategoryAction: categoryId=" + data.category.id);
-    logger.debug("deleteCategoryAction: data=" + JSON.stringify(data));
+    logger.isLevelEnabled('debug') && logger.debug("deleteCategoryAction: data=" + JSON.stringify(data));
     response.locals.products = data.products;
     response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
-      logger.debug("Category_list: html.length=" + html.length);
+      logger.isLevelEnabled('debug') && logger.debug("Category_list: html.length=" + html.length);
       response.status(200).send({ html: html, products: response.locals.products });
 
     })
@@ -175,16 +174,16 @@ export async function deleteCategoryAction(request, response) {  //TODO
 }
 
 export async function toggleCategoryStarAction(request, response) {
-  logger.info("toggleCategoryStarAction" + JSON.stringify(request.params));
   try {
+    logger.info("toggleCategoryStarAction" + JSON.stringify(request.params));
     const categoryId = parseInt(request.params.id);
     let data = toggleCategoryStar(categoryId);
 
     logger.info("toggleCategoryStarAction: id=" + data.category.id);
-    logger.debug("toggleCategoryStarAction: data=" + JSON.stringify(data));
+    logger.isLevelEnabled('debug') && logger.debug("toggleCategoryStarAction: data=" + JSON.stringify(data));
     response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
-      logger.debug("Category_head: html.length=" + html.length);
+      logger.isLevelEnabled('debug') && logger.debug("Category_head: html.length=" + html.length);
       response.status(200).send({ html: html });
     })
   }
@@ -192,8 +191,8 @@ export async function toggleCategoryStarAction(request, response) {
 }
 
 export async function renameProductAction(request, response) {
-  logger.info("renameAction: request.params=" + JSON.stringify(request.params));
   try {
+    logger.info("renameAction: request.params=" + JSON.stringify(request.params));
     const id = (request.params.id) && parseInt(request.params.id, 10);
     let name = decodeURI(request.params.nam);
     name = (!name || name.trim() === "") ? "Produkt" : name.trim();
@@ -206,8 +205,8 @@ export async function renameProductAction(request, response) {
 }
 
 export async function createProductAction(request, response) {
-  logger.info("createProductAction: request.params=" + JSON.stringify(request.params));
   try {
+    logger.info("createProductAction: request.params=" + JSON.stringify(request.params));
     const itemName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
     const categoryId = (request.params.catid) && parseInt(request.params.catid, 10);
     const newItemId = createProduct(categoryId, itemName);
@@ -222,8 +221,8 @@ export async function createProductAction(request, response) {
 }
 
 export async function deleteProductAction(request, response) {
-  logger.info("deleteProductAction: request.params=" + JSON.stringify(request.params));
   try {
+    logger.info("deleteProductAction: request.params=" + JSON.stringify(request.params));
     const id = (request.params.id) && parseInt(request.params.id, 10);
     deleteProduct(id);
     response.writeHead(200, "Änderungen gesichert.", { 'content-type': 'text/html' });
@@ -243,9 +242,9 @@ export function evalAction(request, response) {
     const msg = "SUMA: " + data.length + " Produkte wurden überprüft. " +
       ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
       " einen neuen Status erhalten.";
-    logger.info("SUMA: " + msg);
+    logger.info(msg);
     push.info(msg, "SUMA evaluate");
-    response.json({ state: true, msg: "SUMA: " + msg });
+    response.json({ state: true, msg: msg });
   }
   catch (error) {
     const msg = "SUMA: Interner Fehler in 'evalAction': " + error.message;
@@ -266,15 +265,15 @@ export async function dbAction(request, response) {
       default: result = { state: "error", msg: "Cannot GET /app" + request.url };
     }
 
-    logger.debug(JSON.stringify(result));
+    logger.isLevelEnabled('debug') && logger.debug(JSON.stringify(result));
     response.json(result);
   }
   catch (error) { errorHandler(error, 'dbAction') }
 }
 
 export async function healthAction(request, response) {
-  logger.debug("healthAction");
   try {
+    logger.isLevelEnabled('debug') && logger.debug("healthAction");
     const count = getAllProducts().length;
     response.json({ healthy: true, count });
   }

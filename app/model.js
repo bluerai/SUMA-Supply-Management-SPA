@@ -2,6 +2,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'fs-extra';
 import { logger } from '../log.js'
+import { push } from '../push_message.js';
 
 const SUMA_DB = process.env.SUMA_DB;
 let database;
@@ -211,8 +212,7 @@ export function evalProduct(item) {
     const oldEntryState = entry.state;
     entry.state = evalEntry(entry);
     if ((entry.state !== oldEntryState) && entry.state !== "green") {
-      pushover('SUMA für ' + item.sum + ' Einheit(en) des Produkts "' + item.name + "' im Monat " + entry.year + "/" + entry.month + " überschritten!",
-        "Warnung", 0, "pushover");
+      push.warn('Mindesthaltbarkeitsdatum für ' + item.sum + ' Einheit(en) des Produkts "' + item.name + "' im Monat " + entry.year + "/" + entry.month + " überschritten!", "SUMA evaluate");
     }
     anyEntryChanged = anyEntryChanged || (entry.state !== oldEntryState);
   });
