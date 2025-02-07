@@ -34,8 +34,6 @@ export async function getCategoryAction(request, response) {
     logger.info("getCategoryAction: request.params=" + JSON.stringify(request.params));
     const categoryId = (request.params.id) && parseInt(request.params.id, 10);
     const data = getCategory(categoryId);
-
-    logger.info("getCategoryAction: categoryId=" + data.category.id);
     logger.isLevelEnabled('debug') && logger.debug("getCategoryAction: data=" + JSON.stringify(data));
 
     response.locals.categoryId = data.category.id;
