@@ -1,7 +1,9 @@
-import { logger } from '../log.js';
-import { push } from '../push_message.js';
-import jwt from 'jsonwebtoken';
-import { JWT_KEY } from '../index.js';
+
+import jwt from 'jsonwebtoken'; 
+
+import { logger } from '../modules/log.js';
+import { push } from '../modules/push_message.js';
+import { JWT_KEY } from '../server.js';
 
 import {
   getCategory, getProduct, getAllProducts, allCategories,
@@ -22,6 +24,7 @@ function protect(res, token, funct) {
   })
 }
 
+// actions ===================================================================
 export async function startAction(request, response) {
   try {
     logger.info("startAction: request.url=" + request.url);
@@ -273,20 +276,7 @@ export async function deleteProductAction(request, response) {
 
 export function evalAction(request, response) {
   try {
-    protect(response, request.params.tok, () => {
-      connectDb();
-      let data = getAllProducts();
-      let changeCount = 0;
-      for (let item of data) {
-        (item.entry_list) && (evalProduct(item)) && changeCount++;
-      }
-      const msg = "SUMA: " + data.length + " Produkte wurden überprüft. " +
-        ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
-        " einen neuen Status erhalten.";
-      logger.info(msg);
-      push.info(msg, "SUMA evaluate");
-      response.json({ state: true, msg: msg });
-    })
+    protect(response, request.params.tok, () => { response.json(evaluate()) });
   }
   catch (error) {
     const msg = "SUMA: Interner Fehler in 'evalAction': " + error.message;
@@ -325,6 +315,23 @@ export async function healthAction(request, response) {
     errorHandler(error, 'healthAction');
     response.json({ healthy: false, error: error.message });
   }
+}
+
+// Actions end =============
+
+export function evaluate() {
+  connectDb();
+  let data = getAllProducts();
+  let changeCount = 0;
+  for (let item of data) {
+    (item.entry_list) && (evalProduct(item)) && changeCount++;
+  }
+  const msg = "SUMA: " + data.length + " Produkte wurden überprüft. " +
+    ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
+    " einen neuen Status erhalten.";
+  push.info(msg, "SUMA evaluate");
+  logger.info(msg);
+  return { state: true, msg: msg };
 }
 
 function errorHandler(error, actionName, response) {

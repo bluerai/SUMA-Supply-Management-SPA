@@ -4,7 +4,8 @@ import fs from 'fs-extra';
 import jwt from 'jsonwebtoken';
 
 import { router } from './app/index.js';
-import { logger } from './log.js'
+import { logger } from './modules/log.js';
+import { evaluateCronJob } from './modules/cron.js';
 
 const app = express(); 
 
@@ -68,6 +69,8 @@ app.post('/login', (req, res) => {
 });
 
 app.use('/app', router);
+
+evaluateCronJob.start();
 
 const options = {
   key: fs.readFileSync(process.env.KEYFILE),

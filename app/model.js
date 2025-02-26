@@ -1,8 +1,8 @@
 
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'fs-extra';
-import { logger } from '../log.js'
-import { push } from '../push_message.js';
+import { logger } from '../modules/log.js'
+import { push } from '../modules/push_message.js';
 
 const SUMA_DB = process.env.SUMA_DB;
 let database;
