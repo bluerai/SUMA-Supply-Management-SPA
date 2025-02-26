@@ -1,0 +1,19 @@
+form(id="loginForm")
+  .app
+    div(style="margin-left: auto;margin-right: auto;")
+      table(style="margin: auto; border-collapse: collapse;")
+        tr(style="height: 50px")
+          th(colspan="2") Bitte anmelden:
+        tr(style="height: 40px")
+          td
+            label(for="loginname") Name:
+          td
+            input(type="text" id="loginname" name="loginname" value="terra", required)
+        tr(style="height: 40px")
+          td 
+            label(for="key") Passwort:
+          td
+            input(type="password" id="key" name="key" value="i84qQdNiifgXLvXtqZ2ixM4w", required)
+        tr(style="height: 40px")
+          td(colspan="2")
+            button_breit.orange(type="submit" onClick="login()") Anmelden

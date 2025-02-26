@@ -29,79 +29,84 @@ html(lang="en")
 
   body 
 
-    //- Hidden values
-    input#category_id(type="hidden")
-    input#product_id(type="hidden")
+    #content
+      //- Hidden values
+      input#category_id(type="hidden")
+      input#product_id(type="hidden")
 
-    //- Transparent pane
-    #transparent(onclick="hidePanels()")
+      //- Transparent pane
+      #transparent(onclick="hidePanels()")
 
-    //- New category panel
-    .panel#new_category
-      input#new_category_name(type="text" placeholder="Neue Kategorie" autofocus title="")
-      p.orange(title="Neue Kategorie erstellen" onclick="createCategory()")
-        i.fa-regular.fa-square-check(aria-hidden="true")
-
-    //- Edit category panel
-    .panel#edit_category
-      input#edit_category_name(type="text" placeholder="Kategorie" autofocus title="" value=name)
-
-      .left(style="width: 34%")
-        p.lightgrey(title="Kategorie löschen" onclick="deleteCategory()")
-          i.fa-solid.fa-trash-can(aria-hidden="true")
-
-      .right(style="width: 33%")
-        p.orange(title="Neuen Namen der Kategorie speichen" onclick="renameCategory()")
+      //- New category panel
+      .panel#new_category
+        input#new_category_name(type="text" placeholder="Neue Kategorie" autofocus title="")
+        p.orange(title="Neue Kategorie erstellen" onclick="createCategory()")
           i.fa-regular.fa-square-check(aria-hidden="true")
 
-      .right(style="width: 33%")
-        p.yellow(title="Priorität bearbeiten" onclick="toggleCategoryPrio()")
-          i.fa-solid.fa-star#category_star(class="prio" + prio aria-hidden="true")
+      //- Edit category panel
+      .panel#edit_category
+        input#edit_category_name(type="text" placeholder="Kategorie" autofocus title="" value=name)
 
-    //- category list panel
-    .panel#select_category
-      #category_list
-      //- *** Inserted here: category_list.pug
+        .left(style="width: 34%")
+          p.lightgrey(title="Kategorie löschen" onclick="deleteCategory()")
+            i.fa-solid.fa-trash-can(aria-hidden="true")
 
-      p.orange(title="Neue Kategorie" onclick="createCategoryPanel()")
-        i.fa-regular.fa-square-plus(aria-hidden="true")
+        .right(style="width: 33%")
+          p.orange(title="Neuen Namen der Kategorie speichen" onclick="renameCategory()")
+            i.fa-regular.fa-square-check(aria-hidden="true")
 
-    //- New product panel
-    .panel#new_product
-      input#new_product_name(type="text" placeholder="Neues Product" autofocus title="" )
-      p.orange(title="Neues Produkt erstellen" onclick="createProduct()")
-        i.fa-regular.fa-square-check(aria-hidden="true")
+        .right(style="width: 33%")
+          p.yellow(title="Priorität bearbeiten" onclick="toggleCategoryPrio()")
+            i.fa-solid.fa-star#category_star(class="prio" + prio aria-hidden="true")
 
-    //- Edit product panel
-    .panel(id="edit_product")
-      input(id='edit_product_name' type="text" placeholder="Produktname" autofocus title="Produktname"  value="")
+      //- category list panel
+      .panel#select_category
+        #category_list
+        //- *** Inserted here: category_list.pug
 
-      .left(style="margin-left: auto; margin-right: auto; width: 33%")
-        p.lightgrey(itle="Gesamtes Produkt entfernen" onclick="deleteProduct()")
-          i.fa-solid.fa-trash-can(aria-hidden="true")
+        p.orange(title="Neue Kategorie" onclick="createCategoryPanel()")
+          i.fa-regular.fa-square-plus(aria-hidden="true")
 
-      .left(style="margin-left: auto; margin-right: auto; width: 67%")
-        p.orange(title="Neuen Namen des Produkts speichen" onclick="renameProduct()")
+      //- New product panel
+      .panel#new_product
+        input#new_product_name(type="text" placeholder="Neues Product" autofocus title="" )
+        p.orange(title="Neues Produkt erstellen" onclick="createProduct()")
           i.fa-regular.fa-square-check(aria-hidden="true")
 
-    .app
-      #header
-        .left 
-          img(src="/suma.png" width=52 height=52 alt="Logo")
+      //- Edit product panel
+      .panel(id="edit_product")
+        input(id='edit_product_name' type="text" placeholder="Produktname" autofocus title="Produktname"  value="")
 
-        .right#dropdown
-          button.yellow(title="Kategorie auswählen" onClick="selectCategoryPanel()")
-            i.fa-solid.fa-list-ul(aria-hidden="true")
+        .left(style="margin-left: auto; margin-right: auto; width: 33%")
+          p.lightgrey(itle="Gesamtes Produkt entfernen" onclick="deleteProduct()")
+            i.fa-solid.fa-trash-can(aria-hidden="true")
 
-        .right
-          button.orange(title="Neues Produkt hinzufügen" onclick="createProductPanel()")
-            i.fa-regular.fa-square-plus(aria-hidden="true")
+        .left(style="margin-left: auto; margin-right: auto; width: 67%")
+          p.orange(title="Neuen Namen des Produkts speichen" onclick="renameProduct()")
+            i.fa-regular.fa-square-check(aria-hidden="true")
 
-        #category_head
-          //- *** Inserted here: category_head.pug
+      .app
+        #header
+          .left 
+            img(src="/suma.png" width=52 height=52 alt="Logo")
 
-      #prodlist
-        //- *** Inserted here: list of product_head.pug
+          .right#dropdown
+            button.yellow(title="Kategorie auswählen" onClick="selectCategoryPanel()")
+              i.fa-solid.fa-list-ul(aria-hidden="true")
+
+          .right
+            button.orange(title="Neues Produkt hinzufügen" onclick="createProductPanel()")
+              i.fa-regular.fa-square-plus(aria-hidden="true")
+
+          #category_head
+            //- *** Inserted here: category_head.pug
+
+        #prodlist
+          //- *** Inserted here: list of product_head.pug
+
+    #login
+
+    #message
 
     script(type='text/javascript').
       docReady();

@@ -261,7 +261,13 @@ input[type="number"] {
   align-items: center;
 }
 
-
+#message {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  width: 100%;
+  background-color: lightgrey;
+}
 
 /*****************************************************************************/
 /********************** Bildschirm: Breite unter 720 px **********************/

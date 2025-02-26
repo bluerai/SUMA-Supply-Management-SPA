@@ -10,25 +10,26 @@ import {
 const router = Router();
 
 router.get('/', startAction);
-router.get('/get/:id', getCategoryAction);
-router.get('/list', getCategoryListAction);
-router.get('/head/:id', getHeadAction);
-router.get('/details/:id', getDetailsAction);
+router.get('/get/:id/:tok', getCategoryAction);
+router.get('/list/:tok', getCategoryListAction);
+router.get('/head/:id/:tok', getHeadAction);
+router.get('/details/:id/:tok', getDetailsAction);
 
-router.get('/cat/star/:id', toggleCategoryStarAction);
-router.get('/cat/del/:id', deleteCategoryAction);
-router.get('/cat/:nam/:id', renameCategoryAction);
-router.get('/cat/:nam/', createCategoryAction);
+router.get('/cat/star/:id/:tok', toggleCategoryStarAction);
+router.get('/cat/del/:id/:tok', deleteCategoryAction);
+router.get('/cat/:nam/:id/:tok', renameCategoryAction);
+router.get('/cat/:nam/:tok', createCategoryAction);
 
-router.get('/pro/del/:id', deleteProductAction);
-router.get('/pro/:catid/:nam/:id', renameProductAction);
-router.get('/pro/:catid/:nam', createProductAction);
+router.get('/pro/del/:id/:tok', deleteProductAction);
+router.get('/pro/:catid/:nam/:id/:tok', renameProductAction);
+router.get('/pro/:catid/:nam/:tok', createProductAction);
 
-router.post('/upd', updateAction);
-router.get('/eval', evalAction);
-router.get('/health', healthAction);
+router.post('/upd/:tok', updateAction);
 
-router.get('/connectdb', dbAction);
-router.get('/unconnectdb', dbAction);
+router.get('/eval/', evalAction);
+router.get('/health/', healthAction);
+router.get('/connectdb/:tok', dbAction);
+router.get('/unconnectdb/:tok', dbAction);
+
 
 export { router };
