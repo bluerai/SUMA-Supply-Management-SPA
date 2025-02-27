@@ -2,26 +2,24 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs-extra';
 import { logger } from '../modules/log.js';
 
-export const AUTH = process.env.AUTH || "NONE";
-
-let jwt_data = {};
+let JWT = {};
 try {
-  if (fs.existsSync(process.env.JWTFILE))
-    jwt_data = fs.readJsonSync(process.env.JWTFILE)
-} catch (error) { logger.error(error); }
-
-const JWT = (AUTH === "JWT") ? jwt_data : {};
+  if (fs.existsSync(process.env.AUTH))
+    JWT = fs.readJsonSync(process.env.AUTH)
+  logger.info("Authorisation by jwt token");
+} catch (error) {
+  logger.error(error);
+  logger.warn("No access validation!");
+}
 
 export const JWT_KEY = JWT.key;
-
-logger.info("Authorisation by " + AUTH)
 
 //==== Actions ==================================================
 
 export function verifyAction(req, res) {
   logger.info('/verify');
   const token = req.headers['authorization'];
-  if (AUTH == "NONE") {
+  if (!JWT_KEY) {
     logger.warn("Access granted without authentication!");
     return res.status(200).json({ message: 'access granted without authentication', user: {} });
   }

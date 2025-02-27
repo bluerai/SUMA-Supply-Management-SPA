@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import { logger } from './log.js'
 
-const MESSAGING = process.env.MESSAGING || "NONE"
+const messaging = process.env.MESSAGING
 
 class PushMessage {
   constructor(credentials) {
@@ -16,7 +16,7 @@ class PushMessage {
 
 let Push = new PushMessage({});
 
-if (MESSAGING == "PUSHOVER") {
+if (messaging) {
 
   class Pushover extends PushMessage {
     constructor(credentials) {
@@ -58,8 +58,8 @@ if (MESSAGING == "PUSHOVER") {
 
   let cred = {};
   try {
-    if (fs.existsSync(process.env.PUSHOVERFILE))
-      cred = fs.readJsonSync(process.env.PUSHOVERFILE);
+    if (fs.existsSync(messaging))
+      cred = fs.readJsonSync(messaging);
   } catch (error) {
     logger.error(error);
   }

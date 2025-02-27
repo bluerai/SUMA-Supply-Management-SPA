@@ -1,7 +1,6 @@
 import { Router } from 'express';
 
 import { push } from '../modules/push_message.js';
-import { AUTH, JWT_KEY } from '../auth/index.js';
 import { logger } from '../modules/log.js';
 import { getAllProducts, connectDb, unconnectDb, evalProduct } from '../app/model.js';
 

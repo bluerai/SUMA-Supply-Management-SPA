@@ -2,7 +2,7 @@
 import jwt from 'jsonwebtoken'; 
 
 import { logger } from '../modules/log.js';
-import { AUTH, JWT_KEY } from '../auth/index.js';
+import { JWT_KEY } from '../auth/index.js';
 
 import {
   getCategory, getProduct, allCategories,
@@ -12,7 +12,7 @@ import {
 } from './model.js';
 
 function protect(res, token, funct) {
-  if (AUTH == "NONE") {
+  if (!JWT_KEY) {
     return funct();
   }
   jwt.verify(token, JWT_KEY, (err, decoded) => {
