@@ -1,81 +1,68 @@
 import express from 'express';
 import https from 'https';
 import fs from 'fs-extra';
-import jwt from 'jsonwebtoken';
 
-import { router } from './app/index.js';
+import { appRouter } from './app/index.js';
+import { apiRouter } from './api/index.js';
+import { verifyAction, loginAction } from './auth/index.js';
 import { logger } from './modules/log.js';
 import { evaluateCronJob } from './modules/cron.js';
 
-const app = express(); 
+const app = express();
 
-const JWT_DATA = fs.readJsonSync(process.env.JWTFILE);
-export const JWT_KEY = JWT_DATA.key;
-
-const HTTPS_PORT = parseInt(process.env.HTTPS_PORT) || 443;
+const PORT = parseInt(process.env.PORT) || 3000;
 
 app.set('view engine', 'pug');
 
-app.use(express.static(import.meta.dirname  + '/public'));
+app.use(express.static(import.meta.dirname + '/public'));
 
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 
 app.use(express.json());
 
-app.get('/verify', (req, res) => {
-  logger.debug('/verify');
-  const token = req.headers['authorization'];
-  if (!token) {
-    return res.render(import.meta.dirname + '/app/views/login', function (error, html) {
 
-      if (error) { logger.error(error); logger.debug(error.stack); return }
+app.get('/verify', verifyAction);
+app.post('/login', loginAction);
 
-      logger.isLevelEnabled('debug') && logger.debug("verify: No token - html.length=" + html.length);
+app.use('/app', appRouter);
 
-      res.status(401).json({ error: 'No token', html: html });
-    })
-  }
+app.use('/api', apiRouter);
 
-  jwt.verify(token, JWT_KEY, (err, decoded) => {
-    if (err) {
-      res.render(import.meta.dirname + '/app/views/login', function (error, html) {
-        if (error) { logger.error(error); logger.debug(error.stack); return }
-
-        logger.isLevelEnabled('debug') && logger.debug("verify: Invalid token - html.length=" + html.length);
-
-        res.status(401).json({ error: 'Invalid token', html: html });
-      })
-
-    } else {
-      logger.debug("verify: Valid token - loginuser=" + decoded.loginname + ", expire in: " + decoded.exp);
-      
-      res.status(200).json({ message: 'Token is valid', user: decoded });
-    }
-  })
-});
-
-// Login route
-app.post('/login', (req, res) => {
-  const { loginname, key } = req.body;
-  logger.debug("/login: " + loginname);
-
-  if (JWT_DATA.credentials[loginname] == key) {
-    const token = jwt.sign({ loginname }, JWT_KEY, { expiresIn: JWT_DATA.duration });
-    res.status(200).json({ token: token });
-
-  } else {
-    res.status(401).json({ error: 'Invalid credentials' });
-  }
-});
-
-app.use('/app', router);
+app.use('/', (request, response) => response.redirect('/app'));
 
 evaluateCronJob.start();
 
-const options = {
-  key: fs.readFileSync(process.env.KEYFILE),
-  cert: fs.readFileSync(process.env.CERTFILE),
+if (fs.existsSync(process.env.KEYFILE) && fs.existsSync(process.env.CERTFILE)) {
+
+  //key + Cert vorhanden, also https, 
+  const options = {
+    key: fs.readFileSync(process.env.KEYFILE),
+    cert: fs.readFileSync(process.env.CERTFILE),
+  };
+  const server = https.createServer(options, app).listen(PORT, () => {
+    const address = server.address();
+    logger.info(`Https-Server is listening to https://${getLocalIp()}:${PORT}`)
+  });
+
+} else {
+
+  const server = app.listen(PORT, () => {
+    const address = server.address();
+    logger.warn(`No encrypted connection, as no HTTPS certificate is implemented.`);
+    logger.info(`Http-Server is listening to http://${getLocalIp()}:${PORT}`)
+  })
+}
+
+import os from 'os';
+
+const getLocalIp = () => {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return '127.0.0.1'; // Fallback auf localhost
 };
-https.createServer(options, app).listen(HTTPS_PORT, () => {
-  logger.info('Https-Server is listening to Port ' + HTTPS_PORT);
-});

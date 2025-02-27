@@ -4,32 +4,25 @@ import {
   startAction, getHeadAction, getDetailsAction, getCategoryAction, getCategoryListAction,
   renameCategoryAction, createCategoryAction, deleteCategoryAction, toggleCategoryStarAction,
   renameProductAction, createProductAction, deleteProductAction,
-  updateAction, evalAction, healthAction, dbAction
+  updateAction
 } from './controller.js';
 
-const router = Router();
+export const appRouter = Router();
 
-router.get('/', startAction);
-router.get('/get/:id/:tok', getCategoryAction);
-router.get('/list/:tok', getCategoryListAction);
-router.get('/head/:id/:tok', getHeadAction);
-router.get('/details/:id/:tok', getDetailsAction);
+appRouter.get('/', startAction);
+appRouter.get('/get/:id/:tok', getCategoryAction);
+appRouter.get('/list/:tok', getCategoryListAction);
+appRouter.get('/head/:id/:tok', getHeadAction);
+appRouter.get('/details/:id/:tok', getDetailsAction);
 
-router.get('/cat/star/:id/:tok', toggleCategoryStarAction);
-router.get('/cat/del/:id/:tok', deleteCategoryAction);
-router.get('/cat/:nam/:id/:tok', renameCategoryAction);
-router.get('/cat/:nam/:tok', createCategoryAction);
+appRouter.get('/cat/star/:id/:tok', toggleCategoryStarAction);
+appRouter.get('/cat/del/:id/:tok', deleteCategoryAction);
+appRouter.get('/cat/:nam/:id/:tok', renameCategoryAction);
+appRouter.get('/cat/:nam/:tok', createCategoryAction);
 
-router.get('/pro/del/:id/:tok', deleteProductAction);
-router.get('/pro/:catid/:nam/:id/:tok', renameProductAction);
-router.get('/pro/:catid/:nam/:tok', createProductAction);
+appRouter.get('/pro/del/:id/:tok', deleteProductAction);
+appRouter.get('/pro/:catid/:nam/:id/:tok', renameProductAction);
+appRouter.get('/pro/:catid/:nam/:tok', createProductAction);
 
-router.post('/upd/:tok', updateAction);
+appRouter.post('/upd/:tok', updateAction);
 
-router.get('/eval/', evalAction);
-router.get('/health/', healthAction);
-router.get('/connectdb/:tok', dbAction);
-router.get('/unconnectdb/:tok', dbAction);
-
-
-export { router };

@@ -1,58 +1,73 @@
-
+import fs from 'fs-extra';
 import { logger } from './log.js'
+
+const MESSAGING = process.env.MESSAGING || "NONE"
 
 class PushMessage {
   constructor(credentials) {
     this.cred = credentials
   }
-  "name";
+  "name" = "none";
   "valid";
   error(msg) { };
   info(msg) { };
   _send(msg, title, prio, sound) { };
 }
 
-class Pushover extends PushMessage {
-  constructor(credentials) {
-    super(credentials);
-    this.valid = (credentials.url && credentials.user && credentials.token);
-    this.valid || logger.warn("pushover: Uncomplete credentials supplied.");
+let Push = new PushMessage({});
+
+if (MESSAGING == "PUSHOVER") {
+
+  class Pushover extends PushMessage {
+    constructor(credentials) {
+      super(credentials);
+      this.valid = (credentials.url && credentials.user && credentials.token);
+    }
+    "name" = "Pushover";
+
+    error(msg, title) {
+      (this.valid) && this._send(msg, title || "Warnung", -1, "pushover");
+    }
+
+    info(msg, title) {
+      (this.valid) && this._send(msg, title || "Hinweis", 0, "none");
+    }
+
+    async _send(msg, title, prio, sound) {
+      const headers = { "Content-Type": "application/json" };
+      const body = JSON.stringify({
+        "token": this.cred.token,
+        "user": this.cred.user,
+        "title": title,
+        "priority": prio,
+        "sound": sound,
+        "message": msg,
+      });
+      const response = await fetch(this.cred.url, {
+        method: "POST", headers, body
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        logger.info("Pushover message successfully sent: " + JSON.stringify(data));
+
+      } else
+        logger.error("Pushover: response.statusText " + " (#" + response.status + ")");
+    }
   }
 
-  "name" = "Pushover";
-
-  error(msg, title) {
-    (this.valid) && this._send(msg, title || "Warnung", -1, "pushover");
+  let cred = {};
+  try {
+    if (fs.existsSync(process.env.PUSHOVERFILE))
+      cred = fs.readJsonSync(process.env.PUSHOVERFILE);
+  } catch (error) {
+    logger.error(error);
   }
+  Push = new Pushover(cred);
 
-  info(msg, title) {
-    (this.valid) && this._send(msg, title || "Hinweis", 0, "none");
-  }
-
-  async _send(msg, title, prio, sound) {
-    const headers = { "Content-Type": "application/json" };
-    const body = JSON.stringify({
-      "token": this.cred.token,
-      "user": this.cred.user,
-      "title": title,
-      "priority": prio,
-      "sound": sound,
-      "message": msg,
-    });
-    const response = await fetch(this.cred.url, {
-      method: "POST", headers, body
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      logger.info("Pushover message successfully sent: " + JSON.stringify(data));
-
-    } else
-      logger.error("Pushover: response.statusText " + " (#" + response.status + ")");
-  }
+  Push = (Push.valid) ? Push : new PushMessage({});
 }
 
-const Push = new Pushover({ "url": process.env.PUSHOVER_URL, "user": process.env.PUSHOVER_USER, "token": process.env.PUSHOVER_TOKEN });
-
-export const push = (Push.valid) ? Push : new PushMessage({});
+logger.info("Messaging by " + Push.name)
+export const push = Push;
 

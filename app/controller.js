@@ -2,24 +2,26 @@
 import jwt from 'jsonwebtoken'; 
 
 import { logger } from '../modules/log.js';
-import { push } from '../modules/push_message.js';
-import { JWT_KEY } from '../server.js';
+import { AUTH, JWT_KEY } from '../auth/index.js';
 
 import {
-  getCategory, getProduct, getAllProducts, allCategories,
+  getCategory, getProduct, allCategories,
   createCategory, renameCategory, deleteCategory, toggleCategoryStar,
   createProduct, renameProduct, deleteProduct,
-  updateEntry, evalProduct, connectDb, unconnectDb
+  updateEntry
 } from './model.js';
 
 function protect(res, token, funct) {
+  if (AUTH == "NONE") {
+    return funct();
+  }
   jwt.verify(token, JWT_KEY, (err, decoded) => {
     if (err) {
       logger.debug("token invalid");
       res.status(401).json({ error: 'Invalid token' });
     } else {
       logger.debug("token ok");
-      funct();
+      return funct();
     }
   })
 }
@@ -27,7 +29,7 @@ function protect(res, token, funct) {
 // actions ===================================================================
 export async function startAction(request, response) {
   try {
-    logger.info("startAction: request.url=" + request.url);
+    logger.info("startAction: request.url=" + request.url.substr(0,32));
     response.render(import.meta.dirname + '/views/start')
   }
   catch (error) { errorHandler(error, 'startAction', response) }
@@ -36,8 +38,7 @@ export async function startAction(request, response) {
 export async function getCategoryAction(request, response) {
   try {
     protect(response, request.params.tok, () => {
-      logger.info("getCategoryAction: request.url=" + request.url);
-      logger.info("getCategoryAction: request.params=" + JSON.stringify(request.params));
+      logger.info("getCategoryAction: request.url=" + request.url.substr(0,32));
 
       const categoryId = (request.params.id) && parseInt(request.params.id, 10);
       const data = getCategory(categoryId);
@@ -58,8 +59,7 @@ export async function getCategoryAction(request, response) {
 
 export async function getCategoryListAction(request, response) {
   try {
-    logger.info("getCategoryListAction: request.url=" + request.url);
-    logger.info("getCategoryListAction: request.params=" + JSON.stringify(request.params));
+    logger.info("getCategoryListAction: request.url=" + request.url.substr(0,32));
 
     protect(response, request.params.tok, () => {
       response.render(import.meta.dirname + '/views/category_list', { allCategories: allCategories() }, function (error, html) {
@@ -75,8 +75,7 @@ export async function getCategoryListAction(request, response) {
 
 export async function getHeadAction(request, response) {
   try {
-    logger.info("getHeadAction: request.url=" + request.url);
-    logger.info("getHeadAction: request.params=" + JSON.stringify(request.params));
+    logger.info("getHeadAction: request.url=" + request.url.substr(0,32));
     protect(response, request.params.tok, () => {
       const itemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
       let item = getProduct(itemId);
@@ -97,7 +96,7 @@ export async function getHeadAction(request, response) {
 
 export async function getDetailsAction(request, response) {
   try {
-    logger.info("getDetailsAction: request.params=" + JSON.stringify(request.params));
+    logger.info("getDetailsAction: request.params=" + request.url.substr(0,32));
     protect(response, request.params.tok, () => {
       const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
       let item = getProduct(curItemId);
@@ -146,7 +145,7 @@ export async function updateAction(request, response) {
 export async function renameCategoryAction(request, response) {
   try {
     protect(response, request.params.tok, () => {
-      logger.info("renameCategoryAction: request.params=" + JSON.stringify(request.params));
+      logger.info("renameCategoryAction: request.params=" + request.url.substr(0,32));
       const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
       const categoryId = (request.params.id) && parseInt(request.params.id, 10);
       const data = renameCategory(categoryId, categoryName);
@@ -167,7 +166,7 @@ export async function renameCategoryAction(request, response) {
 export async function createCategoryAction(request, response) {
   try {
     protect(response, request.params.tok, () => {
-      logger.info("createCategoryAction: request.params=" + JSON.stringify(request.params));
+      logger.info("createCategoryAction: request.params=" + request.url.substr(0,32));
       const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
       const data = createCategory(categoryName);
 
@@ -187,7 +186,7 @@ export async function createCategoryAction(request, response) {
 export async function deleteCategoryAction(request, response) {
   try {
     protect(response, request.params.tok, () => {
-      logger.info("deleteCategoryAction: request.params=" + JSON.stringify(request.params));
+      logger.info("deleteCategoryAction: request.params=" + request.url.substr(0,32));
       const id = (request.params.id) && parseInt(request.params.id, 10);
       deleteCategory(id);
 
@@ -212,7 +211,7 @@ export async function deleteCategoryAction(request, response) {
 export async function toggleCategoryStarAction(request, response) {
   try {
     protect(response, request.params.tok, () => {
-      logger.info("toggleCategoryStarAction" + JSON.stringify(request.params));
+      logger.info("toggleCategoryStarAction" + request.url.substr(0,32));
       const categoryId = parseInt(request.params.id);
       let data = toggleCategoryStar(categoryId);
 
@@ -231,7 +230,7 @@ export async function toggleCategoryStarAction(request, response) {
 export async function renameProductAction(request, response) {
   try {
     protect(response, request.params.tok, () => {
-      logger.info("renameAction: request.params=" + JSON.stringify(request.params));
+      logger.info("renameAction: request.params=" + request.url.substr(0,32));
       const id = (request.params.id) && parseInt(request.params.id, 10);
       let name = decodeURI(request.params.nam);
       name = (!name || name.trim() === "") ? "Produkt" : name.trim();
@@ -247,7 +246,7 @@ export async function renameProductAction(request, response) {
 export async function createProductAction(request, response) {
   try {
     protect(response, request.params.tok, () => {
-      logger.info("createProductAction: request.params=" + JSON.stringify(request.params));
+      logger.info("createProductAction: request.params=" + request.url.substr(0,32));
       const itemName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
       const categoryId = (request.params.catid) && parseInt(request.params.catid, 10);
       const newItemId = createProduct(categoryId, itemName);
@@ -265,7 +264,7 @@ export async function createProductAction(request, response) {
 export async function deleteProductAction(request, response) {
   try {
     protect(response, request.params.tok, () => {
-      logger.info("deleteProductAction: request.params=" + JSON.stringify(request.params));
+      logger.info("deleteProductAction: request.params=" + request.url.substr(0,32));
       const id = (request.params.id) && parseInt(request.params.id, 10);
       deleteProduct(id);
       response.status(200).json({ message: "Änderungen gesichert." });
@@ -274,65 +273,7 @@ export async function deleteProductAction(request, response) {
   catch (error) { errorHandler(error, 'deleteProductAction', response) }
 }
 
-export function evalAction(request, response) {
-  try {
-    protect(response, request.params.tok, () => { response.json(evaluate()) });
-  }
-  catch (error) {
-    const msg = "SUMA: Interner Fehler in 'evalAction': " + error.message;
-    logger.error(msg);
-    logger.debug(getSystemErrorMap.stack);
-    push.error(msg);
-    response.json({ state: false, msg: msg });
-  }
-}
-
-export async function dbAction(request, response) {
-  try {
-    protect(response, request.params.tok, () => {
-      let result;
-
-      switch (request.url) {
-        case "/unconnectdb": result = unconnectDb(); break;
-        case "/connectdb": result = connectDb(); break;
-        default: result = { state: "error", msg: "Cannot GET /app" + request.url };
-      }
-
-      logger.isLevelEnabled('debug') && logger.debug(JSON.stringify(result));
-      response.json(result);
-    })
-  }
-  catch (error) { errorHandler(error, 'dbAction') }
-}
-
-export async function healthAction(request, response) {
-  try {
-    logger.isLevelEnabled('debug') && logger.debug("healthAction");
-    const count = getAllProducts().length;
-    response.json({ healthy: true, count });
-  }
-  catch (error) {
-    errorHandler(error, 'healthAction');
-    response.json({ healthy: false, error: error.message });
-  }
-}
-
 // Actions end =============
-
-export function evaluate() {
-  connectDb();
-  let data = getAllProducts();
-  let changeCount = 0;
-  for (let item of data) {
-    (item.entry_list) && (evalProduct(item)) && changeCount++;
-  }
-  const msg = "SUMA: " + data.length + " Produkte wurden überprüft. " +
-    ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
-    " einen neuen Status erhalten.";
-  push.info(msg, "SUMA evaluate");
-  logger.info(msg);
-  return { state: true, msg: msg };
-}
 
 function errorHandler(error, actionName, response) {
   const message = "SUMA: Fehler in '" + actionName + "': " + error.message;
