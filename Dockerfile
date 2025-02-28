@@ -1,6 +1,5 @@
 FROM node:23.5-alpine3.20
-RUN apk add tzdata 
-RUN apk add curl
+RUN apk add tzdata && apk add curl
 
 USER node
 WORKDIR /home/node
@@ -12,7 +11,8 @@ ADD --chown=node:node . .
 RUN mkdir -p /home/node/data
 VOLUME /home/node/data
 
-ENV PORT=3000
+ENV HTTP_PORT=80
+ENV HTTPS_PORT=443
 ENV SUMA_DB=/home/node/data/SUMA.db
 
 HEALTHCHECK --interval=5m --timeout=5s --retries=3 \
