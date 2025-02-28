@@ -4,12 +4,15 @@ import { logger } from '../modules/log.js';
 
 let JWT = {};
 try {
-  if (fs.existsSync(process.env.AUTH))
+  if (fs.existsSync(process.env.AUTH)) {
     JWT = fs.readJsonSync(process.env.AUTH)
-  logger.info("Authorisation by jwt token");
+    logger.info("Authorisation by jwt token");
+  } else {
+    logger.warn("No access Authorisation!");
+  }
 } catch (error) {
   logger.error(error);
-  logger.warn("No access validation!");
+  logger.warn("No access authorisation!");
 }
 
 export const JWT_KEY = JWT.key;

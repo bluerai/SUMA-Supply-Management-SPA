@@ -38,15 +38,12 @@ if (fs.existsSync(process.env.KEYFILE) && fs.existsSync(process.env.CERTFILE)) {
     key: fs.readFileSync(process.env.KEYFILE),
     cert: fs.readFileSync(process.env.CERTFILE),
   };
-  const server = https.createServer(options, app).listen(PORT, () => {
-    const address = server.address();
+  https.createServer(options, app).listen(PORT, () => {
     logger.info(`Https-Server is listening to https://${getLocalIp()}:${PORT}`)
   });
 
 } else {
-
-  const server = app.listen(PORT, () => {
-    const address = server.address();
+  app.listen(PORT, () => {
     logger.warn(`No encrypted connection, as no HTTPS certificate is implemented.`);
     logger.info(`Http-Server is listening to http://${getLocalIp()}:${PORT}`)
   })
