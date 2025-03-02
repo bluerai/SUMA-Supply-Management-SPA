@@ -7,7 +7,7 @@ import { appRouter } from './app/index.js';
 import { apiRouter } from './api/index.js';
 import { verifyAction, loginAction } from './auth/index.js';
 import { logger } from './modules/log.js';
-import { evaluateCronJob } from './modules/cron.js';
+import { evaluateCronJob, databaseBackupCronJob } from './modules/cron.js';
 
 const app = express();
 
@@ -33,7 +33,9 @@ app.use('/api', apiRouter);
 
 app.use('/', (request, response) => response.redirect('/app'));
 
+//cron jobs starten
 evaluateCronJob.start();
+databaseBackupCronJob.start();
 
 if (HTTPS_PORT >= 0) {
   if (fs.existsSync(process.env.KEYFILE) && fs.existsSync(process.env.CERTFILE)) {

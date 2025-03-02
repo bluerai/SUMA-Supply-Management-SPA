@@ -142,3 +142,5 @@ _notes
 logs
 */.DS_Store
 .env.dev
+public/.DS_Store
+public/.DS_Store

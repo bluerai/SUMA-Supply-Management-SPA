@@ -10,6 +10,7 @@ class PushMessage {
   "name" = "none";
   "valid";
   error(msg) { };
+  warn(msg) { };
   info(msg) { };
   _send(msg, title, prio, sound) { };
 }
@@ -26,11 +27,19 @@ if (messaging) {
     "name" = "Pushover";
 
     error(msg, title) {
-      (this.valid) && this._send(msg, title || "Warnung", -1, "pushover");
+      (this.valid) && this._send(msg, title || "Fehler", 0, "intermission");
+    }
+
+    warn(msg, title) {
+      (this.valid) && this._send(msg, title || "Warnung", 0, "none");
     }
 
     info(msg, title) {
       (this.valid) && this._send(msg, title || "Hinweis", 0, "none");
+    }
+
+    note(msg, title) {
+      (this.valid) && this._send(msg, title || "Hinweis", -1, "none");
     }
 
     async _send(msg, title, prio, sound) {
@@ -49,7 +58,7 @@ if (messaging) {
 
       if (response.ok) {
         const data = await response.json();
-        logger.info("Pushover message successfully sent: " + JSON.stringify(data));
+        logger.debug("Pushover message successfully sent: " + JSON.stringify(data));
 
       } else
         logger.error("Pushover: response.statusText " + " (#" + response.status + ")");

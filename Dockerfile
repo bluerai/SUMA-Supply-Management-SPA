@@ -1,5 +1,6 @@
 FROM node:23.5-alpine3.20
-RUN apk add tzdata && apk add curl
+RUN apk add tzdata
+RUN apk add curl
 
 USER node
 WORKDIR /home/node

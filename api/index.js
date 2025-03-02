@@ -43,12 +43,17 @@ export async function healthAction(request, response) {
   try {
     logger.isLevelEnabled('debug') && logger.debug("healthAction");
     const count = getAllProducts().length;
+
+    logger.debug(request.protocol + "-Server still healthy!");
     response.json({ healthy: true, count });
-    logger.debug("Still healthy! Number of Products: " + count);
   }
   catch (error) {
-    errorHandler(error, 'healthAction');
-    response.json({ healthy: false, error: error.message });
+    const message = "SUMA: Error on " + request.protocol + "-Server: " + error.message;
+    logger.error(message);
+    if (error.stack) logger.debug(error.stack);
+    if (response) {
+      response.json({ healthy: false, error: error.message });
+    }
   }
 }
 
@@ -74,7 +79,7 @@ export function evaluate() {
   for (let item of data) {
     (item.entry_list) && (evalProduct(item)) && changeCount++;
   }
-  const msg = "SUMA: " + data.length + " Produkte wurden überprüft. " +
+  const msg = "SUMA: " + data.length + " Produkte überprüft. " +
     ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
     " einen neuen Status erhalten.";
   push.info(msg, "SUMA evaluate");

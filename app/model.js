@@ -212,7 +212,7 @@ export function evalProduct(item) {
     const oldEntryState = entry.state;
     entry.state = evalEntry(entry);
     if ((entry.state !== oldEntryState) && entry.state !== "green") {
-      push.warn('Mindesthaltbarkeitsdatum für ' + item.sum + ' Einheit(en) des Produkts "' + item.name + "' im Monat " + entry.year + "/" + entry.month + " überschritten!", "SUMA evaluate");
+      push.warn('Das Mindesthaltbarkeitsdatum für ' + item.sum + ' Einheit(en) des Produkts "' + item.name + '" wird im Monat ' + entry.year + "/" + entry.month + " überschritten!", "SUMA evaluate");
     }
     anyEntryChanged = anyEntryChanged || (entry.state !== oldEntryState);
   });
@@ -221,14 +221,14 @@ export function evalProduct(item) {
   if (anyEntryChanged) {
     const oldItemState = item.state;
     item.entry_list.map(entry => {
-      logger.debug("evalProduct entry=" + JSON.stringify(entry));
+      logger.silly("evalProduct entry=" + JSON.stringify(entry));
       if (entry.state === "red") item.state = "red";
       else if (entry.state === "yellow" && entry.state === "green") item.state = "yellow";
       else item.state = "green";
     });
     itemChanged = (item.state !== oldItemState);
   }
-  logger.debug("evalProduct: item.id=" + item.id + ", item.state=" + item.state);
+  logger.silly("evalProduct: item.id=" + item.id + ", item.state=" + item.state);
   if (itemChanged) {
     const updateStmt = database.prepare(`UPDATE product SET state = ? WHERE id = ?`);
     const { changes } = updateStmt.run(item.state, item.id);
