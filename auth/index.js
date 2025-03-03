@@ -1,11 +1,13 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs-extra';
+import { join } from 'path';
 import { logger } from '../modules/log.js';
 
 let JWT = {};
+const authfile = join(process.env.SUMA_CONFIG, "jwt.json");
 try {
-  if (fs.existsSync(process.env.AUTH)) {
-    JWT = fs.readJsonSync(process.env.AUTH)
+  if (fs.existsSync(authfile)) {
+    JWT = fs.readJsonSync(authfile)
     logger.info("Authorisation by jwt token");
   } else {
     logger.warn("No access Authorisation!");

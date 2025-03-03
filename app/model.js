@@ -4,17 +4,17 @@ import fs from 'fs-extra';
 import { logger } from '../modules/log.js'
 import { push } from '../modules/push_message.js';
 
-const SUMA_DB = process.env.SUMA_DB;
+const databasefile = process.env.SUMA_DB;
 let database;
 
-fs.pathExists(SUMA_DB, (err, exists) => {
-  database = new DatabaseSync(SUMA_DB, { open: true });
+fs.pathExists(databasefile, (err, exists) => {
+  database = new DatabaseSync(databasefile, { open: true });
   if (exists) {
     if (!database) {
-      logger.info('Could not connect to SUMA database at "' + SUMA_DB + '".');
+      logger.info('Could not connect to SUMA database at "' + databasefile + '".');
       process.exit(1);
     } else {
-      logger.info('Connected to SUMA database at "' + SUMA_DB + '".');
+      logger.info('Connected to SUMA database at "' + databasefile + '".');
     }
   } else {
     database.exec(`CREATE TABLE IF NOT EXISTS category (
@@ -45,7 +45,7 @@ fs.pathExists(SUMA_DB, (err, exists) => {
     moddate    INTEGER     DEFAULT (strftime('%s') ) 
 );
 `); */
-    logger.info('A new SUMA database was successfully created and opened at "' + SUMA_DB + '".'); 
+    logger.info('A new SUMA database was successfully created and opened at "' + databasefile + '".'); 
   }
 })
 

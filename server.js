@@ -1,7 +1,8 @@
 import express from 'express';
 import https from 'https';
 import fs from 'fs-extra';
-import morgan from 'morgan';
+//import morgan from 'morgan';
+import { join } from 'path';
 
 import { appRouter } from './app/index.js';
 import { apiRouter } from './api/index.js';
@@ -22,7 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.json());
 
-app.use(morgan('common', { immediate: true }));
+//app.use(morgan('common', { immediate: true }));
 
 app.get('/verify', verifyAction);
 app.post('/login', loginAction);
@@ -37,13 +38,24 @@ app.use('/', (request, response) => response.redirect('/app'));
 evaluateCronJob.start();
 databaseBackupCronJob.start();
 
+if (logger.isLevelEnabled('debug')) {
+  try {
+    logger.debug(`Cron: Next evaluateJob: ${evaluateCronJob.nextDate().toISO()}`);
+    logger.debug(`Cron: Next databaseBackupJob: ${databaseBackupCronJob.nextDate().toISO()}`);
+  } catch (error) {
+    logger.error(error)
+  }
+}
+
 if (HTTPS_PORT >= 0) {
-  if (fs.existsSync(process.env.KEYFILE) && fs.existsSync(process.env.CERTFILE)) {
+  const keyfile = join(process.env.SUMA_CONFIG, process.env.KEYFILE);
+  const certfile = join(process.env.SUMA_CONFIG, process.env.CERTFILE);
+  if (fs.existsSync(keyfile) && fs.existsSync(certfile)) {
 
     //key + Cert vorhanden, also https, 
     const options = {
-      key: fs.readFileSync(process.env.KEYFILE),
-      cert: fs.readFileSync(process.env.CERTFILE),
+      key: fs.readFileSync(keyfile),
+      cert: fs.readFileSync(certfile),
     };
     https.createServer(options, app).listen(HTTPS_PORT, () => {
       logger.info(`Https-Server is listening to https://${getLocalIp()}:${HTTPS_PORT}`)

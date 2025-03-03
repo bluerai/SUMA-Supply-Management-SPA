@@ -14,7 +14,14 @@ VOLUME /home/node/data
 
 ENV HTTP_PORT=80
 ENV HTTPS_PORT=443
+ENV SUMA_DIR=/home/node/data/
+ENV SUMA_CONFIG=/home/node/data/config/
+ENV SUMA_BACKUP=/home/node/data/backup/
 ENV SUMA_DB=/home/node/data/SUMA.db
+ENV KEYFILE=key.pem
+ENV CERTFILE=cert.pem
+ENV CRON_EVAL="0 0 10,22 * * *"
+ENV CRON_BACKUP="0 0 23 * * *"
 
 HEALTHCHECK --interval=5m --timeout=5s --retries=3 \
   CMD ["sh", "healthcheck.sh"]
