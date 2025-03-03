@@ -45,16 +45,16 @@ fs.pathExists(databasefile, (err, exists) => {
     moddate    INTEGER     DEFAULT (strftime('%s') ) 
 );
 `); */
-    logger.info('A new SUMA database was successfully created and opened at "' + databasefile + '".'); 
+    logger.info('A new SUMA database was successfully created and opened at "' + databasefile + '".');
   }
 })
 
 export function connectDb() {  // open database 
   try {
     database.open();
-    return {state: "open", msg: "SUMA connectDb: DB opened"};
+    return { state: "open", msg: "SUMA connectDb: DB opened" };
   } catch (error) {
-    return { state: "error", msg: "SUMA connectDb: " + error};
+    return { state: "error", msg: "SUMA connectDb: " + error };
   }
 }
 
@@ -88,7 +88,7 @@ export function getCategory(categoryId) {
     result.products = [];
     return result;
   }
-  
+
   categoryId = categoryId || categories[0].id;
   const category = oneCategory(categoryId);
   logger.debug("getProducts: category=" + JSON.stringify(category));
@@ -197,7 +197,7 @@ export function updateEntry(data) {
   }
 
   item.sum = 0;
-  item.entry_list.map(entry => item.sum += parseInt(entry.count));
+  for (const entry of item.entry_list) { item.sum += parseInt(entry.count) }
 
   const updateStmt = database.prepare(`UPDATE product SET sum = ?, entry_list = ? WHERE id = ?`);
   const { changes } = updateStmt.run(item.sum, JSON.stringify(item.entry_list), item.id);
@@ -206,30 +206,36 @@ export function updateEntry(data) {
   evalProduct(item);
 }
 
-export function evalProduct(item) {
+export function evalProduct(item, forced) {
+
   let anyEntryChanged = false;
-  item.entry_list.map(entry => {
+  for (const entry of item.entry_list) {
     const oldEntryState = entry.state;
     entry.state = evalEntry(entry);
     if ((entry.state !== oldEntryState) && entry.state !== "green") {
       push.warn('Das Mindesthaltbarkeitsdatum für ' + item.sum + ' Einheit(en) des Produkts "' + item.name + '" wird im Monat ' + entry.year + "/" + entry.month + " überschritten!", "SUMA evaluate");
     }
     anyEntryChanged = anyEntryChanged || (entry.state !== oldEntryState);
-  });
+  };
 
   let itemChanged = false;
-  if (anyEntryChanged) {
+  if (anyEntryChanged || forced) {
     const oldItemState = item.state;
-    item.entry_list.map(entry => {
-      logger.silly("evalProduct entry=" + JSON.stringify(entry));
-      if (entry.state === "red") item.state = "red";
-      else if (entry.state === "yellow" && entry.state === "green") item.state = "yellow";
-      else item.state = "green";
-    });
+    if (item.entry_list.length === 0) {
+      item.state = "black";
+    } else {
+      for (const entry of item.entry_list) {
+        //logger.silly("evalProduct entry=" + JSON.stringify(entry));
+        if (entry.state === "red" || item.state === "red") item.state = "red";
+        else if (item.state === "yellow" || (entry.state === "yellow" && item.state === "green")) item.state = "yellow";
+        else item.state = "green";
+      };
+    }
     itemChanged = (item.state !== oldItemState);
   }
+
   logger.silly("evalProduct: item.id=" + item.id + ", item.state=" + item.state);
-  if (itemChanged) {
+  if (itemChanged || forced) {
     const updateStmt = database.prepare(`UPDATE product SET state = ? WHERE id = ?`);
     const { changes } = updateStmt.run(item.state, item.id);
     logger.debug("evalProduct: item state saved - rows changed=" + changes);
@@ -238,8 +244,8 @@ export function evalProduct(item) {
 }
 
 function evalEntry(entry) {
-  const diffDays = Math.round((new Date(entry.year, entry.month, 1).getTime() - new Date().getTime()) / oneDay);
-  if (diffDays < 30) return "red";
-  if (diffDays < 0) return "yellow";
+  const diffDays = Math.round((new Date(entry.year, entry.month - 1, 1).getTime() - new Date().getTime()) / oneDay);
+  if (diffDays < 0) return "red";
+  if (diffDays < 30) return "yellow";
   return "green";
 }

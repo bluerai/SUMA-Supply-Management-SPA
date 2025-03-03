@@ -33,7 +33,7 @@ apiRouter.get('/unconnectdb/', dbAction);
 
 export function evalAction(request, response) {
   try {
-    response.json(evaluate());
+    response.json(evaluate(false));
   }
   catch (error) {
     const msg = "SUMA: Interner Fehler in 'evalAction': " + error.message;
@@ -91,12 +91,12 @@ export function backupAction(request, response) {
 }
 
 
-export function evaluate() {
+export function evaluate(forced) {
   connectDb();
   let data = getAllProducts();
   let changeCount = 0;
   for (let item of data) {
-    (item.entry_list) && (evalProduct(item)) && changeCount++;
+    (item.entry_list) && (evalProduct(item, forced)) && changeCount++;
   }
   const msg = "SUMA: " + data.length + " Produkte überprüft. " +
     ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +

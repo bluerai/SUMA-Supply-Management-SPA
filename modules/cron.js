@@ -21,12 +21,12 @@ export const databaseBackupCronJob = new CronJob(
 );
 
 //evaluate 10 sec nach Start
-setTimeout(evaluate, 10000)
+setTimeout(() => { evaluate(true) }, 10000)
 
 function evaluateJob() {
   try {
     logger.info("Cron: evaluateJob startet.");
-    evaluate()
+    evaluate();
   } catch (error) {
     const msg = 'SUMA: Fehler in CronJob "evaluateJob": ' + error.message;
     logger.error(msg);
@@ -40,7 +40,7 @@ async function backupDatabaseJob() {
     logger.info("SUMA: backupDatabaseJob startet.");
 
     databaseBackup();
-    
+
   } catch (error) {
     const msg = 'SUMA: Fehler in CronJob "backupDatabaseJob": ' + error.message;
     logger.error(msg);
