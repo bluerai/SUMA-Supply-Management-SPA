@@ -67,11 +67,34 @@ export async function getCategoryListAction(request, response) {
         logger.isLevelEnabled('debug') && ("Category_list: html.length=" + html.length);
         response.status(200).json({ category: response.locals.category, html: html });
       })
+
+
     })
   }
   catch (error) { errorHandler(error, 'renameCategoryAction', response) }
 }
 
+export async function getAllHeadsAction(request, response) {
+  try {
+    logger.info("getAllHeadsAction: request.url=" + request.url.substr(0, 32));
+    protect(response, request.params.tok, () => {
+      const categoryId = (request.params.id) && parseInt(request.params.id, 10) || 0;
+      let category = getCategory(categoryId);
+      logger.isLevelEnabled('debug') && logger.debug("getAllHeadsAction: category=" + JSON.stringify(category));
+
+      response.render(import.meta.dirname + '/views/all_product_heads', { products: category.products }, function (error, html) {
+        if (error) {
+          logger.info(error);
+        } else {
+          logger.isLevelEnabled('debug') && logger.debug("getHeadAction: html.length=" + html.length);
+          logger.isLevelEnabled('silly') && logger.silly("getHeadAction: html=" + html);
+          response.json({ html });
+        }
+      })
+    })
+  }
+  catch (error) { errorHandler(error, 'getHeadAction', response) }
+}
 
 export async function getHeadAction(request, response) {
   try {
@@ -118,20 +141,18 @@ export async function updateAction(request, response) {
   try {
     protect(response, request.params.tok, () => {
       const data = request.body;
-
-      logger.info("updateAction: data=" + data);
-
-      updateEntry(data);
-      const item = getProduct(data.id)
+      
+      const item = updateEntry(data);
+      logger.debug("updateAction: item=" + JSON.stringify(item));
 
       if (item) {
-        response.locals.sum = item.sum;
+        response.locals.item = item;
         response.render(import.meta.dirname + '/views/product_details', { item: item }, function (error, html) {
           if (error) {
             errorHandler(error, 'updateAction render', response)
           } else {
             //logger.info("updateAction: html.length=" + html.length);
-            response.json({ html: html, sum: response.locals.sum });
+            response.json({ product: response.locals.item, html: html, });
           }
         })
       } else {

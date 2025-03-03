@@ -20,9 +20,6 @@ export const databaseBackupCronJob = new CronJob(
   process.env.TZ // timeZone
 );
 
-//evaluate 10 sec nach Start
-setTimeout(() => { evaluate(true) }, 10000)
-
 function evaluateJob() {
   try {
     logger.info("Cron: evaluateJob startet.");

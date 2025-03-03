@@ -81,7 +81,8 @@ async function getCategory(id) {
     const data = await response.json();
     document.getElementById('category_id').value = data.categoryId;
     document.getElementById('category_head').outerHTML = data.html;
-    updateProductList(data.products);
+    //updateProductList(data.products);
+    updateCategoryProducts(id);
     updateCategoryList();
   }
   else {
@@ -102,6 +103,19 @@ async function updateCategoryList() {
   }
 }
 
+
+async function updateCategoryProducts(categoryId) {
+  const response = await fetch("/app/heads/" + categoryId + "/" + TOKEN);
+  if (response.status === 200) {
+    const data = await response.json();
+    document.getElementById("prodlist").outerHTML = data.html;
+  } else {
+    responseFail_Handler("updateCategoryProducts", response);
+    return;
+  }
+
+}
+/* 
 async function updateProductList(products) {
   const prodlist = document.getElementById("prodlist");
   prodlist.innerHTML = "";
@@ -116,7 +130,7 @@ async function updateProductList(products) {
       return;
     }
   }
-}
+} */
 
 async function toggleDetails(id) {
   const prod = document.getElementById('prod' + id);
@@ -197,7 +211,8 @@ async function deleteCategory() {
       const data = await response.json();
       document.getElementById('category_head').outerHTML = data.html;
 
-      updateProductList(data.products);
+      //updateProductList(data.products);
+      updateCategoryProducts(id);
       updateCategoryList();
       hidePanels();
 
@@ -311,7 +326,8 @@ async function updateEntry(id, action) {
 
   if (response.status == 200) {
     const data = await response.json();
-    document.getElementById('sum' + id).innerHTML = data.sum;
+    document.getElementById('sum' + id).innerHTML = data.product.sum;
+    document.getElementById('state' + id).style.color = data.product.state;
     document.getElementById('details' + id).outerHTML = data.html;
   } else {
     responseFail_Handler("updateEntry", response);

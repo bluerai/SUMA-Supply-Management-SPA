@@ -90,6 +90,8 @@ export function backupAction(request, response) {
   }
 }
 
+//evaluate 10 sec nach Start
+//setTimeout(() => { evaluate(true) }, 10000)
 
 export function evaluate(forced) {
   connectDb();

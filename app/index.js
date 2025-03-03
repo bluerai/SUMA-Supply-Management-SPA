@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import {
-  startAction, getHeadAction, getDetailsAction, getCategoryAction, getCategoryListAction,
+  startAction, getHeadAction, getAllHeadsAction, getDetailsAction, getCategoryAction, getCategoryListAction,
   renameCategoryAction, createCategoryAction, deleteCategoryAction, toggleCategoryStarAction,
   renameProductAction, createProductAction, deleteProductAction,
   updateAction
@@ -13,6 +13,7 @@ appRouter.get('/', startAction);
 appRouter.get('/get/:id/:tok', getCategoryAction);
 appRouter.get('/list/:tok', getCategoryListAction);
 appRouter.get('/head/:id/:tok', getHeadAction);
+appRouter.get('/heads/:id/:tok', getAllHeadsAction);
 appRouter.get('/details/:id/:tok', getDetailsAction);
 
 appRouter.get('/cat/star/:id/:tok', toggleCategoryStarAction);

@@ -93,7 +93,7 @@ export function getCategory(categoryId) {
   const category = oneCategory(categoryId);
   logger.debug("getProducts: category=" + JSON.stringify(category));
 
-  const selectProductsStmt = database.prepare(`SELECT id FROM product where category_id = ? order by name asc`);
+  const selectProductsStmt = database.prepare(`SELECT id, name, sum, state FROM product where category_id = ? order by name asc`);
   const products = selectProductsStmt.all(categoryId);
 
   return { "category": category, "products": products };
@@ -172,6 +172,7 @@ export function updateEntry(data) {
   const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product where id=?`);
   const item = selectByIdStmt.get(data.id);
   item.entry_list = JSON.parse(item.entry_list);
+  logger.debug("updateEntry: selected item=" + JSON.stringify(item));
 
   const index = item.entry_list.findIndex((e) => { return e.year === data.year && e.month === data.month; });
   const entry = item.entry_list[index];
@@ -203,7 +204,7 @@ export function updateEntry(data) {
   const { changes } = updateStmt.run(item.sum, JSON.stringify(item.entry_list), item.id);
   logger.debug("updateEntry: item sum, item entry_list saved - rows changed=" + changes);
 
-  evalProduct(item);
+  return evalProduct(item);
 }
 
 export function evalProduct(item, forced) {
@@ -221,16 +222,14 @@ export function evalProduct(item, forced) {
   let itemChanged = false;
   if (anyEntryChanged || forced) {
     const oldItemState = item.state;
-    if (item.entry_list.length === 0) {
-      item.state = "black";
-    } else {
-      for (const entry of item.entry_list) {
-        //logger.silly("evalProduct entry=" + JSON.stringify(entry));
-        if (entry.state === "red" || item.state === "red") item.state = "red";
-        else if (item.state === "yellow" || (entry.state === "yellow" && item.state === "green")) item.state = "yellow";
-        else item.state = "green";
-      };
-    }
+    item.state = "black";
+    for (const entry of item.entry_list) {
+      //logger.silly("evalProduct entry=" + JSON.stringify(entry));
+      if (entry.state === "red" || item.state === "red") item.state = "red";
+      else if (item.state === "yellow" || (entry.state === "yellow" && item.state === "green")) item.state = "yellow";
+      else item.state = "green";
+    };
+
     itemChanged = (item.state !== oldItemState);
   }
 
@@ -240,7 +239,7 @@ export function evalProduct(item, forced) {
     const { changes } = updateStmt.run(item.state, item.id);
     logger.debug("evalProduct: item state saved - rows changed=" + changes);
   }
-  return itemChanged;
+  return item;
 }
 
 function evalEntry(entry) {
