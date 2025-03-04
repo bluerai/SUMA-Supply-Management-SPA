@@ -1,8 +1,8 @@
 
 import jwt from 'jsonwebtoken'; 
-
 import { logger } from '../modules/log.js';
 import { JWT_KEY } from '../auth/index.js';
+import packagejson from '../package.json' with {type: 'json'}
 
 import {
   getCategory, getProduct, allCategories,
@@ -10,6 +10,13 @@ import {
   createProduct, renameProduct, deleteProduct,
   updateEntry
 } from './model.js';
+
+const appInfo = {
+  "version": packagejson.name.toUpperCase() + ", Version " + packagejson.version,
+  "author": packagejson.license + ", 2025 - " + packagejson.author
+};
+
+logger.info(appInfo.version + " - " + appInfo.author);
 
 function protect(res, token, funct) {
   if (!JWT_KEY) {
@@ -49,13 +56,12 @@ export async function getCategoryAction(request, response) {
       response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
         if (error) { logger.error(error); logger.debug(error.stack); return }
         logger.isLevelEnabled('debug') && logger.debug("Category_list: html.length=" + html.length);
-        response.status(200).json({ categoryId: response.locals.categoryId, products: response.locals.products, html: html });
+        response.status(200).json({ categoryId: response.locals.categoryId, products: response.locals.products, html, appInfo });
       })
     })
   }
   catch (error) { errorHandler(error, 'getCategoryAction', response) }
 }
-
 
 export async function getCategoryListAction(request, response) {
   try {
@@ -86,36 +92,15 @@ export async function getAllHeadsAction(request, response) {
         if (error) {
           logger.info(error);
         } else {
-          logger.isLevelEnabled('debug') && logger.debug("getHeadAction: html.length=" + html.length);
-          logger.isLevelEnabled('silly') && logger.silly("getHeadAction: html=" + html);
+          logger.isLevelEnabled('debug') && logger.debug("getAllHeadsAction: html.length=" + html.length);
+          logger.isLevelEnabled('silly') && logger.silly("getAllHeadsAction: html=" + html);
           response.json({ html });
         }
       })
     })
   }
-  catch (error) { errorHandler(error, 'getHeadAction', response) }
+  catch (error) { errorHandler(error, 'getAllHeadsAction', response) }
 }
-
-/* export async function getHeadAction(request, response) {
-  try {
-    logger.info("getHeadAction: request.url=" + request.url.substr(0,32));
-    protect(response, request.params.tok, () => {
-      const itemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
-      let item = getProduct(itemId);
-      logger.isLevelEnabled('debug') && logger.debug("getHeadAction: item=" + JSON.stringify(item));
-      response.render(import.meta.dirname + '/views/product_head', { item: item }, function (error, html) {
-        if (error) {
-          logger.info(error);
-        } else {
-          logger.isLevelEnabled('debug') && logger.debug("getHeadAction: html.length=" + html.length);
-          logger.isLevelEnabled('silly') && logger.silly("getHeadAction: html=" + html);
-          response.json({ html });
-        }
-      })
-    })
-  }
-  catch (error) { errorHandler(error, 'getHeadAction', response) }
-} */
 
 export async function getDetailsAction(request, response) {
   try {

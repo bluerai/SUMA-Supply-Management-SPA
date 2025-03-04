@@ -1,15 +1,14 @@
 {
   "name": "suma",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node --env-file=.env.dev server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "health": "node --env-file=.env.dev healthcheck.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "raiblue@gmx.de",
+  "license": "ISC Licence",
   "description": "",
   "dependencies": {
     "cron": "^4.1.0",

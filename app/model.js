@@ -100,8 +100,6 @@ export function getCategory(categoryId) {
     item.entry_list = JSON.parse(item.entry_list);
   }
 
-  logger.info("***" + JSON.stringify(products));
-
   products.sort((prod1, prod2) => {
     const date1 = expDate(prod1.entry_list[0]);
     const date2 = expDate(prod2.entry_list[0]);
@@ -109,12 +107,11 @@ export function getCategory(categoryId) {
     if (date1 > date2) return 1;
     return 0;
   })
-  logger.info(">>>" + JSON.stringify(products));
   return { "category": category, "products": products };
 };
 
 function expDate(entry) {
-  if (!entry || (!entry.year) || (!entry.month) ) return "9999/99";
+  if (!entry || (!entry.year) || (!entry.month)) return "9999/99";
   return entry.year + "/" + entry.month;
 }
 
@@ -168,7 +165,7 @@ export function getAllProducts() {
     }
   }
   logger.debug("getAllProducts: data.length=" + data.length);
-  return;
+  return data;
 }
 
 
@@ -193,7 +190,7 @@ export function updateEntry(data) {
   const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product where id=?`);
   const item = selectByIdStmt.get(data.id);
   item.entry_list = JSON.parse(item.entry_list);
-  item.minExpDate = minExpirationDate(item.entry_list);
+  //item.minExpDate = minExpirationDate(item.entry_list);
   logger.debug("updateEntry: selected item=" + JSON.stringify(item));
 
   const index = item.entry_list.findIndex((e) => { return e.year === data.year && e.month === data.month; });
@@ -229,46 +226,38 @@ export function updateEntry(data) {
   return evalProduct(item);
 }
 
-export function evalProduct(item, forced) {
-
-  let anyEntryChanged = false;
+export function evalProduct(item) {
+  let minDays = 150;
   for (const entry of item.entry_list) {
-    const oldEntryState = entry.state;
-    entry.state = evalEntry(entry);
-    if ((entry.state !== oldEntryState) && entry.state !== "green") {
-      push.warn('Das Mindesthaltbarkeitsdatum für ' + item.sum + ' Einheit(en) des Produkts "' + item.name + '" wird im Monat ' + entry.year + "/" + entry.month + " überschritten!", "SUMA evaluate");
+    entry.state = Math.round((new Date(entry.year, entry.month - 1, 1).getTime() - new Date().getTime()) / oneDay);
+    minDays = Math.min(minDays, entry.state);
+    if (entry.state = 30) {
+      push.warn('Das Mindesthaltbarkeitsdatum für ' + item.sum + ' Einheit(en) des Produkts "' + item.name +
+        '" wird in ' + entry.state + ' Tagen überschritten!', "SUMA evaluate");
     }
-    anyEntryChanged = anyEntryChanged || (entry.state !== oldEntryState);
   };
+  item.state = wertZuFarbe(minDays / 1.5);
+  logger.debug("evalProduct: item.id=" + item.id + ", item.state=" + item.state);
 
-  let itemChanged = false;
-  if (anyEntryChanged || forced) {
-    const oldItemState = item.state;
-    item.state = "black";
-    for (const entry of item.entry_list) {
-      //logger.silly("evalProduct entry=" + JSON.stringify(entry));
-      if (entry.state === "red" || item.state === "red") item.state = "red";
-      else if (item.state === "yellow" || (entry.state === "yellow" && item.state === "green")) item.state = "yellow";
-      else item.state = "green";
-    };
+  const updateStmt = database.prepare(`UPDATE product SET state = ? WHERE id = ?`);
+  const { changes } = updateStmt.run(item.state, item.id);
+  logger.debug("evalProduct: item state saved - rows changed=" + changes);
 
-    itemChanged = (item.state !== oldItemState);
-  }
-
-  logger.silly("evalProduct: item.id=" + item.id + ", item.state=" + item.state);
-  if (itemChanged || forced) {
-    const updateStmt = database.prepare(`UPDATE product SET state = ? WHERE id = ?`);
-    const { changes } = updateStmt.run(item.state, item.id);
-    logger.debug("evalProduct: item state saved - rows changed=" + changes);
-  }
   return item;
 }
 
-function evalEntry(entry) {
-  const diffDays = Math.round((new Date(entry.year, entry.month - 1, 1).getTime() - new Date().getTime()) / oneDay);
-  if (diffDays < 0) return "red";
-  if (diffDays < 30) return "yellow";
-  return "green";
+function wertZuFarbe(wert) {
+  wert = Math.max(0, Math.min(100, wert)); // Begrenzung auf 0-100
+  let r, g, b = 0;
+
+  if (wert <= 40) {
+    r = 230;
+    g = Math.round((wert / 40) * 230);
+  } else {
+    r = Math.round(230 - ((wert - 40) / 60) * 230);
+    g = 230;
+  }
+  return `rgb(${r},${g},${b})`;
 }
 
 

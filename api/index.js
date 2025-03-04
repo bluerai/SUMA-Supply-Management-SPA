@@ -93,12 +93,12 @@ export function backupAction(request, response) {
 //evaluate 10 sec nach Start
 //setTimeout(() => { evaluate(true) }, 10000)
 
-export function evaluate(forced) {
+export function evaluate() {
   connectDb();
   let data = getAllProducts();
   let changeCount = 0;
   for (let item of data) {
-    (item.entry_list) && (evalProduct(item, forced)) && changeCount++;
+    (item.entry_list) && (evalProduct(item)) && changeCount++;
   }
   const msg = "SUMA: " + data.length + " Produkte überprüft. " +
     ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +

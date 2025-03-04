@@ -59,11 +59,20 @@ async function login() {
   }
 }
 
+let displayMessageTimeoutHandler;
+
+function displayMessage(msg, sec) {
+  document.getElementById('message').innerHTML = "<p>" + msg + "</p";
+  if (displayMessageTimeoutHandler) displayMessageTimeoutHandler.clear;
+  if (sec)
+    displayMessageTimeoutHandler = setTimeout(() => { document.getElementById('message').innerHTML = "" }, sec * 1000);
+}
+
 
 function responseFail_Handler(functionName, response, msg) {
   msg = msg || (functionName + ": " + response.statusText + " (#" + response.status + ")");
   console.log(msg);
-  document.getElementById('message').innerHTML = "<p>" + msg + "</p";
+  displayMessage(msg, 8);
   setTimeout(() => { document.getElementById('message').innerHTML = "" }, 7000);
 }
 
@@ -84,6 +93,7 @@ async function getCategory(id) {
     //updateProductList(data.products);
     updateCategoryProducts(id);
     updateCategoryList();
+    displayMessage(data.appInfo.version + ", " + location.protocol + "//" + location.host, 16)
   }
   else {
     responseFail_Handler("getCategory", response);
@@ -115,22 +125,6 @@ async function updateCategoryProducts(categoryId) {
   }
 
 }
-/* 
-async function updateProductList(products) {
-  const prodlist = document.getElementById("prodlist");
-  prodlist.innerHTML = "";
-  for (let product of products) {
-    const response = await fetch("/app/head/" + product.id + "/" + TOKEN);
-
-    if (response.status === 200) {
-      const data = await response.json();
-      prodlist.insertAdjacentHTML("beforeend", data.html);
-    } else {
-      responseFail_Handler("updateProductList", response);
-      return;
-    }
-  }
-} */
 
 async function toggleDetails(id) {
   const prod = document.getElementById('prod' + id);
