@@ -7,8 +7,9 @@
     "start": "node --env-file=.env.dev server.js",
     "health": "node --env-file=.env.dev healthcheck.js"
   },
-  "author": "raiblue@gmx.de",
-  "license": "ISC Licence",
+  "author": "bluerai",
+  "e-mail": "raiblue@gmx.de",
+  "license": "MIT Licence 2025",
   "description": "",
   "dependencies": {
     "cron": "^4.1.0",
