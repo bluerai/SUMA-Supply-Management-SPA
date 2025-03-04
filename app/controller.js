@@ -96,7 +96,7 @@ export async function getAllHeadsAction(request, response) {
   catch (error) { errorHandler(error, 'getHeadAction', response) }
 }
 
-export async function getHeadAction(request, response) {
+/* export async function getHeadAction(request, response) {
   try {
     logger.info("getHeadAction: request.url=" + request.url.substr(0,32));
     protect(response, request.params.tok, () => {
@@ -115,7 +115,7 @@ export async function getHeadAction(request, response) {
     })
   }
   catch (error) { errorHandler(error, 'getHeadAction', response) }
-}
+} */
 
 export async function getDetailsAction(request, response) {
   try {

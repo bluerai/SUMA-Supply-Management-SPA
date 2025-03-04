@@ -91,13 +91,32 @@ export function getCategory(categoryId) {
 
   categoryId = categoryId || categories[0].id;
   const category = oneCategory(categoryId);
-  logger.debug("getProducts: category=" + JSON.stringify(category));
+  logger.debug("getCategory: category=" + JSON.stringify(category));
 
-  const selectProductsStmt = database.prepare(`SELECT id, name, sum, state FROM product where category_id = ? order by name asc`);
+  const selectProductsStmt = database.prepare(`SELECT id, name, sum, state, entry_list FROM product where category_id = ? order by name asc`);
   const products = selectProductsStmt.all(categoryId);
 
+  for (const item of products) {
+    item.entry_list = JSON.parse(item.entry_list);
+  }
+
+  logger.info("***" + JSON.stringify(products));
+
+  products.sort((prod1, prod2) => {
+    const date1 = expDate(prod1.entry_list[0]);
+    const date2 = expDate(prod2.entry_list[0]);
+    if (date1 < date2) return -1;
+    if (date1 > date2) return 1;
+    return 0;
+  })
+  logger.info(">>>" + JSON.stringify(products));
   return { "category": category, "products": products };
 };
+
+function expDate(entry) {
+  if (!entry || (!entry.year) || (!entry.month) ) return "9999/99";
+  return entry.year + "/" + entry.month;
+}
 
 export function createCategory(itemName) {
   const insertStmt = database.prepare(`INSERT INTO category (name) VALUES (?)`);
@@ -144,11 +163,13 @@ export function getAllProducts() {
   const selectAllStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product order by name asc`);
   const data = selectAllStmt.all();
   for (let item of data) {
-    if (item.entry_list) item.entry_list = JSON.parse(item.entry_list);
+    if (item.entry_list) {
+      item.entry_list = JSON.parse(item.entry_list);
+    }
   }
   logger.debug("getAllProducts: data.length=" + data.length);
-  return data;
-};
+  return;
+}
 
 
 export function renameProduct(id, name) {
@@ -172,6 +193,7 @@ export function updateEntry(data) {
   const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product where id=?`);
   const item = selectByIdStmt.get(data.id);
   item.entry_list = JSON.parse(item.entry_list);
+  item.minExpDate = minExpirationDate(item.entry_list);
   logger.debug("updateEntry: selected item=" + JSON.stringify(item));
 
   const index = item.entry_list.findIndex((e) => { return e.year === data.year && e.month === data.month; });
@@ -248,3 +270,5 @@ function evalEntry(entry) {
   if (diffDays < 30) return "yellow";
   return "green";
 }
+
+
