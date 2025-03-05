@@ -1,7 +1,6 @@
 
-import jwt from 'jsonwebtoken'; 
+import { protect } from '../auth/index.js';
 import { logger } from '../modules/log.js';
-import { JWT_KEY } from '../auth/index.js';
 import packagejson from '../package.json' with {type: 'json'}
 
 import {
@@ -18,21 +17,6 @@ const appInfo = {
 
 logger.info(appInfo.version + " - " + appInfo.author);
 
-function protect(res, token, funct) {
-  if (!JWT_KEY) {
-    return funct();
-  }
-  jwt.verify(token, JWT_KEY, (err, decoded) => {
-    if (err) {
-      logger.debug("token invalid");
-      res.status(401).json({ error: 'Invalid token' });
-    } else {
-      logger.debug("token ok");
-      return funct();
-    }
-  })
-}
-
 // actions ===================================================================
 export async function startAction(request, response) {
   try {
@@ -44,9 +28,9 @@ export async function startAction(request, response) {
 
 export async function getCategoryAction(request, response) {
   try {
+    logger.info("getCategoryAction");
     protect(response, request.params.tok, () => {
-      logger.info("getCategoryAction: request.url=" + request.url.substr(0,32));
-
+      logger.debug("getCategoryAction: request.url=" + request.url.substr(0, 32));
       const categoryId = (request.params.id) && parseInt(request.params.id, 10);
       const data = getCategory(categoryId);
       logger.isLevelEnabled('debug') && logger.debug("getCategoryAction: data=" + JSON.stringify(data));
@@ -65,16 +49,14 @@ export async function getCategoryAction(request, response) {
 
 export async function getCategoryListAction(request, response) {
   try {
-    logger.info("getCategoryListAction: request.url=" + request.url.substr(0,32));
-
+    logger.info("getCategoryListAction");
     protect(response, request.params.tok, () => {
+      logger.debug("getCategoryListAction: request.url=" + request.url.substr(0, 32));
       response.render(import.meta.dirname + '/views/category_list', { allCategories: allCategories() }, function (error, html) {
         if (error) { logger.error(error); logger.debug(error.stack); return }
         logger.isLevelEnabled('debug') && ("Category_list: html.length=" + html.length);
         response.status(200).json({ category: response.locals.category, html: html });
       })
-
-
     })
   }
   catch (error) { errorHandler(error, 'renameCategoryAction', response) }
@@ -82,8 +64,9 @@ export async function getCategoryListAction(request, response) {
 
 export async function getAllHeadsAction(request, response) {
   try {
-    logger.info("getAllHeadsAction: request.url=" + request.url.substr(0, 32));
+    logger.info("getAllHeadsAction");
     protect(response, request.params.tok, () => {
+      logger.debug("getAllHeadsAction: request.url=" + request.url.substr(0, 32));
       const categoryId = (request.params.id) && parseInt(request.params.id, 10) || 0;
       let category = getCategory(categoryId);
       logger.isLevelEnabled('debug') && logger.debug("getAllHeadsAction: category=" + JSON.stringify(category));
@@ -104,8 +87,9 @@ export async function getAllHeadsAction(request, response) {
 
 export async function getDetailsAction(request, response) {
   try {
-    logger.info("getDetailsAction: request.params=" + request.url.substr(0,32));
+    logger.info("getDetailsAction");
     protect(response, request.params.tok, () => {
+      logger.debug("getDetailsAction: request.params=" + request.url.substr(0, 32));
       const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
       let item = getProduct(curItemId);
       logger.isLevelEnabled('debug') && logger.debug("getDetailsAction: item=" + JSON.stringify(item));
@@ -124,6 +108,7 @@ export async function getDetailsAction(request, response) {
 
 export async function updateAction(request, response) {
   try {
+    logger.debug("updateAction");
     protect(response, request.params.tok, () => {
       const data = request.body;
       
@@ -150,13 +135,14 @@ export async function updateAction(request, response) {
 
 export async function renameCategoryAction(request, response) {
   try {
+    logger.info("renameCategoryAction");
     protect(response, request.params.tok, () => {
-      logger.info("renameCategoryAction: request.params=" + request.url.substr(0,32));
+      logger.debug("renameCategoryAction: request.params=" + request.url.substr(0,32));
       const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
       const categoryId = (request.params.id) && parseInt(request.params.id, 10);
       const data = renameCategory(categoryId, categoryName);
 
-      logger.info("renameCategoryAction: id=" + data.category.id);
+      logger.debug("renameCategoryAction: id=" + data.category.id);
       logger.isLevelEnabled('debug') && logger.debug("renameCategoryAction: data=" + JSON.stringify(data));
       response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
         if (error) { logger.error(error); logger.debug(error.stack); return }
@@ -171,12 +157,13 @@ export async function renameCategoryAction(request, response) {
 
 export async function createCategoryAction(request, response) {
   try {
+    logger.info("createCategoryAction");
     protect(response, request.params.tok, () => {
-      logger.info("createCategoryAction: request.params=" + request.url.substr(0,32));
+      logger.debug("createCategoryAction: request.params=" + request.url.substr(0,32));
       const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
       const data = createCategory(categoryName);
 
-      logger.info("createCategoryAction: categoryId=" + data.category.id);
+      logger.debug("createCategoryAction: categoryId=" + data.category.id);
       logger.isLevelEnabled('debug') && logger.debug("createCategoryAction: data=" + JSON.stringify(data));
       response.locals.categoryId = data.category.id;
       response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
@@ -191,8 +178,9 @@ export async function createCategoryAction(request, response) {
 
 export async function deleteCategoryAction(request, response) {
   try {
+    logger.info("deleteCategoryAction");
     protect(response, request.params.tok, () => {
-      logger.info("deleteCategoryAction: request.params=" + request.url.substr(0,32));
+      logger.debug("deleteCategoryAction: request.params=" + request.url.substr(0,32));
       const id = (request.params.id) && parseInt(request.params.id, 10);
       deleteCategory(id);
 
@@ -200,7 +188,7 @@ export async function deleteCategoryAction(request, response) {
 
       if (!data) { response.status(200).send({ html: "", products: [] }); return; }
 
-      logger.info("deleteCategoryAction: categoryId=" + data.category.id);
+      logger.debug("deleteCategoryAction: categoryId=" + data.category.id);
       logger.isLevelEnabled('debug') && logger.debug("deleteCategoryAction: data=" + JSON.stringify(data));
       response.locals.products = data.products;
       response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
@@ -216,12 +204,13 @@ export async function deleteCategoryAction(request, response) {
 
 export async function toggleCategoryStarAction(request, response) {
   try {
+    logger.info("toggleCategoryStarAction");
     protect(response, request.params.tok, () => {
-      logger.info("toggleCategoryStarAction" + request.url.substr(0,32));
+      logger.debug("toggleCategoryStarAction" + request.url.substr(0,32));
       const categoryId = parseInt(request.params.id);
       let data = toggleCategoryStar(categoryId);
 
-      logger.info("toggleCategoryStarAction: id=" + data.category.id);
+      logger.debug("toggleCategoryStarAction: id=" + data.category.id);
       logger.isLevelEnabled('debug') && logger.debug("toggleCategoryStarAction: data=" + JSON.stringify(data));
       response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
         if (error) { logger.error(error); logger.debug(error.stack); return }
@@ -235,8 +224,9 @@ export async function toggleCategoryStarAction(request, response) {
 
 export async function renameProductAction(request, response) {
   try {
+    logger.info("renameAction");
     protect(response, request.params.tok, () => {
-      logger.info("renameAction: request.params=" + request.url.substr(0,32));
+      logger.debug("renameAction: request.params=" + request.url.substr(0,32));
       const id = (request.params.id) && parseInt(request.params.id, 10);
       let name = decodeURI(request.params.nam);
       name = (!name || name.trim() === "") ? "Produkt" : name.trim();
@@ -251,13 +241,14 @@ export async function renameProductAction(request, response) {
 
 export async function createProductAction(request, response) {
   try {
+    logger.info("createProductAction");
     protect(response, request.params.tok, () => {
-      logger.info("createProductAction: request.params=" + request.url.substr(0,32));
+      logger.debug("createProductAction: request.params=" + request.url.substr(0,32));
       const itemName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
       const categoryId = (request.params.catid) && parseInt(request.params.catid, 10);
       const newItemId = createProduct(categoryId, itemName);
 
-      logger.info("createProductAction: id=" + newItemId);
+      logger.debug("createProductAction: id=" + newItemId);
       const item = getProduct(newItemId);
       response.render(import.meta.dirname + '/views/product_head', { item: item }, function (error, html) {
         response.json({ html });
@@ -269,8 +260,9 @@ export async function createProductAction(request, response) {
 
 export async function deleteProductAction(request, response) {
   try {
+    logger.info("deleteProductAction");
     protect(response, request.params.tok, () => {
-      logger.info("deleteProductAction: request.params=" + request.url.substr(0,32));
+      logger.debug("deleteProductAction: request.params=" + request.url.substr(0,32));
       const id = (request.params.id) && parseInt(request.params.id, 10);
       deleteProduct(id);
       response.status(200).json({ message: "Änderungen gesichert." });

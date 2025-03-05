@@ -36,8 +36,3 @@ export const logger = winston.createLogger({
 
 logger.info("Logging level: " + logger.level + ", logging to console: " + !consoleTransport.silent + ", logging to file: " + !fileTransport.silent);
 
-export function errorLogger(error) {
-  logger.error(error.message + " " + JSON.stringify(error));
-  logger.debug(error.stack);
-}
-

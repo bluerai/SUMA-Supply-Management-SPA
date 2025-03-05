@@ -86,8 +86,8 @@ docker run -d \
     -p <Your Http-Port>:80 \
     -p <Your Https-Port>:443 \
     -e TZ=<Your Timezone> \
-    -e KEYFILE=<Your Key file> \
-    -e CERTFILE=<Your Cert file> \
+    -e SUMA_KEYFILE=<Your Key file> \
+    -e SUMA_CERTFILE=<Your Cert file> \
     --mount type=bind,source=<Your SUMA>,target=/home/node/data  \
     --restart=on-failure:3 \
     raiblue72/suma:<Your Tag>
@@ -95,5 +95,5 @@ docker run -d \
 
  Wenn der Http-Port oder Https-Port von den Standardwerten (80 bzw. 443) abweicht, kann hier jeweils der zutreffende PORT angegeben werden. 
 
- Die optionalen Einträge KEYFILE und CERTFILE enthalten nur die Dateinamen, also z.B. "key.pem" und "cert.pem". Die Dateien liegen in dem Verzeichnis <YOUR_SUMA>/config 
+ Die optionalen Einträge SUMA_KEYFILE und SUMA_CERTFILE enthalten nur die Dateinamen, also z.B. "key.pem" und "cert.pem". Die Dateien liegen in dem Verzeichnis <YOUR_SUMA>/config 
 

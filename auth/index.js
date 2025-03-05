@@ -24,48 +24,54 @@ export const JWT_KEY = JWT.key;
 export function verifyAction(req, res) {
   logger.info('/verify');
   const token = req.headers['authorization'];
-  if (!JWT_KEY) {
-    logger.warn("Access granted without authentication!");
-    return res.status(200).json({ message: 'access granted without authentication', user: {} });
-  }
-  if (!token) {
+  if (!token || token == "null") {
     return res.render(import.meta.dirname + '/views/login', function (error, html) {
-
       if (error) { logger.error(error); logger.debug(error.stack); return }
-
       logger.isLevelEnabled('debug') && logger.debug("verify: No token - html.length=" + html.length);
-
       res.status(401).json({ error: 'No token', html: html });
     })
   }
+
+  
   jwt.verify(token, JWT_KEY, (err, decoded) => {
-    if (err) {
+    if (err || !Object.keys(JWT.credentials).includes(decoded.username)) {
+
       res.render(import.meta.dirname + '/views/login', function (error, html) {
         if (error) { logger.error(error); logger.debug(error.stack); return }
-
         logger.isLevelEnabled('debug') && logger.debug("verify: Invalid token - html.length=" + html.length);
-
         res.status(401).json({ error: 'Invalid token', html: html });
       })
 
     } else {
-      logger.debug("verify: Valid token - loginuser=" + decoded.loginname + ", issued at: " + decoded.iat + ", expire at: " + decoded.exp);
-
+      logger.debug("verify: Valid token - loginuser=" + decoded.username + ", issued at: " + decoded.iat + ", expire at: " + decoded.exp);
       res.status(200).json({ message: 'Token is valid', user: decoded });
     }
   })
 };
 
-
 export function loginAction(req, res) {
-  const { loginname, key } = req.body;
-  logger.info("/login: " + loginname);
+  const { username, password } = req.body;
 
-  if (JWT.credentials[loginname] == key) {
-    const token = jwt.sign({ loginname }, JWT_KEY, { expiresIn: JWT.duration });
+  if ((username) && (username.length >= 3) && (password) && (password.length >= 12)
+    && JWT.credentials[username] == password) {
+    const token = jwt.sign({ username }, JWT_KEY, { expiresIn: JWT.duration });
     res.status(200).json({ token: token });
 
   } else {
     res.status(401).json({ error: 'Invalid credentials' });
   }
 };
+
+export function protect(res, token, funct) {
+  jwt.verify(token, JWT_KEY, (err, decoded) => {
+
+    if (err || !Object.keys(JWT.credentials).includes(decoded.username)) {
+      logger.debug("protect: No Authentication!");
+      res.status(401).json({ error: 'No Authentication' });
+    } else {
+      logger.debug("protect: Authentication ok!");
+      funct();
+    }
+
+  })
+}

@@ -8,7 +8,7 @@ async function validate() {
     const data = await response.json();
     switch (response.status) {
       case 200: {
-        console.log("verifyUser: Valid token - user=" + data.user.loginname + ", expire in: " + data.user.exp);
+        console.log("verifyUser: Valid token - user=" + data.user.username + ", expire in: " + data.user.exp);
         break;
       }
       case 401: {
@@ -73,14 +73,12 @@ function responseFail_Handler(functionName, response, msg) {
   msg = msg || (functionName + ": " + response.statusText + " (#" + response.status + ")");
   console.log(msg);
   displayMessage(msg, 8);
-  setTimeout(() => { document.getElementById('message').innerHTML = "" }, 7000);
 }
 
 function error_Handler(functionName, error, msg) {
   msg = msg || (functionName + ": " + 'Error fetching data: ' + error);
   console.error(msg);
-  document.getElementById('message').innerHTML = "<p>" + msg + "</p>";
-  setTimeout(() => { document.getElementById('message').innerHTML = "" }, 7000);
+  displayMessage(msg, 8);
 }
 
 //read database

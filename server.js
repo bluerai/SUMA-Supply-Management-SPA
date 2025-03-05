@@ -48,8 +48,8 @@ if (logger.isLevelEnabled('debug')) {
 }
 
 if (HTTPS_PORT >= 0) {
-  const keyfile = join(process.env.SUMA_CONFIG, process.env.KEYFILE);
-  const certfile = join(process.env.SUMA_CONFIG, process.env.CERTFILE);
+  const keyfile = join(process.env.SUMA_CONFIG, process.env.SUMA_KEYFILE);
+  const certfile = join(process.env.SUMA_CONFIG, process.env.SUMA_CERTFILE);
   if (fs.existsSync(keyfile) && fs.existsSync(certfile)) {
 
     //key + Cert vorhanden, also https, 
