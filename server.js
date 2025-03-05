@@ -1,12 +1,15 @@
+'use strict'
+
 import express from 'express';
 import https from 'https';
 import fs from 'fs-extra';
-//import morgan from 'morgan';
+import morgan from 'morgan';
+import jwt from 'jsonwebtoken';
 import { join } from 'path';
 
 import { appRouter } from './app/index.js';
 import { apiRouter } from './api/index.js';
-import { verifyAction, loginAction } from './auth/index.js';
+import { verifyAction, loginAction, JWT } from './auth/index.js';
 import { logger } from './modules/log.js';
 import { evaluateCronJob, databaseBackupCronJob } from './modules/cron.js';
 
@@ -23,14 +26,14 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.json());
 
-//app.use(morgan('common', { immediate: true }));
+app.use(/\/verify|\/login|\/app\/get|\/app\/upd/, morgan('combined', { immediate: true }));
 
 app.get('/verify', verifyAction);
 app.post('/login', loginAction);
 
-app.use('/app', appRouter);
-
 app.use('/api', apiRouter);
+
+app.use('/app', appRouter);
 
 app.use('/', (request, response) => response.redirect('/app'));
 

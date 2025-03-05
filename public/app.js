@@ -1,3 +1,4 @@
+'use strict'
 
 let TOKEN = localStorage.getItem('token');
 

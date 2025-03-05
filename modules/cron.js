@@ -1,3 +1,4 @@
+'use strict'
 
 import { CronJob } from 'cron';
 import { push } from '../modules/push_message.js';

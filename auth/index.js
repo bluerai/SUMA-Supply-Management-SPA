@@ -1,9 +1,11 @@
+'use strict'
+
 import jwt from 'jsonwebtoken';
 import fs from 'fs-extra';
 import { join } from 'path';
 import { logger } from '../modules/log.js';
 
-let JWT = {};
+export let JWT = {};
 const authfile = join(process.env.SUMA_CONFIG, "jwt.json");
 try {
   if (fs.existsSync(authfile)) {
@@ -22,28 +24,26 @@ export const JWT_KEY = JWT.key;
 //==== Actions ==================================================
 
 export function verifyAction(req, res) {
-  logger.info('/verify');
+
   const token = req.headers['authorization'];
   if (!token || token == "null") {
     return res.render(import.meta.dirname + '/views/login', function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
-      logger.isLevelEnabled('debug') && logger.debug("verify: No token - html.length=" + html.length);
+      logger.info("/verify: No token");
       res.status(401).json({ error: 'No token', html: html });
     })
   }
 
-  
   jwt.verify(token, JWT_KEY, (err, decoded) => {
     if (err || !Object.keys(JWT.credentials).includes(decoded.username)) {
-
       res.render(import.meta.dirname + '/views/login', function (error, html) {
         if (error) { logger.error(error); logger.debug(error.stack); return }
-        logger.isLevelEnabled('debug') && logger.debug("verify: Invalid token - html.length=" + html.length);
+        logger.info("/verify: Invalid token");
         res.status(401).json({ error: 'Invalid token', html: html });
       })
 
     } else {
-      logger.debug("verify: Valid token - loginuser=" + decoded.username + ", issued at: " + decoded.iat + ", expire at: " + decoded.exp);
+      logger.info("/verify: " + decoded.username + ", issued at: " + decoded.iat + ", expire at: " + decoded.exp);
       res.status(200).json({ message: 'Token is valid', user: decoded });
     }
   })
@@ -64,14 +64,12 @@ export function loginAction(req, res) {
 
 export function protect(res, token, funct) {
   jwt.verify(token, JWT_KEY, (err, decoded) => {
-
     if (err || !Object.keys(JWT.credentials).includes(decoded.username)) {
-      logger.debug("protect: No Authentication!");
-      res.status(401).json({ error: 'No Authentication' });
+      logger.debug("protect: No Authorisation!");
+      res.status(401).json({ error: 'No Authorisation' });
     } else {
-      logger.debug("protect: Authentication ok!");
+      logger.debug("protect: Authorisation ok!");
       funct();
     }
-
   })
 }

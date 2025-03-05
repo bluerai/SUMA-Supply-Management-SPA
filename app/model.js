@@ -1,3 +1,4 @@
+'use strict'
 
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'fs-extra';
@@ -231,7 +232,7 @@ export function evalProduct(item) {
   for (const entry of item.entry_list) {
     entry.state = Math.round((new Date(entry.year, entry.month - 1, 1).getTime() - new Date().getTime()) / oneDay);
     minDays = Math.min(minDays, entry.state);
-    if (entry.state = 30) {
+    if (entry.state === 30) {
       push.warn('Das Mindesthaltbarkeitsdatum für ' + item.sum + ' Einheit(en) des Produkts "' + item.name +
         '" wird in ' + entry.state + ' Tagen überschritten!', "SUMA evaluate");
     }

@@ -33,7 +33,7 @@ openssl req -nodes -new -x509 -keyout key.pem -out cert.pem
 Es werden in <YOUR_SUMA>/config die Dateien key.pem und cert.pem erstellt.
 
 
-## 3.2 (optional) Authentifizierung
+## 3.2 (optional) Authorisation
 Eine tokenbasierte Anmeldung mit Hilfe von JWT ist implementiert. Die Angeban in der Konfigurationsdatei jwt.json werden zum Erstellen eines Token benötigt. Der Token wird vom Browser zum Server gesendet und identifiziert den Klient.
 
 Erstelle in <YOUR_SUMA>/config eine Datei jwt.json mit einem JSON-Objekt nach folgenden Muster:

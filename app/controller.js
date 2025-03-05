@@ -1,3 +1,4 @@
+'use strict'
 
 import { protect } from '../auth/index.js';
 import { logger } from '../modules/log.js';

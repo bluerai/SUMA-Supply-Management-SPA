@@ -1,3 +1,5 @@
+'use strict'
+
 import fs from 'fs-extra';
 import { logger } from './log.js'
 import { join } from 'path'; 
