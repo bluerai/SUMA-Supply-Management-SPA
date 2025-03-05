@@ -14,6 +14,7 @@ async function validate() {
       }
       case 401: {
         console.log(data.error);
+        document.getElementById('prodlist').innerHTML = "";
         document.getElementById('login').innerHTML = data.html;
         document.querySelectorAll('.right').forEach(el => el.style.display = 'none');
         break;
@@ -378,6 +379,11 @@ function hidePanels() {
   document.getElementById("edit_product_name").value = "";
 
   document.getElementById('transparent').style.display = 'none';
+}
+
+function pageRefresh() {
+  localStorage.removeItem('token');
+  location.reload(true);
 }
 
 //===================================================================
