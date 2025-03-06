@@ -12,19 +12,19 @@ import {
 export const appRouter = Router();
 
 appRouter.get('/', startAction);
-appRouter.get('/get/:id/:tok', getCategoryAction);
-appRouter.get('/list/:tok', getCategoryListAction);
-appRouter.get('/heads/:id/:tok', getAllHeadsAction);
-appRouter.get('/details/:id/:tok', getDetailsAction);
+appRouter.get('/get/:id?', getCategoryAction);
+appRouter.get('/list', getCategoryListAction);
+appRouter.get('/heads/:id', getAllHeadsAction);
+appRouter.get('/details/:id', getDetailsAction);
 
-appRouter.get('/cat/star/:id/:tok', toggleCategoryStarAction);
-appRouter.get('/cat/del/:id/:tok', deleteCategoryAction);
-appRouter.get('/cat/:nam/:id/:tok', renameCategoryAction);
-appRouter.get('/cat/:nam/:tok', createCategoryAction);
+appRouter.get('/cat/star/:id', toggleCategoryStarAction);
+appRouter.get('/cat/del/:id', deleteCategoryAction);
+appRouter.get('/cat/:nam/:id', renameCategoryAction);
+appRouter.get('/cat/:nam', createCategoryAction);
 
-appRouter.get('/pro/del/:id/:tok', deleteProductAction);
-appRouter.get('/pro/:catid/:nam/:id/:tok', renameProductAction);
-appRouter.get('/pro/:catid/:nam/:tok', createProductAction);
+appRouter.get('/pro/del/:id', deleteProductAction);
+appRouter.get('/pro/:catid/:nam/:id', renameProductAction);
+appRouter.get('/pro/:catid/:nam', createProductAction);
 
-appRouter.post('/upd/:tok', updateAction);
+appRouter.post('/upd', updateAction);
 

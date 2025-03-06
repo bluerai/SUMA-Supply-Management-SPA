@@ -5,7 +5,7 @@ let TOKEN = localStorage.getItem('token');
 //validate
 async function validate() {
   try {
-    const response = await fetch("/verify", { headers: { 'Authorization': TOKEN } });
+    const response = await fetch("/verify", { headers: { 'Authorization': `Bearer ${TOKEN}` } });
     const data = await response.json();
     switch (response.status) {
       case 200: {
@@ -85,13 +85,12 @@ function error_Handler(functionName, error, msg) {
 
 //read database
 async function getCategory(id) {
-  const response = await fetch("/app/get/" + parseInt(id) + "/" + TOKEN);
+  const response = await fetch("/app/get/" + (parseInt(id) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
     document.getElementById('category_id').value = data.categoryId;
     document.getElementById('category_head').outerHTML = data.html;
-    //updateProductList(data.products);
-    updateCategoryProducts(id);
+    updateCategoryProducts(data.categoryId);
     updateCategoryList();
     displayMessage(data.appInfo.version + ", " + location.protocol + "//" + location.host, 16)
   }
@@ -103,7 +102,7 @@ async function getCategory(id) {
 }
 
 async function updateCategoryList() {
-  const response = await fetch("/app/list" + "/" + TOKEN);
+  const response = await fetch("/app/list" + "/", { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
     document.getElementById('category_list').outerHTML = data.html;
@@ -115,7 +114,7 @@ async function updateCategoryList() {
 
 
 async function updateCategoryProducts(categoryId) {
-  const response = await fetch("/app/heads/" + categoryId + "/" + TOKEN);
+  const response = await fetch("/app/heads/" + categoryId, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
     document.getElementById("prodlist").outerHTML = data.html;
@@ -132,7 +131,7 @@ async function toggleDetails(id) {
   if (details) {
     prod.removeChild(details);
   } else {
-    const response = await fetch("/app/details/" + id + "/" + TOKEN);
+    const response = await fetch("/app/details/" + id, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
     if (response.status === 200) {
       const data = await response.json();
       prod.insertAdjacentHTML("beforeend", data.html);
@@ -145,10 +144,10 @@ async function toggleDetails(id) {
 
 function toggleEdit(id) {
   const edit = document.getElementById('edit' + id).style;
-  if (edit.display === "none") {
-    edit.display = "block";
-  } else {
+  if (edit.display === "block") {
     edit.display = "none";
+  } else {
+    edit.display = "block";
   }
 }
 
@@ -159,7 +158,10 @@ function toggleEdit(id) {
 async function renameCategory() {
   const catName = document.getElementById("edit_category_name").value;
   if (catName && catName.trim().length != 0) {
-    const response = await fetch("/app/cat/" + encodeURIComponent(catName.trim()) + "/" + document.getElementById('category_id').value + "/" + TOKEN);
+    const response = await fetch(
+      "/app/cat/" + encodeURIComponent(catName.trim()) + "/" + document.getElementById('category_id').value,
+      { headers: { 'Authorization': `Bearer ${TOKEN}` } }
+    );
 
     if (response.status === 200) {
       const data = await response.json();
@@ -178,7 +180,7 @@ async function renameCategory() {
 async function createCategory() {
   const catName = document.getElementById("new_category_name").value;
   if (catName && catName.trim().length != 0) {
-    const response = await fetch("/app/cat/" + encodeURIComponent(catName.trim()) + "/" + TOKEN);
+    const response = await fetch("/app/cat/" + encodeURIComponent(catName.trim()), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
 
     if (response.status === 200) {
       const data = await response.json();
@@ -199,13 +201,12 @@ async function createCategory() {
 async function deleteCategory() {
   if (!document.getElementsByClassName('prod')[0]) {
     const id = document.getElementById('category_id').value;
-    const response = await fetch("/app/cat/del/" + id + "/" + TOKEN);
+    const response = await fetch("/app/cat/del/" + id + "/", { headers: { 'Authorization': `Bearer ${TOKEN}` } });
 
     if (response.status === 200) {
       const data = await response.json();
       document.getElementById('category_head').outerHTML = data.html;
 
-      //updateProductList(data.products);
       updateCategoryProducts(id);
       updateCategoryList();
       hidePanels();
@@ -221,7 +222,7 @@ async function deleteCategory() {
 }
 
 async function toggleCategoryPrio() {
-  const response = await fetch("/app/cat/star/" + document.getElementById('category_id').value + "/" + TOKEN);
+  const response = await fetch("/app/cat/star/" + document.getElementById('category_id').value, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
 
   if (response.status === 200) {
     const data = await response.json();
@@ -240,7 +241,9 @@ async function renameProduct() {
   const id = document.getElementById('product_id').value;
   const prodName = document.getElementById("edit_product_name").value;
   if (prodName && prodName.trim().length != 0) {
-    const response = await fetch("/app/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + id + "/" + TOKEN);
+    const response = await fetch(
+      "/app/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + id,
+      { headers: { 'Authorization': `Bearer ${TOKEN}` } });
 
     if (response.status === 200) {
       const data = await response.json();
@@ -257,7 +260,10 @@ async function renameProduct() {
 async function createProduct() {
   const prodName = document.getElementById("new_product_name").value;
   if (prodName && prodName.trim().length !== 0) {
-    const response = await fetch("/app/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + TOKEN);
+    const response = await fetch(
+      "/app/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()),
+      { headers: { 'Authorization': `Bearer ${TOKEN}` } }
+    );
 
     if (response.status === 200) {
       const data = await response.json();
@@ -277,7 +283,7 @@ async function deleteProduct() {
   const id = document.getElementById('product_id').value;
   const prodName = document.getElementById("product_name" + id).innerHTML;
   if (confirm('"' + prodName + '" löschen?')) {
-    const response = await fetch("/app/pro/del/" + id + "/" + TOKEN);
+    const response = await fetch("/app/pro/del/" + id, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
 
     if (response.status === 200) {
       const prodlist = document.getElementById("prodlist");
@@ -312,17 +318,17 @@ async function updateEntry(id, action) {
   }
   if (action === "sub") count *= -1;
 
-  const response = await fetch("/app/upd/" + TOKEN, {
+  const response = await fetch("/app/upd/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
     body: JSON.stringify({ "id": id, "year": year, "month": month, "count": count })
   });
 
   if (response.status == 200) {
     const data = await response.json();
     document.getElementById('sum' + id).innerHTML = data.product.sum;
-    document.getElementById('state' + id).style.color = data.product.state;
     document.getElementById('details' + id).outerHTML = data.html;
+    if (document.getElementById('state' + id)) document.getElementById('state' + id).style.color = data.product.state;
   } else {
     responseFail_Handler("updateEntry", response);
     return;

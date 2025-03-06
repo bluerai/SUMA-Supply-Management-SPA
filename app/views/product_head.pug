@@ -7,10 +7,11 @@ div.prod(id="prod" + item.id )
           i.fa.fa-caret-down(aria-hidden="true")
           
     h2(style="text-align: left") 
-      i.fa-solid.fa-circle(style="font-size:14px; padding-left: 5px; padding-right: 5px; color: " + item.state)
+      i.fa-solid.fa-circle(id="state" + item.id style="font-size:14px; padding-left: 5px; padding-right: 5px; color: " + item.state)
       span(id="product_name" + item.id title="Produkt bearbeiten"  onclick="editProductPanel(" + item.id + ",'" + item.name + "')") #{item.name}
 
       span(style="font-weight: normal;float: right; padding-right: 5px;font-size: 16px") Bestand: 
         span(id="sum" + item.id) #{item.sum || 0}
+
 
 //- *** (on request) inserted here: product_details.pug

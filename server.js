@@ -9,7 +9,7 @@ import { join } from 'path';
 
 import { appRouter } from './app/index.js';
 import { apiRouter } from './api/index.js';
-import { verifyAction, loginAction, JWT } from './auth/index.js';
+import { verifyAction, loginAction, protect } from './auth/index.js';
 import { logger } from './modules/log.js';
 import { evaluateCronJob, databaseBackupCronJob } from './modules/cron.js';
 
@@ -26,15 +26,14 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.json());
 
-app.use(/\/verify|\/login|\/app\/get|\/app\/upd/, morgan('combined', { immediate: true }));
+//app.use(/\/verify|\/login|\/app\/get|\/app\/upd/, morgan('combined', { immediate: true }));
+app.use(morgan('combined', { immediate: true }));
+
 
 app.get('/verify', verifyAction);
 app.post('/login', loginAction);
-
 app.use('/api', apiRouter);
-
-app.use('/app', appRouter);
-
+app.use('/app', protect, appRouter);
 app.use('/', (request, response) => response.redirect('/app'));
 
 //cron jobs starten
