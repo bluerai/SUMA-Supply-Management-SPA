@@ -12,7 +12,7 @@ import {
 
 const appInfo = {
   "version": packagejson.name.toUpperCase() + ", Version " + packagejson.version,
-  "author": packagejson.license + ", 2025 - " + packagejson.author
+  "author": packagejson.license + " - " + packagejson.author
 };
 
 logger.info(appInfo.version + " - " + appInfo.author);

@@ -248,7 +248,7 @@ input[type="number"] {
 }
 
 #flex_left {
-  width: 60px;
+  width: 10px;
   margin-left: auto;
   display: flex;
   justify-content: right;
@@ -275,7 +275,6 @@ input[type="number"] {
 #logo {
     cursor: pointer;
 }
-
 /*****************************************************************************/
 /********************** Bildschirm: Breite unter 720 px **********************/
 /*****************************************************************************/
@@ -289,4 +288,8 @@ input[type="number"] {
     width: 300px;
     left: calc(50% - 150px);
   }
+
+    #flex_left {
+      width: 12px;
+    }
 }

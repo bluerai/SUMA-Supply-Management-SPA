@@ -26,8 +26,8 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.json());
 
-//app.use(/\/verify|\/login|\/app\/get|\/app\/upd/, morgan('combined', { immediate: true }));
-app.use(morgan('combined', { immediate: true }));
+app.use(/\/verify|\/login|\/app\/get|\/app\/upd/, morgan('combined', { immediate: true }));
+//app.use(morgan('combined', { immediate: true }));
 
 
 app.get('/verify', verifyAction);
