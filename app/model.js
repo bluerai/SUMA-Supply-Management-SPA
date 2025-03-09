@@ -230,7 +230,7 @@ export function updateEntry(data) {
 export function evalProduct(item) {
   let minDays = 150;
   for (const entry of item.entry_list) {
-    entry.state = Math.round((new Date(entry.year, entry.month - 1, 1).getTime() - new Date().getTime()) / oneDay);
+    entry.state = Math.round((new Date(entry.year, entry.month - 1, 1).getTime() - new Date().getTime()) / oneDay); //=Restlaufzeit
     minDays = Math.min(minDays, entry.state);
     if (entry.state === 30) {
       push.warn('Das Mindesthaltbarkeitsdatum für ' + item.sum + ' Einheit(en) des Produkts "' + item.name +
@@ -238,11 +238,11 @@ export function evalProduct(item) {
     }
   };
   item.state = wertZuFarbe(minDays / 1.5);
-  logger.debug("evalProduct: item.id=" + item.id + ", item.state=" + item.state);
+  logger.silly("evalProduct: item.id=" + item.id + ", item.state=" + item.state);
 
   const updateStmt = database.prepare(`UPDATE product SET state = ? WHERE id = ?`);
   const { changes } = updateStmt.run(item.state, item.id);
-  logger.debug("evalProduct: item state saved - rows changed=" + changes);
+  logger.silly("evalProduct: item state saved - rows changed=" + changes);
 
   return item;
 }

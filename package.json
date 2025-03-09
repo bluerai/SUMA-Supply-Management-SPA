@@ -4,8 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env.dev server.js",
-    "health": "node --env-file=.env.dev healthcheck.js"
+    "start": "node --env-file=.env.dev server.js"
   },
   "author": "bluerai",
   "e-mail": "raiblue@gmx.de",

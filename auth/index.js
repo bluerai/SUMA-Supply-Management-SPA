@@ -2,6 +2,7 @@
 
 import jwt from 'jsonwebtoken';
 import fs from 'fs-extra';
+import crypto from 'crypto'
 import { join } from 'path';
 import { logger } from '../modules/log.js';
 
@@ -87,32 +88,17 @@ export function protect(request, response, next) {
     }
   })
 }
-//********************** */
-/* 
 
-export const authMiddleware = (req, res, next) => {
+function generateSecureRandomString(length = 32) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  const randomValues = new Uint32Array(length);
+  crypto.getRandomValues(randomValues);
 
-  const token = req.headers.authorization?.split(' ')[1]; // Token aus dem Authorization-Header
+  let result = '';
+  randomValues.forEach(value => {
+    result += characters.charAt(value % charactersLength);
+  });
 
-  console.log(req.url, token);
-  if (request.path === '/') {
-    return next();
-  }
-
-  if (!token) {
-    console.log("No Token !!!");
-    //return res.status(401).json({ message: 'Kein Token angegeben' });
-    return res.redirect('/login'); //
-  }
-
-  const decoded = verifyToken(token);
-  if (!decoded) {
-    console.log("Ungültiges oder abgelaufenes Token!!!");
-    //return res.status(401).json({ message: 'Ungültiges oder abgelaufenes Token' });
-    return res.redirect('/login'); //
-  }
-
-  console.log("Token is valid !!!");
-  req.userId = decoded.id;
-  next();
-}; */
+  return result;
+}

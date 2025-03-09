@@ -6,7 +6,7 @@ import { push } from '../modules/push_message.js';
 import { logger } from '../modules/log.js';
 import { getAllProducts, connectDb, unconnectDb, evalProduct } from '../app/model.js';
 
-import path from "path";
+import { join, basename } from "path";
 import fs from "fs-extra";
 
 export const apiRouter = Router();
@@ -33,7 +33,7 @@ apiRouter.get('/unconnectdb/', dbAction);
 
 export function evalAction(request, response) {
   try {
-    response.json(evaluate(false));
+    response.json(evaluate());
   }
   catch (error) {
     const msg = "SUMA: Interner Fehler in 'evalAction': " + error.message;
@@ -43,6 +43,34 @@ export function evalAction(request, response) {
     response.json({ state: false, msg: msg });
   }
 }
+
+//evaluate ca. 10 sec nach Start
+setTimeout(() => { evaluate(true) }, 10000)
+
+
+
+export function evaluate() {
+  let msg = "SUMA backup: ";
+  try {
+    connectDb();
+    let data = getAllProducts();
+    let changeCount = 0;
+    for (let item of data) {
+      if (item.sum > 0) {
+        (evalProduct(item)) && changeCount++;
+      }
+    }
+    msg += "Der Status von " + changeCount + "/" + data.length + " Produkten wurde aktualisiert. ";
+    logger.info(msg);
+    return { state: true, msg: msg };
+  } catch (err) {
+    msg += `Fehler beim Evaluieren der Produkte: ${err}`
+    logger.error(msg);
+    push.error(msg);
+    return ({ "state": false, "msg": msg });
+  }
+}
+
 
 export async function healthAction(request, response) {
   try {
@@ -90,22 +118,6 @@ export function backupAction(request, response) {
   }
 }
 
-//evaluate 10 sec nach Start
-//setTimeout(() => { evaluate(true) }, 10000)
-
-export function evaluate() {
-  connectDb();
-  let data = getAllProducts();
-  let changeCount = 0;
-  for (let item of data) {
-    (item.entry_list) && (evalProduct(item)) && changeCount++;
-  }
-  const msg = "SUMA: " + data.length + " Produkte überprüft. " +
-    ((changeCount > 1) ? (changeCount + " Produkte haben") : (((changeCount === 1) ? "Ein" : "Kein") + " Produkt hat")) +
-    " einen neuen Status erhalten.";
-  logger.info(msg);
-  return { state: true, msg: msg };
-}
 
 
 const databasefile = process.env.SUMA_DB;
@@ -115,83 +127,96 @@ const backupdir = process.env.SUMA_BACKUP;
 // Kopiere die Datei SUMA.db in ein Verzeichnis backups, wenn das Verzeichnis backups leer ist 
 // oder wenn SUMA.db neuer ist als jede Datei im Verzeichnis backups
 export function databaseBackup() {
-  // Prüfen, ob Datei SUMA_DB existiert
+  let msg = "SUMA backup: ";
   try {
     logger.info("databaseBackup");
+    // Prüfen, ob Datei SUMA_DB existiert und lesbar ist
     fs.accessSync(databasefile, fs.constants.F_OK);
-  } catch (err) {
-    const msg = `SUMA: Die Datenbank-Datei ${databasefile} wurde nicht gefunden. Abbruch.`
-    logger.error(msg);
-    return ({ "state": true, "msg": msg});
-  }
-  // Backup-Verzeichnis erstellen, falls nicht vorhanden
-  fs.ensureDirSync(backupdir);
+    // Backup-Verzeichnis erstellen, falls nicht vorhanden
+    fs.ensureDirSync(backupdir);
 
-  // Backup-Dateien auflisten
-  const backupFiles = fs.readdirSync(backupdir);
-  let shouldBackup = false;
+    // Backup-Dateien auflisten
+    const backupFiles = fs.readdirSync(backupdir);
+    let shouldBackup = false;
 
-  if (backupFiles.length === 0) {
-    shouldBackup = true;
-  } else {
-    // Neueste Backup-Datei ermitteln
-    if (backupFiles.length > 0) {
-      const latestBackupFile = backupFiles.sort().reverse()[0];
-      const latestBackupPath = path.join(backupdir, latestBackupFile);
-      const sourceStat = fs.statSync(databasefile);
-      const backupStat = fs.statSync(latestBackupPath);
+    if (backupFiles.length === 0) {
+      shouldBackup = true;
+    } else {
+      // Neueste Backup-Datei ermitteln
+      if (backupFiles.length > 0) {
+        const latestBackupFile = backupFiles.sort().reverse()[0];
+        const latestBackupPath = join(backupdir, latestBackupFile);
+        const sourceStat = fs.statSync(databasefile);
+        const backupStat = fs.statSync(latestBackupPath);
 
-      if (sourceStat.mtime > backupStat.mtime) {
-        shouldBackup = true;
+        if (sourceStat.mtime > backupStat.mtime) {
+          shouldBackup = true;
+        }
       }
     }
-  }
 
-  if (shouldBackup) {
-    const backupPath = path.join(backupdir, `${path.basename(databasefile)}_${Date.now()}`);
-    fs.copyFileSync(databasefile, backupPath);
-    cleanupBackupFiles();
-    const msg = `SUMA: Datenbank-Backup erstellt.`
+    if (shouldBackup) {
+      const backupPath = join(backupdir, `${basename(databasefile)}_${Date.now()}`);
+      fs.copyFileSync(databasefile, backupPath);
+      msg += `Datenbank-Backup erstellt.`;
+      cleanupBackupFiles();
+    } else {
+      msg += "Kein Datenbank-Backup erforderlich."
+    }
     logger.debug(msg);
-    return ({ "state": true, "msg": msg});
-  } else {
-    logger.debug("SUMA: Kein Datenbank-Backup erforderlich.");
-    return ({ "state": true, "msg": "SUMA: Kein Datenbank-Backup erforderlich." });
+    push.info(msg);
+    return ({ "state": true, "msg": msg });
+
+  } catch (err) {
+    msg += `Fehler beim Backup der Datenbank-Datei ${databasefile}: err`
+    logger.error(msg);
+    push.error(msg);
+    return ({ "state": false, "msg": msg });
   }
 }
 
 //Backup-Verzeichnis aufräumen
-//Solange es mindestens 3 Backups, werden die ältesten Backups gelöscht löschen, wenn diese älter als 7 Tage sind
-async function cleanupBackupFiles() {
-  // BackupDateien finden und nach Änderungsdatum sortieren
-  const backupFiles = fs.readdirSync(backupdir);
-  if (backupFiles.length <= 3) {
-    logger.debug("SUMA: Keine alten Backup-Dateien gelöscht.");
-    return;
-  }
-  // Anzahl der zu löschenden Dateien berechnen
-  const filesToDelete = backupFiles.length - 3;
-  let deletedCount = 0;
+//Solange es mindestens 3 Backups gibt, werden die ältesten Backups gelöscht löschen, wenn diese älter als 7 Tage sind
+function cleanupBackupFiles() {
+  let msg = "SUMA cleanup: ";
+  try {
+    // BackupDateien finden und nach Änderungsdatum sortieren
+    const backupFiles = fs.readdirSync(backupdir);
+    if (backupFiles.length <= 3) {
+      msg += "Keine alten Backup-Dateien gelöscht.";
+    } else {
+      // Anzahl der zu löschenden Dateien berechnen
+      const filesToDelete = backupFiles.length - 3;
+      let deletedCount = 0;
 
-  //Alte Backup-Dateien löschen
-  for (const file of backupFiles) {
-    if (deletedCount >= filesToDelete) break;
+      //Alte Backup-Dateien löschen
+      for (const file of backupFiles) {
+        filepath = join(backupFiles, file);
+        if (deletedCount >= filesToDelete) break;
 
-    const stats = fs.statSync(file);
-    const fileAgeInDays = (Date.now() - stats.mtimeMs) / (1000 * 60 * 60 * 24);
+        const stats = fs.statSync(filepath);
+        const fileAgeInDays = (Date.now() - stats.mtimeMs) / (1000 * 60 * 60 * 24);
 
-    if (fileAgeInDays > 7) {
-      fs.removeSync(file);
-      logger.debug(`SUMA: Alte Backup-Datei gelöscht: ${file}`);
-      deletedCount++;
+        if (fileAgeInDays > 7) {
+          fs.removeSync(filepath);
+          logger.silly(`${msg}Alte Backup-Datei gelöscht: ${filepath}`);
+          deletedCount++;
+        }
+      }
+      msg = deletedCount > 0 ?
+        `SUMA: Alte Backup-Dateien aufgeräumt! Löschungen: ${deletedCount}` :
+        "SUMA: Keine alten Backup-Dateien gelöscht.";
     }
-  }
+    logger.debug(msg);
+    push.info(msg);
+    return ({ "state": true, "msg": msg });
 
-  const msg = deletedCount > 0 ?
-    `SUMA: Alte Backup-Dateien aufgeräumt! Löschungen: ${deletedCount}` :
-    "SUMA: Keine alten Backup-Dateien gelöscht.";
-  logger.info(msg);
-  return;
+  } catch (err) {
+    msg += `Fehler beim Cleanup der Datenbank-Backups: ${err}`
+    logger.error(msg);
+    push.error(msg);
+    return ({ "state": false, "msg": msg });
+  }
 }
 
 //==== Actions end ================================================================

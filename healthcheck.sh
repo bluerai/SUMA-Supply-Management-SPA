@@ -17,8 +17,18 @@ if [ -n "${HTTP_PORT}" ] && [ "${HTTP_PORT}" -gt 0 ]; then
 fi
 
 # Prüfen, ob mindestens eine der Anfragen erfolgreich war
-if [ "$exitcode1" -eq 0 ] || [ "$exitcode2" -eq 0 ]; then
+if [ "$exitcode1" -eq 0 ] && [ "$exitcode2" -eq 0 ]; then
     exit 0  # Erfolg
 else
-    exit 1  # Fehler, wenn beide fehlschlagen
+    # Fehler, wenn ein Zugriff fehlschlägt
+    /usr/bin/curl -s \
+      --form-string token=a27uin11xt17yh7ajcdmwseaqzniqd \
+      --form-string user=gzite2i9ix6e495buees1wcus5cvbi \
+      --form-string title=Fataler\ Fehler \
+      --form-string priority=1 \
+      --form-string sound=pushover \
+      --form-string message="SUMA: Server nicht verfuegbar." \
+      https://api.pushover.net/1/messages.json
+
+    exit 1 
 fi

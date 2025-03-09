@@ -4,7 +4,6 @@ import express from 'express';
 import https from 'https';
 import fs from 'fs-extra';
 import morgan from 'morgan';
-import jwt from 'jsonwebtoken';
 import { join } from 'path';
 
 import { appRouter } from './app/index.js';
