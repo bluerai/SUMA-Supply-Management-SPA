@@ -191,7 +191,7 @@ function cleanupBackupFiles() {
 
       //Alte Backup-Dateien löschen
       for (const file of backupFiles) {
-        filepath = join(backupFiles, file);
+        filepath = join(backupdir, file);
         if (deletedCount >= filesToDelete) break;
 
         const stats = fs.statSync(filepath);
