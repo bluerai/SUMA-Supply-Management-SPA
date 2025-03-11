@@ -45,8 +45,8 @@ html(lang="en")
 
     script(src="/app.js")
 
-  body 
-
+  body
+    #swipeArea
     //- Hidden values
     input#category_id(type="hidden")
     input#product_id(type="hidden")
@@ -102,7 +102,7 @@ html(lang="en")
         p.orange(title="Neuen Namen des Produkts speichen" onclick="renameProduct()")
           i.fa-regular.fa-square-check(aria-hidden="true")
 
-    .app
+    #app
       #header
         .left 
           img(src="/icons/suma.png" id="logo" width=52 height=52 alt="Logo" onClick="pageRefresh()")          

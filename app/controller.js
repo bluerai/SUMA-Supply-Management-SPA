@@ -4,7 +4,7 @@ import { logger } from '../modules/log.js';
 import packagejson from '../package.json' with {type: 'json'}
 
 import {
-  getCategory, getProduct, allCategories,
+  getCategory, getNextCategory, getPrevCategory, getProduct, allCategories,
   createCategory, renameCategory, deleteCategory, toggleCategoryStar,
   createProduct, renameProduct, deleteProduct,
   updateEntry
@@ -29,20 +29,42 @@ export async function startAction(request, response) {
 export async function getCategoryAction(request, response) {
   try {
     logger.debug("getCategoryAction: request.url=" + request.url.substr(0, 32));
-    const categoryId = (request.params.id) && parseInt(request.params.id, 10);
-    const data = getCategory(categoryId);
-    logger.isLevelEnabled('debug') && logger.debug("getCategoryAction: data=" + JSON.stringify(data));
+    const data = getCategory((request.params.id) && parseInt(request.params.id, 10));
+    responseCategory(response, data);
+  }
+  catch (error) { errorHandler(error, 'getCategoryAction', response) }
+}
 
+export async function getNextCategoryAction(request, response) {
+  try {
+    logger.debug("getNextCategoryAction: request.url=" + request.url.substr(0, 32));
+    const data = getNextCategory((request.params.id) && parseInt(request.params.id, 10));
+    responseCategory(response, data);
+  }
+  catch (error) { errorHandler(error, 'getCategoryAction', response) }
+}
+
+export async function getPrevCategoryAction(request, response) {
+  try {
+    logger.debug("getPrevCategoryAction: request.url=" + request.url.substr(0, 32));
+    const data = getPrevCategory((request.params.id) && parseInt(request.params.id, 10));
+    responseCategory(response, data);
+  }
+  catch (error) { errorHandler(error, 'getCategoryAction', response) }
+}
+
+function responseCategory(response, data) {
+  if (data) {
+    logger.isLevelEnabled('debug') && logger.debug("getCategoryAction: data=" + JSON.stringify(data));
     response.locals.categoryId = data.category.id;
-    response.locals.products = data.products;
     response.render(import.meta.dirname + '/views/category_head', data.category, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.isLevelEnabled('debug') && logger.debug("Category_list: html.length=" + html.length);
-      response.status(200).json({ categoryId: response.locals.categoryId, products: response.locals.products, html, appInfo });
+      response.status(200).json({ categoryId: response.locals.categoryId, html, appInfo });
     })
-
+  } else { //  204 No Content
+    response.status(204).json({});
   }
-  catch (error) { errorHandler(error, 'getCategoryAction', response) }
 }
 
 export async function getCategoryListAction(request, response) {
@@ -113,7 +135,7 @@ export async function updateAction(request, response) {
           response.json({ product: response.locals.item, html: html, });
         }
       })
-    } else {
+    } else { // 400 Bad Request
       response.status(400).json({ message: "Unzulässige Eingabe" });
     }
   }

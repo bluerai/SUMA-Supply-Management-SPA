@@ -111,6 +111,20 @@ export function getCategory(categoryId) {
   return { "category": category, "products": products };
 };
 
+export function getNextCategory(categoryId) {
+  const categories = allCategories();
+  const num = categories.findIndex((category) => category.id === categoryId) + 1;
+  if (num >= categories.length) return null;
+  return getCategory(categories[num].id);
+};
+
+export function getPrevCategory(categoryId) {
+  const categories = allCategories();
+  const num = categories.findIndex((category) => category.id === categoryId) - 1;
+  if (num < 0) return null;
+  return getCategory(categories[num].id);
+};
+
 function expDate(entry) {
   if (!entry || (!entry.year) || (!entry.month)) return "9999/99";
   return entry.year + "/" + entry.month;

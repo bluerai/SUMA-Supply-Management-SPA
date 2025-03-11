@@ -3,16 +3,18 @@
 import { Router } from 'express';
 
 import {
-  startAction, getAllHeadsAction, getDetailsAction, getCategoryAction, getCategoryListAction,
-  renameCategoryAction, createCategoryAction, deleteCategoryAction, toggleCategoryStarAction,
-  renameProductAction, createProductAction, deleteProductAction,
-  updateAction
+  startAction, getAllHeadsAction, getDetailsAction, getCategoryAction, getNextCategoryAction, 
+  getPrevCategoryAction, getCategoryListAction, renameCategoryAction, createCategoryAction, 
+  deleteCategoryAction, toggleCategoryStarAction, renameProductAction, createProductAction, 
+  deleteProductAction, updateAction
 } from './controller.js';
 
 export const appRouter = Router();
 
 appRouter.get('/', startAction);
 appRouter.get('/get/:id?', getCategoryAction);
+appRouter.get('/next/:id', getNextCategoryAction);
+appRouter.get('/prev/:id', getPrevCategoryAction);
 appRouter.get('/list', getCategoryListAction);
 appRouter.get('/heads/:id', getAllHeadsAction);
 appRouter.get('/details/:id', getDetailsAction);

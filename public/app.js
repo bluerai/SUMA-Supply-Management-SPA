@@ -92,9 +92,45 @@ async function getCategory(id) {
     document.getElementById('category_head').outerHTML = data.html;
     updateCategoryProducts(data.categoryId);
     updateCategoryList();
-    displayMessage(data.appInfo.version + ", " + location.protocol + "//" + location.host, 16)
+    displayMessage(data.appInfo.version + ", " + location.protocol + "//" + location.host, 8)
+  } else if (response.status === 204) {
+    // nothing to do
+  } else {
+    responseFail_Handler("getCategory", response);
+    return;
   }
-  else {
+  hidePanels();
+}
+
+async function getNextCategory() {
+  const id = document.getElementById("category_id").value;
+  const response = await fetch("/app/next/" + (parseInt(id) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  if (response.status === 200) {
+    const data = await response.json();
+    document.getElementById('category_id').value = data.categoryId;
+    document.getElementById('category_head').outerHTML = data.html;
+    updateCategoryProducts(data.categoryId);
+  } else if (response.status === 204) {
+    displayMessage("Keine weiteren Daten", 3);
+  } else {
+    responseFail_Handler("getCategory", response);
+    return;
+  }
+  hidePanels();
+}
+
+
+async function getPrevCategory() {
+  const id = document.getElementById("category_id").value;
+  const response = await fetch("/app/prev/" + (parseInt(id) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  if (response.status === 200) {
+    const data = await response.json();
+    document.getElementById('category_id').value = data.categoryId;
+    document.getElementById('category_head').outerHTML = data.html;
+    updateCategoryProducts(data.categoryId);
+  } else if (response.status === 204) {
+    displayMessage("Keine weiteren Daten", 3);
+  } else {
     responseFail_Handler("getCategory", response);
     return;
   }
@@ -335,6 +371,7 @@ async function updateEntry(id, action) {
   }
 }
 
+//===================================================================================
 // on Page
 function selectCategoryPanel() {
   document.getElementById('select_category').style.display = 'block';
@@ -392,9 +429,73 @@ function pageRefresh() {
   location.reload(true);
 }
 
+
+//===== swipe ==============================================================
+
+let startX = 0;
+let endX = 0;
+
+function handleSwipe() {
+  const diff = endX - startX;
+  if (Math.abs(diff) > 50) { // Mindest-Swipe-Distanz
+    if (diff > 0) {
+      getPrevCategory()
+    } else {
+      getNextCategory();
+    }
+  }
+}
+
+function initSwipe() {
+  let isMouseDown = false;
+
+  const swipeArea = document.getElementById("app");
+
+  // TOUCH-EVENTS (für mobile Geräte)
+  swipeArea.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+  });
+
+  swipeArea.addEventListener("touchend", (e) => {
+    endX = e.changedTouches[0].clientX;
+    handleSwipe();
+  });
+
+  // MAUS-EVENTS (klassische Maus)
+  swipeArea.addEventListener("mousedown", (e) => {
+    startX = e.clientX;
+    isMouseDown = true;
+  });
+
+  swipeArea.addEventListener("mouseup", (e) => {
+    if (!isMouseDown) return;
+    endX = e.clientX;
+    isMouseDown = false;
+    handleSwipe();
+  });
+
+  swipeArea.addEventListener("mouseleave", () => {
+    isMouseDown = false; // Falls die Maus das Element verlässt
+  });
+
+  // MAGIC MOUSE Wischgesten (wheel-Event)
+/*   swipeArea.addEventListener("wheel", (e) => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { // Prüfen, ob es eine horizontale Bewegung ist
+      if (e.deltaX > 1000) {
+        displayMessage("Nach rechts geswiped (Magic Mouse)!");
+        getPrevCategory()
+      } else if (e.deltaX < 1000) {
+        displayMessage("Nach links geswiped (Magic Mouse)!");
+        getNextCategory()
+      }
+    }
+  }); */
+
+}
 //===================================================================
 
 async function docReady() {
+  initSwipe();
   getCategory();
 }
 

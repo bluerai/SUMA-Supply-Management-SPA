@@ -27,7 +27,7 @@ h2 {
   padding-left: 5px
 }
 
-.app {
+#app {
   position: relative;
   margin: 0;
   padding: 10px;
@@ -273,8 +273,9 @@ input[type="number"] {
 }
 
 #logo {
-    cursor: pointer;
+  cursor: pointer;
 }
+
 /*****************************************************************************/
 /********************** Bildschirm: Breite unter 720 px **********************/
 /*****************************************************************************/
@@ -289,7 +290,7 @@ input[type="number"] {
     left: calc(50% - 150px);
   }
 
-    #flex_left {
-      width: 12px;
-    }
+  #flex_left {
+    width: 12px;
+  }
 }
