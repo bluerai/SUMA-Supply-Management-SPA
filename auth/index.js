@@ -81,7 +81,7 @@ export function loginAction(req, res) {
     }
 
     if (users[username].startsWith("$argon2id$")) {  //bereits gehasht
-      argon2.verify(username + ":" + users[username], password)
+      argon2.verify(users[username], username + ":" + password)
         .then(match => {
           if (match) {
             const token = jwt.sign({ username }, JWT_KEY, { expiresIn: JWT.duration });
