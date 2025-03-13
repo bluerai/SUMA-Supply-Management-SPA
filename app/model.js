@@ -3,7 +3,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'fs-extra';
 import { logger } from '../modules/log.js'
-import { push } from '../modules/push_message.js';
+import { push } from '../modules/pushover.js';
 
 const databasefile = process.env.SUMA_DB;
 let database;

@@ -479,16 +479,22 @@ function initSwipe() {
   });
 
   // MAGIC MOUSE Wischgesten (wheel-Event)
+  let wheelrunning = false;
+
 /*   swipeArea.addEventListener("wheel", (e) => {
+    if (wheelrunning) return;
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { // Prüfen, ob es eine horizontale Bewegung ist
-      if (e.deltaX > 1000) {
+      if (e.deltaX > 0) {
         displayMessage("Nach rechts geswiped (Magic Mouse)!");
         getPrevCategory()
-      } else if (e.deltaX < 1000) {
+        wheelrunning = true; 
+      } else {
         displayMessage("Nach links geswiped (Magic Mouse)!");
-        getNextCategory()
+        getNextCategory();
+        wheelrunning = true; 
       }
     }
+    setTimeout(() => (wheelrunning = false), 5)
   }); */
 
 }

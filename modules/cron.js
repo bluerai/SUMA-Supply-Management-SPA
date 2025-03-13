@@ -1,7 +1,7 @@
 'use strict'
 
 import { CronJob } from 'cron';
-import { push } from '../modules/push_message.js';
+import { push } from '../modules/pushover.js';
 import { evaluate, databaseBackup } from '../api/index.js';
 import { logger } from './log.js';
 

@@ -2,7 +2,7 @@
 
 import { Router } from 'express';
 
-import { push } from '../modules/push_message.js';
+import { push } from '../modules/pushover.js';
 import { logger } from '../modules/log.js';
 import { getAllProducts, connectDb, unconnectDb, evalProduct } from '../app/model.js';
 
@@ -10,17 +10,6 @@ import { join, basename } from "path";
 import fs from "fs-extra";
 
 export const apiRouter = Router();
-
-apiRouter.use((req, res, next) => {
-  const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-  if (isPrivateIP(clientIP)) {
-    logger.debug(`LAN access from: ${clientIP}`);
-    return next();
-  } else {
-    logger.warn(`WAN access from ip ${clientIP} blocked`);
-    return res.status(403).json({ message: "No access." });
-  }
-});
 
 apiRouter.get('/eval/', evalAction);
 apiRouter.get('/health/', healthAction);
@@ -39,7 +28,7 @@ export function evalAction(request, response) {
     const msg = "SUMA: Interner Fehler in 'evalAction': " + error.message;
     logger.error(msg);
     logger.debug(error.stack);
-    push.error(msg);
+    push.syserror(msg);
     response.json({ state: false, msg: msg });
   }
 }
@@ -62,11 +51,12 @@ export function evaluate() {
     }
     msg += "Der Status von " + changeCount + "/" + data.length + " Produkten wurde aktualisiert. ";
     logger.info(msg);
+    push.sysinfo(msg);
     return { state: true, msg: msg };
   } catch (err) {
     msg += `Fehler beim Evaluieren der Produkte: ${err}`
     logger.error(msg);
-    push.error(msg);
+    push.syserror(msg);
     return ({ "state": false, "msg": msg });
   }
 }
@@ -158,19 +148,20 @@ export function databaseBackup() {
     if (shouldBackup) {
       const backupPath = join(backupdir, `${basename(databasefile)}_${Date.now()}`);
       fs.copyFileSync(databasefile, backupPath);
-      msg += `Datenbank-Backup erstellt.`;
+      msg += `Backup der SUMA-Datenbank erzeugt.`;
+      push.info(msg);
       cleanupBackupFiles();
     } else {
       msg += "Kein Datenbank-Backup erforderlich."
+      push.sysinfo(msg);
     }
     logger.debug(msg);
-    push.info(msg);
     return ({ "state": true, "msg": msg });
 
   } catch (err) {
     msg += `Fehler beim Backup der Datenbank-Datei ${databasefile}: err`
     logger.error(msg);
-    push.error(msg);
+    push.syserror(msg);
     return ({ "state": false, "msg": msg });
   }
 }
@@ -208,13 +199,13 @@ function cleanupBackupFiles() {
         "SUMA: Keine alten Backup-Dateien gelöscht.";
     }
     logger.debug(msg);
-    push.info(msg);
+    push.sysinfo(msg);
     return ({ "state": true, "msg": msg });
 
   } catch (err) {
     msg += `Fehler beim Cleanup der Datenbank-Backups: ${err}`
     logger.error(msg);
-    push.error(msg);
+    push.syserror(msg);
     return ({ "state": false, "msg": msg });
   }
 }
