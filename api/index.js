@@ -209,27 +209,3 @@ function cleanupBackupFiles() {
     return ({ "state": false, "msg": msg });
   }
 }
-
-//==== Actions end ================================================================
-
-const isPrivateIP = (ip) => {
-  if (!ip) return false;
-
-  // IPv4 private Netzwerke
-  if (/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1]))/.test(ip)) {
-    return true;
-  }
-
-  // IPv6 private Netzwerke
-  if (/^(::1|fc00:|fd00:|fe80:)/.test(ip)) {
-    return true;
-  }
-
-  // IPv4-Mapped IPv6 (::ffff:192.168.x.x)
-  if (ip.startsWith("::ffff:")) {
-    const ipv4Part = ip.split(":").pop();
-    return isPrivateIP(ipv4Part);
-  }
-
-  return false;
-};

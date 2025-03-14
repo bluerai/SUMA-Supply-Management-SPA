@@ -4,6 +4,7 @@ import express from 'express';
 import https from 'https';
 import fs from 'fs-extra';
 import morgan from 'morgan';
+import os from 'os';
 import { join } from 'path';
 
 import { appRouter } from './app/index.js';
@@ -29,10 +30,10 @@ app.use(/\/verify|\/login|\/app\/get|\/app\/upd/, morgan('combined', { immediate
 //app.use(morgan('combined', { immediate: true }));
 
 
-app.get('/verify', verifyAction);
-app.post('/login', loginAction);
+app.get('/verify', lanOnly, verifyAction);
+app.post('/login', lanOnly, loginAction);
 app.use('/api', lanOnly, apiRouter);
-app.use('/app', protect, appRouter);
+app.use('/app', lanOnly, protect, appRouter);
 app.use('/', (request, response) => response.redirect('/app'));
 
 //cron jobs starten
@@ -71,7 +72,8 @@ if (HTTP_PORT >= 0) {
 }
 
 
-import os from 'os';
+
+//==== Helper ================================================================
 
 const getLocalIp = () => {
   const interfaces = os.networkInterfaces();
@@ -88,6 +90,7 @@ const getLocalIp = () => {
 
 function lanOnly(req, res, next) {
   const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+  logger.info("lanOnly: ClientIP=" + clientIP)
   if (isPrivateIP(clientIP)) {
     logger.debug(`LAN access from: ${clientIP}`);
     return next();
@@ -95,4 +98,26 @@ function lanOnly(req, res, next) {
     logger.warn(`WAN access from ip ${clientIP} blocked`);
     return res.status(403).json({ message: "No access." });
   }
+};
+
+export const isPrivateIP = (ip) => {
+  if (!ip) return false;
+
+  // IPv4 private Netzwerke
+  if (/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1]))/.test(ip)) {
+    return true;
+  }
+
+  // IPv6 private Netzwerke
+  if (/^(::1|fc00:|fd00:|fe80:)/.test(ip)) {
+    return true;
+  }
+
+  // IPv4-Mapped IPv6 (::ffff:192.168.x.x)
+  if (ip.startsWith("::ffff:")) {
+    const ipv4Part = ip.split(":").pop();
+    return isPrivateIP(ipv4Part);
+  }
+
+  return false;
 };

@@ -126,7 +126,7 @@ export function protect(request, response, next) {
 
   if (!token) {
     logger.debug("No Token !!!");
-    if (verifySignature) { return next(); }
+    if (verifySignature(request)) { return next(); }
     return response.status(401).json({ error: 'No Authorisation' });
   }
 
@@ -156,7 +156,7 @@ export const createSignature = (identifier, expiresIn) => {
 };
 
 // Funktion zum Überprüfen einer Signature
-export const verifySignature = (req) => {
+export function verifySignature(req) {
 
   const { expires, signature } = req.query;
   const identifier = parseInt(req.params.id, 10);
@@ -171,7 +171,6 @@ export const verifySignature = (req) => {
   logger.silly("verifySignature: Book " + identifier + " expires at: " + new Date(Math.round((expires / 1000) * 1000)).toLocaleString());
   return signature === expectedSignature && Date.now() < parseInt(expires, 10);
 };
-
 
 function generateSecureRandomString(length = 32) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
