@@ -34,9 +34,10 @@ h2 {
   margin-left: auto;
   margin-right: auto;
   max-width: 600px;
+  min-height: 100vh;
   /*für Swipe*/
-  user-select: none;
-  touch-action: pan-y;
+  /*   user-select: none;
+  touch-action: pan-y; */
   /* Verhindert vertikales Scrollen */
   cursor: grab;
 }
@@ -280,6 +281,41 @@ input[type="number"] {
   cursor: pointer;
 }
 
+.trans-left {
+  transform: translateX(-75%);
+}
+
+.trans-right {
+  transform: translateX(75%);
+}
+
+.trans-null {
+  transform: translateX(0%);
+}
+
+.swipe-left-transition {
+  transition: transform 0.5s ease-out;
+  transform: translateX(-100%);
+}
+
+.swipe-right-transition {
+  transition: transform 0.5s ease-out;
+  transform: translateX(100%);
+}
+
+.swipe-null-transition {
+  transition: transform 0.5s ease-out;
+  transform: translateX(0%);
+}
+
+/* The transition-timing-function property can have the following values: 
+
+ease - specifies a transition effect with a slow start, then fast, then end slowly (this is default) 
+linear - specifies a transition effect with the same speed from start to end
+ease-in - specifies a transition effect with a slow start 
+ease-out - specifies a transition effect with a slow end 
+ease-in-out - specifies a transition effect with a slow start and end 
+cubic-bezier(n, n, n, n) - lets you define your own values in a cubic-bezier function */
 /*****************************************************************************/
 /********************** Bildschirm: Breite unter 720 px **********************/
 /*****************************************************************************/
