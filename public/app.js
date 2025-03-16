@@ -206,12 +206,12 @@ async function toggleDetails(id) {
       if (document.getElementById('sum' + id).innerHTML == "0") {
         const edit = document.getElementById('edit' + id).style;
         edit.display = "block";
-        document.getElementById('details_end' + id).scrollIntoView();
+        document.getElementById('details' + id).scrollIntoView();
       }
     } else {
       responseFail_Handler("toggleDetails", response);
     }
-    document.getElementById('details_end' + id).scrollIntoView();
+    document.getElementById('edit' + id).scrollIntoView();
   }
 }
 
