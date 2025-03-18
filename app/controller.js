@@ -6,7 +6,7 @@ import packagejson from '../package.json' with {type: 'json'}
 import {
   getCategory, getNextCategory, getPrevCategory, getProduct, allCategories,
   createCategory, renameCategory, deleteCategory, toggleCategoryStar,
-  createProduct, renameProduct, deleteProduct,
+  createProduct, renameProduct, moveProductToCategory, deleteProduct,
   updateEntry
 } from './model.js';
 
@@ -70,7 +70,8 @@ function responseCategory(response, data) {
 export async function getCategoryListAction(request, response) {
   try {
     logger.debug("getCategoryListAction: request.url=" + request.url.substr(0, 32));
-    response.render(import.meta.dirname + '/views/category_list', { allCategories: allCategories() }, function (error, html) {
+    const func = request.params.func;
+    response.render(import.meta.dirname + '/views/category_list', { allCategories: allCategories(), func: func }, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.isLevelEnabled('debug') && ("Category_list: html.length=" + html.length);
       response.status(200).json({ category: response.locals.category, html: html });
@@ -234,6 +235,19 @@ export async function renameProductAction(request, response) {
   }
   catch (error) { errorHandler(error, 'renameAction', response) }
 }
+
+
+export async function moveProductAction(request, response) {
+  try {
+    logger.debug("moveProductAction: request.params=" + request.url.substr(0, 32));
+    const prodId = (request.params.prodid) && parseInt(request.params.prodid, 10);
+    const catId = (request.params.catid) && parseInt(request.params.catid, 10);
+
+    responseCategory(response, moveProductToCategory(prodId, catId));
+  }
+  catch (error) { errorHandler(error, 'moveProductAction', response) }
+}
+
 
 export async function createProductAction(request, response) {
   try {

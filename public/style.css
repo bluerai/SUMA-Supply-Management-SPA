@@ -180,6 +180,10 @@ input[type="number"] {
   text-align: center;
 }
 
+.panel#select_category2 {
+  z-index: 110;
+}
+
 .fa,
 .fa-solid,
 .fa-regular {
@@ -219,7 +223,8 @@ input[type="number"] {
   margin: 5px;
 }
 
-#category_list p {
+#category_list p,
+#category_list2 p {
   text-align: left;
   margin: 5px;
   padding: 10px;
@@ -274,7 +279,7 @@ input[type="number"] {
   bottom: 0px;
   left: 0px;
   width: 100%;
-  background-color: lightgrey;
+  background-color: darkgrey;
 }
 
 #logo {

@@ -26,14 +26,14 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.json());
 
-app.use(/\/verify|\/login|\/app\/get|\/app\/upd/, morgan('combined', { immediate: true }));
-//app.use(morgan('combined', { immediate: true }));
+//app.use(/\/verify|\/login|\/app\/get|\/app\/upd/, morgan('combined', { immediate: true }));
+app.use(morgan('combined', { immediate: true }));
 
 
-app.get('/verify', lanOnly, verifyAction);
-app.post('/login', lanOnly, loginAction);
-app.use('/api', lanOnly, apiRouter);
-app.use('/app', lanOnly, protect, appRouter);
+app.get('/verify', verifyAction);
+app.post('/login', loginAction);
+app.use('/api', apiRouter);
+app.use('/app', protect, appRouter);
 app.use('/', (request, response) => response.redirect('/app'));
 
 //cron jobs starten

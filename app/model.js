@@ -193,6 +193,17 @@ export function renameProduct(id, name) {
   return selectByIdStmt.get(id).timestamp;
 }
 
+export function moveProductToCategory(prodId, catId) {
+    const updateStmt = database.prepare(`UPDATE product SET category_id = ? 
+      WHERE id = ? AND EXISTS (SELECT 1 FROM category WHERE id = ?);`);
+  const { changes } = updateStmt.run(catId, prodId, catId);
+    logger.debug("moveProductToCategory: item " + prodId + " moved to category " + catId + " - rows changed=" + changes);
+    if (changes) { 
+      return getCategory(catId);
+    }
+    return null;
+}
+
 export function deleteProduct(id) {
   const deleteStmt = database.prepare(`DELETE FROM product WHERE id = ?`);
   const { changes } = deleteStmt.run(id);

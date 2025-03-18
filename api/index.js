@@ -36,10 +36,8 @@ export function evalAction(request, response) {
 //evaluate ca. 10 sec nach Start
 setTimeout(() => { evaluate(true) }, 10000)
 
-
-
 export function evaluate() {
-  let msg = "SUMA backup: ";
+  let msg = "SUMA evaluate: ";
   try {
     connectDb();
     let data = getAllProducts();
@@ -60,7 +58,6 @@ export function evaluate() {
     return ({ "state": false, "msg": msg });
   }
 }
-
 
 export async function healthAction(request, response) {
   try {
@@ -107,8 +104,6 @@ export function backupAction(request, response) {
     response.json({ state: false, msg: msg });
   }
 }
-
-
 
 const databasefile = process.env.SUMA_DB;
 const backupdir = process.env.SUMA_BACKUP;

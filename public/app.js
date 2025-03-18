@@ -91,7 +91,7 @@ async function getCategory(id) {
     document.getElementById('category_id').value = data.categoryId;
     document.getElementById('category_head').outerHTML = data.html;
     updateCategoryProducts(data.categoryId);
-    updateCategoryList();
+    updateCategoryList('category_list', 'get');
     displayMessage(data.appInfo.version + ", " + location.protocol + "//" + location.host, 4)
   } else if (response.status === 204) {
     // nothing to do
@@ -150,9 +150,7 @@ async function getPrevCategory() {
 
     document.getElementById("app").classList.remove("swipe-right-transition");
     document.getElementById("app").classList.add("trans-left");
-    setTimeout(() => {
-      document.getElementById("app").classList.add("swipe-null-transition");
-    }, 0);
+    setTimeout(() => { document.getElementById("app").classList.add("swipe-null-transition"); }, 0);
     setTimeout(() => {
       document.getElementById("app").classList.remove("trans-left");
       document.getElementById("app").classList.remove("swipe-null-transition");
@@ -169,16 +167,17 @@ async function getPrevCategory() {
   hidePanels();
 }
 
-async function updateCategoryList() {
-  const response = await fetch("/app/list" + "/", { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+async function updateCategoryList(elementName, functionName) {
+  const response = await fetch("/app/list" + "/" + functionName + "/" , { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_list').outerHTML = data.html;
+    document.getElementById(elementName).outerHTML = data.html;
   } else {
     responseFail_Handler("updateCategoryList", response);
     return;
   }
 }
+
 
 
 async function updateCategoryProducts(categoryId) {
@@ -241,7 +240,7 @@ async function renameCategory() {
       const data = await response.json();
 
       document.getElementById('category_head').outerHTML = data.html;
-      updateCategoryList();
+      updateCategoryList('category_list', 'get');
       hidePanels();
     } else {
       responseFail_Handler("renameCategory", response);
@@ -262,7 +261,7 @@ async function createCategory() {
       document.getElementById('category_id').value = data.categoryId;
       document.getElementById('category_head').outerHTML = data.html;
       document.getElementById('prodlist').innerHTML = "";
-      updateCategoryList();
+      updateCategoryList('category_list', 'get');
       hidePanels();
 
     } else {
@@ -282,7 +281,7 @@ async function deleteCategory() {
       document.getElementById('category_head').outerHTML = data.html;
 
       updateCategoryProducts(id);
-      updateCategoryList();
+      updateCategoryList('category_list', 'get');
       hidePanels();
 
     } else {
@@ -301,7 +300,7 @@ async function toggleCategoryPrio() {
   if (response.status === 200) {
     const data = await response.json();
     document.getElementById('category_head').outerHTML = data.html;
-    updateCategoryList();
+    updateCategoryList('category_list', 'get');
     hidePanels();
   } else {
     responseFail_Handler("toggleCategoryPrio", response);
@@ -329,6 +328,26 @@ async function renameProduct() {
     }
   }
   hidePanels(id);
+}
+
+async function moveToCategory(catId) {
+  const prodId = document.getElementById('product_id').value;
+
+  const response = await fetch("/app/move/" + prodId + "/" + catId, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+
+  if (response.status === 200) {
+    const data = await response.json();
+    document.getElementById('category_id').value = data.categoryId;
+    document.getElementById('category_head').outerHTML = data.html;
+    updateCategoryProducts(data.categoryId);
+    updateCategoryList('category_list', 'get');
+  } else if (response.status === 204) {
+    // nothing to do
+  } else {
+    responseFail_Handler("getCategory", response);
+    return;
+  }
+  hidePanels();
 }
 
 async function createProduct() {
@@ -411,8 +430,15 @@ async function updateEntry(id, action) {
 
 //===================================================================================
 // on Page
-function selectCategoryPanel() {
+function selectGoToCategoryPanel() {
+  document.getElementById('new_category').style.display = 'block';
   document.getElementById('select_category').style.display = 'block';
+  document.getElementById('transparent').style.display = 'block';
+}
+
+function selectMoveToCategoryPanel() {
+  updateCategoryList('category_list2', 'moveTo');
+  document.getElementById('select_category2').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
 }
 
@@ -447,6 +473,7 @@ function editProductPanel(productId, oldName) {
 
 function hidePanels() {
   document.getElementById('select_category').style.display = 'none';
+  document.getElementById('select_category2').style.display = 'none';
 
   document.getElementById('new_category').style.display = 'none';
   document.getElementById('edit_category').style.display = 'none';
@@ -516,24 +543,24 @@ function initSwipe() {
     isMouseDown = false; // Falls die Maus das Element verlässt
   });
 
-  // MAGIC MOUSE Wischgesten (wheel-Event)
   let wheelrunning = false;
 
-  /*   swipeArea.addEventListener("wheel", (e) => {
-      if (wheelrunning) return;
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { // Prüfen, ob es eine horizontale Bewegung ist
-        if (e.deltaX > 0) {
-          displayMessage("Nach rechts geswiped (Magic Mouse)!");
-          getPrevCategory()
-          wheelrunning = true; 
-        } else {
-          displayMessage("Nach links geswiped (Magic Mouse)!");
-          getNextCategory();
-          wheelrunning = true; 
-        }
+  swipeArea.addEventListener("wheel", (e) => {
+    if (wheelrunning) return;
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { // Prüfen, ob es eine horizontale Bewegung ist
+      if (e.deltaX < -0) {
+        wheelrunning = true;
+        //displayMessage("Nach rechts geswiped (Magic Mouse)!");
+        getPrevCategory()
+      } else  {
+        wheelrunning = true;
+        //displayMessage("Nach links geswiped (Magic Mouse)!");
+        getNextCategory()
       }
-      setTimeout(() => (wheelrunning = false), 5)
-    }); */
+    }
+    setTimeout(() => (wheelrunning = false), 1450)
+  });
+
 
 }
 //===================================================================
