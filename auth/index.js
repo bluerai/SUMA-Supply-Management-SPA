@@ -7,8 +7,15 @@ import crypto from 'crypto';
 import { join } from 'path';
 import { logger } from '../modules/log.js';
 
+
+const SUMA_CONFIG = process.env.SUMA_CONFIG || "../config";
+fs.ensureDirSync(SUMA_CONFIG, (error, exists) => {
+  console.log(21);
+  if (error) { errorLogger(error); process.exit(1) }
+})
+
 export let JWT = {};
-const authfile = join(process.env.SUMA_CONFIG, "jwt.json");
+const authfile = join(SUMA_CONFIG, "jwt.json");
 try {
   if (fs.existsSync(authfile)) {
     JWT = fs.readJsonSync(authfile)
@@ -20,13 +27,13 @@ try {
     logger.warn("Authorisation by jwt token: New jwt key generated!");
   }
 } catch (error) {
-  logger.error(error);
-  logger.warn("No access authorisation!");
+  logger.warn("No authorisation installed!");
 }
 
 export const JWT_KEY = JWT.key;
+export const JWT_DURATION = JWT.duration;
 
-const usersFile = join(process.env.SUMA_CONFIG, "users.json");
+const USERSFILE = join(SUMA_CONFIG, "users.json");
 
 //==== Actions ==================================================
 
@@ -34,8 +41,8 @@ export function verifyAction(req, res) {
 
   const token = req.headers.authorization?.split(' ')[1]
 
-  if (!token || token == "null") {
-    return res.render(join(import.meta.dirname, 'views', 'login'), function (error, html) {
+  if (!token || token === "null") {
+    return res.render(join(import.meta.dirname, 'views', 'login'), { first_login: (!fs.existsSync(USERSFILE)) }, function (error, html) {
       if (error) { logger.error(error); logger.debug(error.stack); return }
       logger.info("/verify: No token");
       res.status(401).json({ error: 'No token', html: html });
@@ -44,7 +51,7 @@ export function verifyAction(req, res) {
 
   jwt.verify(token, JWT_KEY, (err, decoded) => {
     if (err) {
-      res.render(join(import.meta.dirname, 'views', 'login'), function (error, html) {
+      res.render(join(import.meta.dirname, 'views', 'login'), { first_login: (!fs.existsSync(USERSFILE)) }, function (error, html) {
         if (error) { logger.error(error); logger.debug(error.stack); return }
         logger.info("/verify: Invalid token");
         res.status(401).json({ error: 'Invalid token', html: html });
@@ -68,8 +75,13 @@ export function loginAction(req, res) {
 
     let users = {};
     try {
-      if (fs.existsSync(usersFile)) {
-        users = fs.readJsonSync(usersFile);
+      if (fs.existsSync(USERSFILE)) {
+        users = fs.readJsonSync(USERSFILE);
+      } else {
+        console.log("No users file");
+        users[username] = password;
+        fs.writeJsonSync(USERSFILE, users);
+        logger.info(`User ${username}: Password saved`);
       }
     } catch (error) {
       logger.error(error);
@@ -84,7 +96,7 @@ export function loginAction(req, res) {
       argon2.verify(users[username], username + ":" + password)
         .then(match => {
           if (match) {
-            const token = jwt.sign({ username }, JWT_KEY, { expiresIn: JWT.duration });
+            const token = jwt.sign({ username }, JWT_KEY, { expiresIn: JWT_DURATION });
             res.status(200).json({ token: token });
           } else {
             res.status(401).json({ error: 'Invalid credentials' });
@@ -92,7 +104,7 @@ export function loginAction(req, res) {
         })
     } else { //erstmalige Benutzung - wird geprüft und gehasht
       if (password === users[username]) {
-        const token = jwt.sign({ username }, JWT_KEY, { expiresIn: JWT.duration });
+        const token = jwt.sign({ username }, JWT_KEY, { expiresIn: JWT_DURATION });
         savePasswordAsHash(username, password, users);
         return res.status(200).json({ token: token });
       }
@@ -108,7 +120,7 @@ function savePasswordAsHash(username, password, users) {
   argon2.hash(username + ":" + password)
     .then(hash => {
       users[username] = hash;
-      fs.writeJsonSync(usersFile, users);
+      fs.writeJsonSync(USERSFILE, users);
       logger.info(`User ${username}: Password hashed`);
       return true;
     })

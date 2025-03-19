@@ -36,6 +36,7 @@ async function validate() {
     switch (response.status) {
       case 200: {
         console.log("verifyUser: Valid token - user=" + data.user.username + ", expire in: " + data.user.exp);
+        displayMessage(': Login "' + data.user.username + '" gültig bis ' + (new Date(data.user.exp * 1000).toLocaleDateString()), 5);
         break;
       }
       case 401: {
@@ -54,13 +55,20 @@ async function validate() {
   }
 }
 
-async function login() {
+async function login(first_login) {
   const loginForm = document.getElementById('loginForm');
 
   if (loginForm) {
     const formData = new FormData(loginForm);
     const data = Object.fromEntries(formData.entries());
 
+    if (first_login) {
+      if (data.password !== data.password2) {
+        displayMessage('Passwords do not match. Try again!', 5);
+        return;
+      }
+    }
+    
     try {
       const response = await fetch("/login", {
         method: 'POST',
