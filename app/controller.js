@@ -112,7 +112,8 @@ export async function getAllHeadsAction(request, response) {
   try {
     logger.debug("getAllHeadsAction: request.url=" + request.url.substr(0, 32));
     const categoryId = (request.params.id) && parseInt(request.params.id, 10) || 0;
-    const category = getCategory(categoryId);
+    const prodsort = decodeURI(request.params.sort).trim() || 'date';
+    const category = getCategory(categoryId, prodsort);
     logger.debug("getAllHeadsAction: category=" + JSON.stringify(category));
 
     renderView(response, import.meta.dirname + '/views/all_product_heads', { products: category.products }, (html) => {

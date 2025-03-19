@@ -69,7 +69,7 @@ export const allCategories = () => {
   return selectAllCategoriesStmt.all();
 };
 
-export const getCategory = (categoryId) => {
+export const getCategory = (categoryId, prodsort) => {
   const categories = allCategories();
 
   if (categories.length === 0) {
@@ -83,16 +83,19 @@ export const getCategory = (categoryId) => {
   logger.debug(`getCategory: category=${JSON.stringify(category)}`);
 
   const selectProductsStmt = database.prepare(`SELECT id, name, sum, state, entry_list FROM product WHERE category_id = ? ORDER BY name ASC`);
+
   const products = selectProductsStmt.all(categoryId).map(product => ({
     ...product,
     entry_list: JSON.parse(product.entry_list)
   }));
 
-  products.sort((prod1, prod2) => {
-    const date1 = expDate(prod1.entry_list[0]);
-    const date2 = expDate(prod2.entry_list[0]);
-    return date1.localeCompare(date2);
-  });
+  if (!prodsort || prodsort === 'date') {
+    products.sort((prod1, prod2) => {
+      const date1 = expDate(prod1.entry_list[0]);
+      const date2 = expDate(prod2.entry_list[0]);
+      return date1.localeCompare(date2);
+    });
+  }
 
   return { category, products };
 };

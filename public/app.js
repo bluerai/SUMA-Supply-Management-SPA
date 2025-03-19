@@ -68,7 +68,7 @@ async function login(first_login) {
         return;
       }
     }
-    
+
     try {
       const response = await fetch("/login", {
         method: 'POST',
@@ -173,6 +173,18 @@ async function getPrevCategory() {
   hidePanels();
 }
 
+let PRODUCTSORT = 'date';
+
+function changeSort() {
+  if (PRODUCTSORT === 'date') {
+    PRODUCTSORT = 'name';
+  } else {
+    PRODUCTSORT = 'date';
+  }
+  updateCategoryProducts(document.getElementById('category_id').value);
+  hidePanels();
+}
+
 async function updateCategoryList(elementName, functionName) {
   const response = await fetch("/app/list" + "/" + functionName + "/", { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
@@ -184,7 +196,7 @@ async function updateCategoryList(elementName, functionName) {
 }
 
 async function updateCategoryProducts(categoryId) {
-  const response = await fetch("/app/heads/" + categoryId, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  const response = await fetch("/app/heads/" + categoryId + "/" + PRODUCTSORT, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
     document.getElementById("prodlist").outerHTML = data.html;

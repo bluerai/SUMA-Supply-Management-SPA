@@ -17,6 +17,7 @@ appRouter.get('/next/:id', getNextCategoryAction);
 appRouter.get('/prev/:id', getPrevCategoryAction);
 appRouter.get('/list/:func', getCategoryListAction);
 appRouter.get('/heads/:id', getAllHeadsAction);
+appRouter.get('/heads/:id/:sort', getAllHeadsAction);
 appRouter.get('/details/:id', getDetailsAction);
 
 appRouter.get('/cat/star/:id', toggleCategoryStarAction);
