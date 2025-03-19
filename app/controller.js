@@ -214,9 +214,10 @@ export async function deleteCategoryAction(request, response) {
     logger.debug("deleteCategoryAction: categoryId=" + data.category.id);
     logger.debug("deleteCategoryAction: data=" + JSON.stringify(data));
     response.locals.products = data.products;
+    response.locals.categoryId = data.category.id;
     renderView(response, import.meta.dirname + '/views/category_head', data.category, (html) => {
       logger.debug("Category_list: html.length=" + html.length);
-      response.status(200).json({ html: html, products: response.locals.products });
+      response.status(200).json({ html: html, categoryId: response.locals.categoryId, products: response.locals.products });
     });
   } catch (error) {
     errorHandler(error, 'deleteCategoryAction', response);

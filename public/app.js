@@ -1,7 +1,11 @@
 
 'use strict';
 
+let CATEGORY_ID;
+let PRODUCT_ID;
+let PRODUCT_SORT = 'date';
 let TOKEN = localStorage.getItem('token');
+
 
 // Helper functions ==========================================================
 const responseFail_Handler = (functionName, response, msg) => {
@@ -97,7 +101,7 @@ async function getCategory(id) {
   const response = await fetch("/app/get/" + (parseInt(id) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_id').value = data.categoryId;
+    CATEGORY_ID = data.categoryId;
     document.getElementById('category_head').outerHTML = data.html;
     updateCategoryProducts(data.categoryId);
     updateCategoryList('category_list', 'get');
@@ -113,11 +117,10 @@ async function getCategory(id) {
 async function getNextCategory() {
   document.getElementById("app").classList.add("swipe-left-transition");
 
-  const id = document.getElementById("category_id").value;
-  const response = await fetch("/app/next/" + (parseInt(id) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  const response = await fetch("/app/next/" + (parseInt(CATEGORY_ID) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_id').value = data.categoryId;
+    CATEGORY_ID = data.categoryId;
     document.getElementById('category_head').outerHTML = data.html;
     updateCategoryProducts(data.categoryId);
     document.body.scrollIntoView();
@@ -144,11 +147,10 @@ async function getNextCategory() {
 
 async function getPrevCategory() {
   document.getElementById("app").classList.add("swipe-right-transition");
-  const id = document.getElementById("category_id").value;
-  const response = await fetch("/app/prev/" + (parseInt(id) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  const response = await fetch("/app/prev/" + (parseInt(CATEGORY_ID) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_id').value = data.categoryId;
+    CATEGORY_ID = data.categoryId;
     document.getElementById('category_head').outerHTML = data.html;
     updateCategoryProducts(data.categoryId);
     document.body.scrollIntoView();
@@ -173,15 +175,13 @@ async function getPrevCategory() {
   hidePanels();
 }
 
-let PRODUCTSORT = 'date';
-
 function changeSort() {
-  if (PRODUCTSORT === 'date') {
-    PRODUCTSORT = 'name';
+  if (PRODUCT_SORT === 'date') {
+    PRODUCT_SORT = 'name';
   } else {
-    PRODUCTSORT = 'date';
+    PRODUCT_SORT = 'date';
   }
-  updateCategoryProducts(document.getElementById('category_id').value);
+  updateCategoryProducts(CATEGORY_ID);
   hidePanels();
 }
 
@@ -196,7 +196,7 @@ async function updateCategoryList(elementName, functionName) {
 }
 
 async function updateCategoryProducts(categoryId) {
-  const response = await fetch("/app/heads/" + categoryId + "/" + PRODUCTSORT, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  const response = await fetch("/app/heads/" + categoryId + "/" + PRODUCT_SORT, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
     document.getElementById("prodlist").outerHTML = data.html;
@@ -242,7 +242,7 @@ async function renameCategory() {
   const catName = document.getElementById("edit_category_name").value;
   if (catName && catName.trim().length !== 0) {
     const response = await fetch(
-      "/app/cat/" + encodeURIComponent(catName.trim()) + "/" + document.getElementById('category_id').value,
+      "/app/cat/" + encodeURIComponent(catName.trim()) + "/" + CATEGORY_ID,
       { headers: { 'Authorization': `Bearer ${TOKEN}` } }
     );
 
@@ -265,7 +265,7 @@ async function createCategory() {
 
     if (response.status === 200) {
       const data = await response.json();
-      document.getElementById('category_id').value = data.categoryId;
+      CATEGORY_ID = data.categoryId;
       document.getElementById('category_head').outerHTML = data.html;
       document.getElementById('prodlist').innerHTML = "";
       updateCategoryList('category_list', 'get');
@@ -278,13 +278,12 @@ async function createCategory() {
 
 async function deleteCategory() {
   if (!document.getElementsByClassName('prod')[0]) {
-    const id = document.getElementById('category_id').value;
-    const response = await fetch("/app/cat/del/" + id + "/", { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+    const response = await fetch("/app/cat/del/" + CATEGORY_ID + "/", { headers: { 'Authorization': `Bearer ${TOKEN}` } });
 
     if (response.status === 200) {
       const data = await response.json();
       document.getElementById('category_head').outerHTML = data.html;
-      updateCategoryProducts(id);
+      updateCategoryProducts(data.categoryId);
       updateCategoryList('category_list', 'get');
       hidePanels();
     } else {
@@ -297,7 +296,7 @@ async function deleteCategory() {
 }
 
 async function toggleCategoryPrio() {
-  const response = await fetch("/app/cat/star/" + document.getElementById('category_id').value, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  const response = await fetch("/app/cat/star/" + CATEGORY_ID, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
 
   if (response.status === 200) {
     const data = await response.json();
@@ -311,32 +310,30 @@ async function toggleCategoryPrio() {
 
 // Products
 async function renameProduct() {
-  const id = document.getElementById('product_id').value;
   const prodName = document.getElementById("edit_product_name").value;
   if (prodName && prodName.trim().length !== 0) {
     const response = await fetch(
-      "/app/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()) + "/" + id,
+      "/app/pro/" + CATEGORY_ID + "/" + encodeURIComponent(prodName.trim()) + "/" + PRODUCT_ID,
       { headers: { 'Authorization': `Bearer ${TOKEN}` } }
     );
 
     if (response.status === 200) {
       const data = await response.json();
-      document.getElementById("product_name" + id).innerHTML = data.name;
-      if (document.getElementById("timestamp" + id)) document.getElementById("timestamp" + id).innerHTML = data.timestamp;
+      document.getElementById("product_name" + PRODUCT_ID).innerHTML = data.name;
+      if (document.getElementById("timestamp" + PRODUCT_ID)) document.getElementById("timestamp" + PRODUCT_ID).innerHTML = data.timestamp;
     } else {
       responseFail_Handler("renameProduct", response);
     }
   }
-  hidePanels(id);
+  hidePanels(PRODUCT_ID);
 }
 
 async function moveToCategory(catId) {
-  const prodId = document.getElementById('product_id').value;
-  const response = await fetch("/app/move/" + prodId + "/" + catId, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  const response = await fetch("/app/move/" + PRODUCT_ID + "/" + catId, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
 
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_id').value = data.categoryId;
+    CATEGORY_ID = data.categoryId;
     document.getElementById('category_head').outerHTML = data.html;
     updateCategoryProducts(data.categoryId);
     updateCategoryList('category_list', 'get');
@@ -352,7 +349,7 @@ async function createProduct() {
   const prodName = document.getElementById("new_product_name").value;
   if (prodName && prodName.trim().length !== 0) {
     const response = await fetch(
-      "/app/pro/" + document.getElementById("category_id").value + "/" + encodeURIComponent(prodName.trim()),
+      "/app/pro/" + CATEGORY_ID + "/" + encodeURIComponent(prodName.trim()),
       { headers: { 'Authorization': `Bearer ${TOKEN}` } }
     );
 
@@ -370,20 +367,19 @@ async function createProduct() {
 }
 
 async function deleteProduct() {
-  const id = document.getElementById('product_id').value;
-  const prodName = document.getElementById("product_name" + id).innerHTML;
+  const prodName = document.getElementById("product_name" + PRODUCT_ID).innerHTML;
   if (confirm('"' + prodName + '" löschen?')) {
-    const response = await fetch("/app/pro/del/" + id, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+    const response = await fetch("/app/pro/del/" + PRODUCT_ID, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
 
     if (response.status === 200) {
       const prodlist = document.getElementById("prodlist");
-      const prod = document.getElementById('prod' + id);
+      const prod = document.getElementById('prod' + PRODUCT_ID);
       prodlist.removeChild(prod);
     } else {
       responseFail_Handler("deleteProduct", response);
     }
   }
-  hidePanels(id);
+  hidePanels(PRODUCT_ID);
 }
 
 // Entry list
@@ -448,7 +444,7 @@ function createProductPanel() {
 }
 
 function editProductPanel(productId, oldName) {
-  document.getElementById('product_id').value = productId;
+  PRODUCT_ID = productId;
   document.getElementById('edit_product_name').value = oldName;
   document.getElementById('edit_product').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
