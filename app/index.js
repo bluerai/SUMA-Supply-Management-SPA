@@ -22,6 +22,7 @@ appRouter.get('/details/:id', getDetailsAction);
 appRouter.get('/cat/star/:id', toggleCategoryStarAction);
 appRouter.get('/cat/del/:id', deleteCategoryAction);
 appRouter.get('/cat/:nam/:id', renameCategoryAction);
+appRouter.get('/cat/:nam', createCategoryAction);
 appRouter.get('/move/:prodid/:catid', moveProductAction);
 
 appRouter.get('/pro/del/:id', deleteProductAction);
