@@ -8,8 +8,9 @@
           th(align="center" bgcolor="#dddddd") Anzahl
       tbody
         - for(let entry of item.entry_list)
-          tr(title="Eintrag für 1 Artikel übernehmen" onClick="transferEntry('" + item.id + "', '" + entry.year + "', '" + entry.month + "')")
-            td #{entry.year}/#{entry.month}
+          tr(title="Eintrag für 1 Artikel übernehmen"
+            onClick=`transferEntry(${item.id}, "${entry.year}", "${entry.month}", "${entry.day}")`)
+            td= ((isNaN(entry.day)) ? "" : entry.day + ".") + entry.month + "." + entry.year
             td #{entry.count}
 
   .right(style="position: absolute; top: 0px; right: 0px")
@@ -19,40 +20,32 @@
   div(id="edit" + item.id style="display: none")
     table.tab
       tr
-        th(align="center" bgcolor="#dddddd" colspan=2)
+        th(align="center" bgcolor="#dddddd" colspan=3)
           label(for="year") Verbrauch bis ...
         th(align="center" bgcolor="#dddddd")
           label(for="count") Anzahl
       tr
         td(align="center")
           select(name="year" id="year" + item.id)
-            option(value="-") Auswahl
-            option(value="2025") 2025
-            option(value="2026") 2026
-            option(value="2027") 2027
-            option(value="2028") 2028
-            option(value="2029") 2029
-            option(value="2030") 2030
+            option(value="-") Jahr
+            - const year = new Date().getFullYear(); for (var x = year; x <= year + 5; x++)
+              option(value=x) #{x}
         td(align="center")
           select(name="month" id="month" + item.id)
-            option(value="-") Auswahl
-            option(value="01") 01
-            option(value="02") 02
-            option(value="03") 03
-            option(value="04") 04
-            option(value="05") 05
-            option(value="06") 06
-            option(value="07") 07
-            option(value="08") 08
-            option(value="09") 09
-            option(value="10") 10
-            option(value="11") 11
-            option(value="12") 12
-            
+            option(value="-") Monat
+            - for (var x = 1; x <= 9; x++)
+              option(value="0"+x) 0#{x}
+            - for (var x = 10; x <= 12; x++)
+              option(value=x) #{x}
+        td(align="center")
+          select(name="day" id="day" + item.id)
+            option(value="-") Tag
+            - for (var x = 1; x <= 9; x++)
+              option(value="0"+x) 0#{x}
+            - for (var x = 10; x <= 31; x++)
+              option(value=x) #{x}              
         td(align="center")
           input(type="number" id="count" + item.id name="count")
-
-    
 
     if (item.entry_list && item.entry_list.length>0)  
       button_breit.orange(title="Artikel entnehmen" onClick="updateEntry(" + item.id + ", 'sub')" style="width: 50%") Entnehmen

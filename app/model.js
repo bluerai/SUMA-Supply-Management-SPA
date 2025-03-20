@@ -86,7 +86,8 @@ export const getCategory = (categoryId, prodsort) => {
 
   const products = selectProductsStmt.all(categoryId).map(product => ({
     ...product,
-    entry_list: JSON.parse(product.entry_list)
+    entry_list: JSON.parse(product.entry_list),
+    next_date: getNextDate(JSON.parse(product.entry_list))
   }));
 
   if (!prodsort || prodsort === 'date') {
@@ -152,14 +153,22 @@ export const getProduct = (id) => {
   const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product WHERE id=?`);
   const item = selectByIdStmt.get(id);
   item.entry_list = JSON.parse(item.entry_list);
+  item.entry_list = item.entry_list || [];
+  if (item.entry_list.length > 0) {
+    const entry = item.entry_list[0];
+    item.next_date = ((isNaN(entry.day)) ? "" : entry.day + ".") + entry.month + "." + entry.year;
+  }
   return item;
 };
+
+
 
 export const getAllProducts = () => {
   const selectAllStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product ORDER BY name ASC`);
   const data = selectAllStmt.all().map(item => ({
     ...item,
-    entry_list: item.entry_list ? JSON.parse(item.entry_list) : []
+    entry_list: item.entry_list ? JSON.parse(item.entry_list) : [],
+    next_date: getNextDate(JSON.parse(item.entry_list))
   }));
   logger.debug(`getAllProducts: data.length=${data.length}`);
   return data;
@@ -195,7 +204,13 @@ export const updateEntry = (data) => {
   item.entry_list = JSON.parse(item.entry_list);
   logger.debug(`updateEntry: selected item=${JSON.stringify(item)}`);
 
-  const index = item.entry_list.findIndex(e => e.year === data.year && e.month === data.month);
+  const index = item.entry_list.findIndex(e => 
+    e.year === data.year && 
+    e.month === data.month && 
+    (e.day === data.day  || (isNaN(e.day) && isNaN(data.day)))
+  );
+  logger.debug(`updateEntry: index=${index}`);
+  
   const entry = item.entry_list[index];
 
   if (entry) {
@@ -204,8 +219,8 @@ export const updateEntry = (data) => {
     if (entry.count === 0) item.entry_list.splice(index, 1);
   } else {
     if (data.count > 0) {
-      item.entry_list.push({ year: `${data.year}`, month: `${data.month}`, count: `${data.count}` });
-      item.entry_list.sort((a, b) => parseInt(a.year) - parseInt(b.year) || parseInt(a.month) - parseInt(b.month));
+      item.entry_list.push({ year: `${data.year}`, month: `${data.month}`, day: `${data.day}`, count: `${data.count}` });
+      item.entry_list.sort((a, b) => parseInt(a.year) - parseInt(b.year) || parseInt(a.month) - parseInt(b.month) || parseInt(a.day) - parseInt(b.day));
     } else {
       return null;
     }
@@ -224,7 +239,7 @@ export const evalProduct = (item) => {
   let minDays = 150;
   item.entry_list.forEach(entry => {
     const curDate = new Date(); curDate.setHours(0, 0, 0, 0);
-    const mhdDate = new Date(entry.year, entry.month - 1, 1, 0, 0, 0, 0);
+    const mhdDate = new Date(entry.year, entry.month - 1, (isNaN(entry.day) ? 1 : entry.day), 0, 0, 0, 0);
 
     entry.state = Math.ceil((mhdDate.getTime() - curDate.getTime()) / oneDay);
 
@@ -239,6 +254,8 @@ export const evalProduct = (item) => {
   const updateStmt = database.prepare(`UPDATE product SET state = ? WHERE id = ?`);
   const { changes } = updateStmt.run(item.state, item.id);
   logger.silly(`evalProduct: item state saved - rows changed=${changes}`);
+
+  item.next_date = getNextDate(item.entry_list);
 
   return item;
 };
@@ -256,3 +273,12 @@ const wertZuFarbe = (wert) => {
   }
   return `rgb(${r},${g},${b})`;
 };
+
+const getNextDate = (entry_list) => {
+  //console.log("getNextDate", JSON.stringify(item));  
+  if (entry_list && entry_list.length > 0) {
+    const entry = entry_list[0];
+    return ((isNaN(entry.day)) ? "" : entry.day + ".") + entry.month + "." + entry.year;
+  }
+  return "";
+}

@@ -32,7 +32,8 @@ const displayMessage = (msg, sec) => {
 
 let displayMessageTimeoutHandler;
 
-// Actions ===================================================================
+// login ===================================================================
+
 async function validate() {
   try {
     const response = await fetch("/verify", { headers: { 'Authorization': `Bearer ${TOKEN}` } });
@@ -97,11 +98,13 @@ async function login(first_login) {
   }
 }
 
+// Category Actions ===================================================================
+
 async function getCategory(id) {
   const response = await fetch("/app/get/" + (parseInt(id) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
-    CATEGORY_ID = data.categoryId;
+    CATEGORY_ID = data.categoryId;  //falls ohne id aufgerufen
     document.getElementById('category_head').outerHTML = data.html;
     updateCategoryProducts(data.categoryId);
     updateCategoryList('category_list', 'get');
@@ -383,34 +386,57 @@ async function deleteProduct() {
 }
 
 // Entry list
-function transferEntry(id, year, month) {
+function transferEntry(id, year, month, day) {
   if (document.getElementById('edit' + id).style.display === "none") {
     document.getElementById('edit' + id).style.display = "block";
   }
   document.getElementById("year" + id).value = year;
   document.getElementById("month" + id).value = month;
+  document.getElementById("day" + id).value = isNaN(day) ? "-" : day;
   document.getElementById("count" + id).value = 1;
+}
+
+function isValidDate(year, month, day) {
+  try {
+    // Monat im Date-Objekt ist 0-basiert (0 = Januar, 11 = Dezember)
+    const date = new Date(year, month - 1, day);
+    return (
+      date.getFullYear() == year &&
+      date.getMonth() == month - 1 &&
+      date.getDate() == day
+    );
+  } catch (error) {
+    return true;
+  }
 }
 
 async function updateEntry(id, action) {
   const year = document.getElementById("year" + id).value;
   const month = document.getElementById("month" + id).value;
+  const day = document.getElementById("day" + id).value;
+
   let count = parseInt(document.getElementById("count" + id).value, 10);
   if (year === "-" || month === "-" || isNaN(count)) {
-    alert("Eingaben unvollständig");
+    alert("Unvollständige Eingaben.");
     return;
   }
+  if (!isNaN(day) && !isValidDate(year, month, day)) {
+    alert("Kein gültiges Datum: " + year + "-" + month + "-" + day);
+    return;
+  }
+
   if (action === "sub") count *= -1;
 
   const response = await fetch("/app/upd/", {
     method: "POST",
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
-    body: JSON.stringify({ "id": id, "year": year, "month": month, "count": count })
+    body: JSON.stringify({ "id": id, "year": year, "month": month, "day": day, "count": count })
   });
 
   if (response.status === 200) {
     const data = await response.json();
     document.getElementById('sum' + id).innerHTML = data.product.sum;
+    document.getElementById('next_date' + id).innerHTML = (data.product.next_date) ? (" &gt;" + data.product.next_date) : "";
     document.getElementById('details' + id).outerHTML = data.html;
     if (document.getElementById('state' + id)) document.getElementById('state' + id).style.color = data.product.state;
   } else {
@@ -452,9 +478,9 @@ function createProductPanel() {
   document.getElementById('new_product_name').focus();
 }
 
-function editProductPanel(productId, oldName) {
+function editProductPanel(productId) {
   PRODUCT_ID = productId;
-  document.getElementById('edit_product_name').value = oldName;
+  document.getElementById('edit_product_name').value = document.getElementById("product_name" + productId).innerHTML;
   document.getElementById('edit_product').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
   document.getElementById('edit_product_name').focus();

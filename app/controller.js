@@ -112,7 +112,7 @@ export async function getAllHeadsAction(request, response) {
   try {
     logger.debug("getAllHeadsAction: request.url=" + request.url.substr(0, 32));
     const categoryId = (request.params.id) && parseInt(request.params.id, 10) || 0;
-    const prodsort = decodeURI(request.params.sort).trim() || 'date';
+    const prodsort = request.params.sort.trim() || 'date';
     const category = getCategory(categoryId, prodsort);
     logger.debug("getAllHeadsAction: category=" + JSON.stringify(category));
 
@@ -164,7 +164,8 @@ export async function updateAction(request, response) {
 export async function renameCategoryAction(request, response) {
   try {
     logger.debug("renameCategoryAction: request.params=" + request.url.substr(0, 32));
-    const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
+
+    const categoryName = (!request.params.nam) ? "Produkt" : request.params.nam.trim();
     const categoryId = (request.params.id) && parseInt(request.params.id, 10);
     const data = renameCategory(categoryId, categoryName);
 
@@ -182,7 +183,7 @@ export async function renameCategoryAction(request, response) {
 export async function createCategoryAction(request, response) {
   try {
     logger.debug("createCategoryAction: request.params=" + request.url.substr(0, 32));
-    const categoryName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
+    const categoryName = (!request.params.nam) ? "Produkt" : request.params.nam.trim();
     const data = createCategory(categoryName);
 
     logger.debug("createCategoryAction: categoryId=" + data.category.id);
@@ -246,7 +247,7 @@ export async function renameProductAction(request, response) {
   try {
     logger.debug("renameAction: request.params=" + request.url.substr(0, 32));
     const id = (request.params.id) && parseInt(request.params.id, 10);
-    let name = decodeURI(request.params.nam);
+    let name = request.params.nam;
     name = (!name || name.trim() === "") ? "Produkt" : name.trim();
     if (id) {
       const timestamp = renameProduct(id, name);
@@ -272,7 +273,7 @@ export async function moveProductAction(request, response) {
 export async function createProductAction(request, response) {
   try {
     logger.debug("createProductAction: request.params=" + request.url.substr(0, 32));
-    const itemName = (!request.params.nam || request.params.nam.trim() === "") ? "Produkt" : decodeURI(request.params.nam).trim();
+    const itemName = (!request.params.nam) ? "Produkt" : request.params.nam.trim();
     const categoryId = (request.params.catid) && parseInt(request.params.catid, 10);
     const newItemId = createProduct(categoryId, itemName);
 
