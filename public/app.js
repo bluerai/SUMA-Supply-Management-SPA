@@ -383,6 +383,15 @@ async function deleteProduct() {
 }
 
 // Entry list
+function transferEntry(id, year, month) {
+  if (document.getElementById('edit' + id).style.display === "none") {
+    document.getElementById('edit' + id).style.display = "block";
+  }
+  document.getElementById("year" + id).value = year;
+  document.getElementById("month" + id).value = month;
+  document.getElementById("count" + id).value = 1;
+}
+
 async function updateEntry(id, action) {
   const year = document.getElementById("year" + id).value;
   const month = document.getElementById("month" + id).value;
