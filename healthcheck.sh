@@ -17,7 +17,7 @@ if [ -n "${HTTP_PORT}" ] && [ "${HTTP_PORT}" -gt 0 ]; then
 fi
 
 # Prüfen, ob mindestens eine der Anfragen erfolgreich war
-if [ "$exitcode1" -eq 0 ] && [ "$exitcode2" -eq 0 ]; then
+if [ "$exitcode1" -eq 0 ] || [ "$exitcode2" -eq 0 ]; then
     exit 0  # Erfolg
 else
     # Fehler, wenn ein Zugriff fehlschlägt
