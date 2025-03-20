@@ -288,7 +288,6 @@ async function deleteCategory() {
       document.getElementById('category_head').outerHTML = data.html;
       updateCategoryProducts(data.categoryId);
       updateCategoryList('category_list', 'get');
-      hidePanels();
     } else {
       responseFail_Handler("deleteCategory", response);
     }
@@ -305,10 +304,10 @@ async function toggleCategoryPrio() {
     const data = await response.json();
     document.getElementById('category_head').outerHTML = data.html;
     updateCategoryList('category_list', 'get');
-    hidePanels();
   } else {
     responseFail_Handler("toggleCategoryPrio", response);
   }
+  hidePanels();
 }
 
 // Products

@@ -8,7 +8,7 @@
           th(align="center" bgcolor="#dddddd") Anzahl
       tbody
         - for(let entry of item.entry_list)
-          tr(title="Eintrag für 1 Artikel übernehmen"
+          tr.pointer(title="Eintrag für 1 Artikel übernehmen"
             onClick=`transferEntry(${item.id}, "${entry.year}", "${entry.month}", "${entry.day}")`)
             td= ((isNaN(entry.day)) ? "" : entry.day + ".") + entry.month + "." + entry.year
             td #{entry.count}
@@ -24,7 +24,7 @@
           label(for="year") Verbrauch bis ...
         th(align="center" bgcolor="#dddddd")
           label(for="count") Anzahl
-      tr
+      tr.pointer
         td(align="center")
           select(name="year" id="year" + item.id)
             option(value="-") Jahr
