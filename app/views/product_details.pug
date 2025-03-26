@@ -4,12 +4,12 @@
     table.tab
       thead
         tr
-          th(align="center" bgcolor="#dddddd") Verbrauch bis ...
-          th(align="center" bgcolor="#dddddd") Anzahl
+          th(style="text-align:center; background: #dddddd") Verbrauch bis ...
+          th(style="text-align:center; background: #dddddd") Anzahl
       tbody
         - for(let entry of item.entry_list)
           tr.pointer(title="Eintrag für 1 Artikel übernehmen"
-            onClick=`transferEntry(${item.id}, "${entry.year}", "${entry.month}", "${entry.day}")`)
+            onClick=`transferEntry(${item.id}, '${entry.year}', '${entry.month}', '${entry.day}')`)
             td= ((isNaN(entry.day)) ? "" : entry.day + ".") + entry.month + "." + entry.year
             td #{entry.count}
 
@@ -20,31 +20,31 @@
   div(id="edit" + item.id style="display: none")
     table.tab
       tr
-        th(align="center" bgcolor="#dddddd" colspan=3)
+        th(style="text-align:center; background: #dddddd" colspan=3)
           label(for="year") Verbrauch bis ...
-        th(align="center" bgcolor="#dddddd")
+        th(style="text-align:center; background: #dddddd")
           label(for="count") Anzahl
       tr.pointer
-        td(align="center")
+        td(style="text-align:center;")
           select(name="year" id="year" + item.id)
             option(value="-") Jahr
             - const year = new Date().getFullYear(); for (var x = year; x <= year + 5; x++)
               option(value=x) #{x}
-        td(align="center")
+        td(style="text-align:center;")
           select(name="month" id="month" + item.id)
             option(value="-") Monat
             - for (var x = 1; x <= 9; x++)
               option(value="0"+x) 0#{x}
             - for (var x = 10; x <= 12; x++)
               option(value=x) #{x}
-        td(align="center")
+        td(style="text-align:center;")
           select(name="day" id="day" + item.id)
             option(value="-") Tag
             - for (var x = 1; x <= 9; x++)
               option(value="0"+x) 0#{x}
             - for (var x = 10; x <= 31; x++)
               option(value=x) #{x}              
-        td(align="center")
+        td(style="text-align:center;")
           input(type="number" id="count" + item.id name="count")
 
     if (item.entry_list && item.entry_list.length>0)  

@@ -105,8 +105,8 @@ async function getCategory(id) {
   if (response.status === 200) {
     const data = await response.json();
     CATEGORY_ID = data.categoryId;  //falls ohne id aufgerufen
-    document.getElementById('category_head').outerHTML = data.html;
-    updateCategoryProducts(data.categoryId);
+    document.getElementById('category_head').outerHTML = data.category_html;
+    document.getElementById("prodlist").outerHTML = data.products_html;
     updateCategoryList('category_list', 'get');
     displayMessage(data.appInfo.version + ", " + location.protocol + "//" + location.host, 4);
   } else if (response.status === 204) {
@@ -124,8 +124,8 @@ async function getNextCategory() {
   if (response.status === 200) {
     const data = await response.json();
     CATEGORY_ID = data.categoryId;
-    document.getElementById('category_head').outerHTML = data.html;
-    updateCategoryProducts(data.categoryId);
+    document.getElementById('category_head').outerHTML = data.category_html;
+    document.getElementById("prodlist").outerHTML = data.products_html;
     document.body.scrollIntoView();
 
     document.getElementById("app").classList.remove("swipe-left-transition");
@@ -154,8 +154,8 @@ async function getPrevCategory() {
   if (response.status === 200) {
     const data = await response.json();
     CATEGORY_ID = data.categoryId;
-    document.getElementById('category_head').outerHTML = data.html;
-    updateCategoryProducts(data.categoryId);
+    document.getElementById('category_head').outerHTML = data.category_html;
+    document.getElementById("prodlist").outerHTML = data.products_html;
     document.body.scrollIntoView();
 
     document.getElementById("app").classList.remove("swipe-right-transition");
@@ -236,7 +236,7 @@ function toggleEdit(id) {
     edit.display = "none";
   } else {
     edit.display = "block";
-    document.getElementById('details_end' + id).scrollIntoView();
+    document.getElementById('info' + id).scrollIntoView();
   }
 }
 
@@ -285,8 +285,9 @@ async function deleteCategory() {
 
     if (response.status === 200) {
       const data = await response.json();
-      document.getElementById('category_head').outerHTML = data.html;
-      updateCategoryProducts(data.categoryId);
+      CATEGORY_ID = data.categoryId;
+      document.getElementById('category_head').outerHTML = data.category_html;
+      document.getElementById("prodlist").outerHTML = data.products_html;
       updateCategoryList('category_list', 'get');
     } else {
       responseFail_Handler("deleteCategory", response);
@@ -315,7 +316,7 @@ async function renameProduct() {
   const prodName = document.getElementById("edit_product_name").value;
   if (prodName && prodName.trim().length !== 0) {
     const response = await fetch(
-      "/app/pro/" + CATEGORY_ID + "/" + encodeURIComponent(prodName.trim()) + "/" + PRODUCT_ID,
+      "/app/pro/ren/" + encodeURIComponent(prodName.trim()) + "/" + PRODUCT_ID,
       { headers: { 'Authorization': `Bearer ${TOKEN}` } }
     );
 
@@ -336,8 +337,8 @@ async function moveToCategory(catId) {
   if (response.status === 200) {
     const data = await response.json();
     CATEGORY_ID = data.categoryId;
-    document.getElementById('category_head').outerHTML = data.html;
-    updateCategoryProducts(data.categoryId);
+    document.getElementById('category_head').outerHTML = data.category_html;;
+    document.getElementById("prodlist").outerHTML = data.products_html;
     updateCategoryList('category_list', 'get');
   } else if (response.status === 204) {
     // nothing to do

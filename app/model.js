@@ -80,7 +80,7 @@ export const getCategory = (categoryId, prodsort) => {
 
   categoryId = categoryId || categories[0].id;
   const category = oneCategory(categoryId);
-  logger.debug(`getCategory: category=${JSON.stringify(category)}`);
+  logger.silly(`getCategory: category=${JSON.stringify(category)}`);
 
   const selectProductsStmt = database.prepare(`SELECT id, name, sum, state, entry_list FROM product WHERE category_id = ? ORDER BY name ASC`);
 
@@ -202,14 +202,13 @@ export const updateEntry = (data) => {
   const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product WHERE id=?`);
   const item = selectByIdStmt.get(data.id);
   item.entry_list = JSON.parse(item.entry_list);
-  logger.debug(`updateEntry: selected item=${JSON.stringify(item)}`);
+  logger.silly(`updateEntry: selected item=${JSON.stringify(item)}`);
 
   const index = item.entry_list.findIndex(e => 
     e.year === data.year && 
     e.month === data.month && 
     (e.day === data.day  || (isNaN(e.day) && isNaN(data.day)))
   );
-  logger.debug(`updateEntry: index=${index}`);
   
   const entry = item.entry_list[index];
 

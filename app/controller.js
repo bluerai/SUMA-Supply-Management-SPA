@@ -1,5 +1,6 @@
 'use strict';
 
+import pug from 'pug';
 import { logger } from '../modules/log.js';
 import packagejson from '../package.json' with { type: 'json' };
 
@@ -19,21 +20,21 @@ logger.info(appInfo.version + " - " + appInfo.author);
 
 // Helper functions ==========================================================
 const responseCategory = (response, data) => {
-  if (data) {
-    logger.debug("getCategoryAction: data=" + JSON.stringify(data));
-    response.locals.categoryId = data.category.id;
-    response.render(import.meta.dirname + '/views/category_head', data.category, (error, html) => {
-      if (error) {
-        logger.error(error);
-        logger.debug(error.stack);
-        return;
-      }
-      logger.debug("Category_list: html.length=" + html.length);
-      response.status(200).json({ categoryId: response.locals.categoryId, html, appInfo });
-    });
-  } else {
-    response.status(204).json({});
-  }
+  if (!data) return response.status(204).json({});
+  logger.silly("getCategoryAction: data=" + JSON.stringify(data));
+  response.locals.categoryId = data.category.id;
+
+  response.locals.products_html = pug.renderFile(import.meta.dirname + '/views/all_product_heads.pug', { products: data.products });
+
+  response.render(import.meta.dirname + '/views/category_head', data.category, (error, category_html) => {
+    if (error) {
+      logger.error(error);
+      logger.debug(error.stack);
+      return;
+    }
+    logger.debug("Category_list: html.length=" + category_html.length);
+    response.status(200).json({ categoryId: response.locals.categoryId, category_html, products_html: response.locals.products_html, appInfo });
+  });
 };
 
 const errorHandler = (error, actionName, response) => {
@@ -114,7 +115,7 @@ export async function getAllHeadsAction(request, response) {
     const categoryId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     const prodsort = request.params.sort.trim() || 'date';
     const category = getCategory(categoryId, prodsort);
-    logger.debug("getAllHeadsAction: category=" + JSON.stringify(category));
+    logger.silly("getAllHeadsAction: category=" + JSON.stringify(category));
 
     renderView(response, import.meta.dirname + '/views/all_product_heads', { products: category.products }, (html) => {
       logger.debug("getAllHeadsAction: html.length=" + html.length);
@@ -131,7 +132,7 @@ export async function getDetailsAction(request, response) {
     logger.debug("getDetailsAction: request.params=" + request.url.substr(0, 32));
     const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     const item = getProduct(curItemId);
-    logger.debug("getDetailsAction: item=" + JSON.stringify(item));
+    logger.silly("getDetailsAction: item=" + JSON.stringify(item));
 
     renderView(response, import.meta.dirname + '/views/product_details', { item: item }, (html) => {
       logger.debug("getDetailsAction: html.length=" + html.length);
@@ -146,7 +147,7 @@ export async function updateAction(request, response) {
   try {
     const data = request.body;
     const item = updateEntry(data);
-    logger.debug("updateAction: item=" + JSON.stringify(item));
+    logger.silly("updateAction: item=" + JSON.stringify(item));
 
     if (item) {
       response.locals.item = item;
@@ -170,7 +171,7 @@ export async function renameCategoryAction(request, response) {
     const data = renameCategory(categoryId, categoryName);
 
     logger.debug("renameCategoryAction: id=" + data.category.id);
-    logger.debug("renameCategoryAction: data=" + JSON.stringify(data));
+    logger.silly("renameCategoryAction: data=" + JSON.stringify(data));
     renderView(response, import.meta.dirname + '/views/category_head', data.category, (html) => {
       logger.debug("Category_head: html.length=" + html.length);
       response.status(200).json({ html });
@@ -187,7 +188,7 @@ export async function createCategoryAction(request, response) {
     const data = createCategory(categoryName);
 
     logger.debug("createCategoryAction: categoryId=" + data.category.id);
-    logger.debug("createCategoryAction: data=" + JSON.stringify(data));
+    logger.silly("createCategoryAction: data=" + JSON.stringify(data));
     response.locals.categoryId = data.category.id;
     renderView(response, import.meta.dirname + '/views/category_head', data.category, (html) => {
       logger.debug("Category_list: html.length=" + html.length);
@@ -206,20 +207,8 @@ export async function deleteCategoryAction(request, response) {
     deleteCategory(id);
 
     const data = getCategory();
+    responseCategory(response, data);
 
-    if (!data) {
-      response.status(200).send({ html: "", products: [] });
-      return;
-    }
-
-    logger.debug("deleteCategoryAction: categoryId=" + data.category.id);
-    logger.debug("deleteCategoryAction: data=" + JSON.stringify(data));
-    response.locals.products = data.products;
-    response.locals.categoryId = data.category.id;
-    renderView(response, import.meta.dirname + '/views/category_head', data.category, (html) => {
-      logger.debug("Category_list: html.length=" + html.length);
-      response.status(200).json({ html: html, categoryId: response.locals.categoryId, products: response.locals.products });
-    });
   } catch (error) {
     errorHandler(error, 'deleteCategoryAction', response);
   }
@@ -233,7 +222,7 @@ export async function toggleCategoryStarAction(request, response) {
     const data = toggleCategoryStar(categoryId);
 
     logger.debug("toggleCategoryStarAction: id=" + data.category.id);
-    logger.debug("toggleCategoryStarAction: data=" + JSON.stringify(data));
+    logger.silly("toggleCategoryStarAction: data=" + JSON.stringify(data));
     renderView(response, import.meta.dirname + '/views/category_head', data.category, (html) => {
       logger.debug("Category_head: html.length=" + html.length);
       response.status(200).json({ html });
