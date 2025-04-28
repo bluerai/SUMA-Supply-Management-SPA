@@ -104,9 +104,15 @@ async function getCategory(id) {
   const response = await fetch("/app/get/" + (parseInt(id) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
+    
     CATEGORY_ID = data.categoryId;  //falls ohne id aufgerufen
-    document.getElementById('category_head').outerHTML = data.category_html;
-    document.getElementById("prodlist").outerHTML = data.products_html;
+    const container = document.getElementById('swipe-container')
+    const currentPage = document.createElement('div');
+    container.appendChild(currentPage);
+    currentPage.innerHTML = data.html;
+    currentPage.classList.add('swipe-page');
+    currentPage.classList.add('current');
+
     updateCategoryList('category_list', 'get');
     displayMessage(data.appInfo.version + ", " + location.protocol + "//" + location.host, 4);
   } else if (response.status === 204) {
@@ -117,28 +123,14 @@ async function getCategory(id) {
   hidePanels();
 }
 
-async function getNextCategory() {
-  document.getElementById("app").classList.add("swipe-left-transition");
-
+async function createNextCategory() {
   const response = await fetch("/app/next/" + (parseInt(CATEGORY_ID) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  let page;
   if (response.status === 200) {
     const data = await response.json();
     CATEGORY_ID = data.categoryId;
-    document.getElementById('category_head').outerHTML = data.category_html;
-    document.getElementById("prodlist").outerHTML = data.products_html;
-    document.body.scrollIntoView();
-
-    document.getElementById("app").classList.remove("swipe-left-transition");
-    document.getElementById("app").classList.add("trans-right");
-    setTimeout(() => {
-      document.getElementById("app").classList.add("swipe-null-transition");
-    }, 0);
-    setTimeout(() => {
-      document.getElementById("app").classList.remove("trans-right");
-      document.getElementById("app").classList.remove("swipe-null-transition");
-    }, 500);
+    page = data.html;
   } else {
-    document.getElementById("app").classList.remove("swipe-left-transition");
     if (response.status === 204) {
       displayMessage("Keine weiteren Daten", 3);
     } else {
@@ -146,29 +138,17 @@ async function getNextCategory() {
     }
   }
   hidePanels();
+  return page;
 }
 
-async function getPrevCategory() {
-  document.getElementById("app").classList.add("swipe-right-transition");
+async function createPrevCategory() {
   const response = await fetch("/app/prev/" + (parseInt(CATEGORY_ID) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  let page;
   if (response.status === 200) {
     const data = await response.json();
     CATEGORY_ID = data.categoryId;
-    document.getElementById('category_head').outerHTML = data.category_html;
-    document.getElementById("prodlist").outerHTML = data.products_html;
-    document.body.scrollIntoView();
-
-    document.getElementById("app").classList.remove("swipe-right-transition");
-    document.getElementById("app").classList.add("trans-left");
-    setTimeout(() => {
-      document.getElementById("app").classList.add("swipe-null-transition");
-    }, 0);
-    setTimeout(() => {
-      document.getElementById("app").classList.remove("trans-left");
-      document.getElementById("app").classList.remove("swipe-null-transition");
-    }, 500);
+    page = data.html;
   } else {
-    document.getElementById("app").classList.remove("swipe-right-transition");
     if (response.status === 204) {
       displayMessage("Keine weiteren Daten", 3);
     } else {
@@ -176,6 +156,56 @@ async function getPrevCategory() {
     }
   }
   hidePanels();
+  return page;
+}
+
+let working = false;
+
+async function transitionToCategory(direction) {
+  if (!working) {
+    working = true;
+    const container = document.getElementById('swipe-container');
+    const currentPage = container.querySelector('.current');
+    const newPage = await createCategoryPage(direction);
+
+    if (!newPage) { working = false; return; }
+
+    currentPage.classList.remove('current');
+    currentPage.classList.add(direction === 'prev' ? 'next' : 'prev');
+  
+    setTimeout(() => {
+      currentPage.remove(); 
+
+      // Vorbereitung für Animation
+      container.appendChild(newPage);
+      newPage.classList.add(direction);
+
+      // Trigger Reflow
+      void newPage.offsetWidth;
+
+      // Animation starten
+      newPage.classList.remove('prev', 'next');
+      newPage.classList.add('current');
+    }, 350); 
+
+
+    // Nach Animation aufräumen
+    setTimeout(() => {
+      working = false;
+      newPage.scrollIntoView();
+    }, 700);
+  }
+}
+
+async function createCategoryPage(direction) {
+  const content = (direction === 'next') ? await createNextCategory() : await createPrevCategory();
+
+  if (!content) return null;
+
+  const page = document.createElement('div');
+  page.innerHTML = content;
+  page.classList.add('swipe-page');
+  return page;
 }
 
 function changeSort() {
@@ -518,9 +548,9 @@ function handleSwipe() {
   const diffY = endY - startY;
   if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) { // Mindest-Swipe-Distanz
     if (diffX > 0) {
-      getPrevCategory();
+      transitionToCategory('prev');
     } else {
-      getNextCategory();
+      transitionToCategory('next');
     }
   }
 }
@@ -568,10 +598,10 @@ function initSwipe() {
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 50) { // Prüfen, ob es eine horizontale Bewegung ist
       if (e.deltaX < 0) {
         wheelrunning = true;
-        getPrevCategory();
+        transitionToCategory('prev');
       } else {
         wheelrunning = true;
-        getNextCategory();
+        transitionToCategory('next');
       }
     }
     setTimeout(() => (wheelrunning = false), 300);

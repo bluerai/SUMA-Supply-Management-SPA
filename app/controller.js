@@ -21,19 +21,19 @@ logger.info(appInfo.version + " - " + appInfo.author);
 // Helper functions ==========================================================
 const responseCategory = (response, data) => {
   if (!data) return response.status(204).json({});
-  logger.silly("getCategoryAction: data=" + JSON.stringify(data));
+  logger.debug("getCategoryAction: data=" + JSON.stringify(data));
   response.locals.categoryId = data.category.id;
 
-  response.locals.products_html = pug.renderFile(import.meta.dirname + '/views/all_product_heads.pug', { products: data.products });
+  //response.locals.products_html = pug.renderFile(import.meta.dirname + '/views/all_product_heads.pug', { products: data.products });
 
-  response.render(import.meta.dirname + '/views/category_head', data.category, (error, category_html) => {
+  response.render(import.meta.dirname + '/views/page', data, (error, html) => {
     if (error) {
       logger.error(error);
       logger.debug(error.stack);
       return;
     }
-    logger.debug("Category_list: html.length=" + category_html.length);
-    response.status(200).json({ categoryId: response.locals.categoryId, category_html, products_html: response.locals.products_html, appInfo });
+    logger.debug("Category_list: html.length=" + html.length);
+    response.status(200).json({ categoryId: response.locals.categoryId, html: html, appInfo });
   });
 };
 

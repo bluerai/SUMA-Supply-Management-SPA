@@ -36,9 +36,10 @@ h2 {
   max-width: 600px;
   min-height: 100vh;
   /*für Swipe*/
-  /*   user-select: none;
+  user-select: none;
+  /* touch-action: pan-x;
   touch-action: pan-y; */
-  /* Verhindert vertikales Scrollen */
+  overflow-y: auto;
   cursor: grab;
 }
 
@@ -286,33 +287,6 @@ input[type="number"] {
   cursor: pointer;
 }
 
-.trans-left {
-  transform: translateX(-75%);
-}
-
-.trans-right {
-  transform: translateX(75%);
-}
-
-.trans-null {
-  transform: translateX(0%);
-}
-
-.swipe-left-transition {
-  transition: transform 0.5s ease-out;
-  transform: translateX(-100%);
-}
-
-.swipe-right-transition {
-  transition: transform 0.5s ease-out;
-  transform: translateX(100%);
-}
-
-.swipe-null-transition {
-  transition: transform 0.5s ease-out;
-  transform: translateX(0%);
-}
-
 /* The transition-timing-function property can have the following values: 
 
 ease - specifies a transition effect with a slow start, then fast, then end slowly (this is default) 
@@ -321,6 +295,36 @@ ease-in - specifies a transition effect with a slow start
 ease-out - specifies a transition effect with a slow end 
 ease-in-out - specifies a transition effect with a slow start and end 
 cubic-bezier(n, n, n, n) - lets you define your own values in a cubic-bezier function */
+
+/* CSS */
+
+#swipe-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-page {
+  /* position: absolute; */
+  width: 100%;
+  height: 100%;
+  transition: transform 0.35s ease-in;
+}
+
+.swipe-page.prev {
+  transform: translateX(-100%);
+}
+
+.swipe-page.current {
+  transform: translateX(0);
+}
+
+.swipe-page.next {
+  transform: translateX(100%);
+}
+
 /*****************************************************************************/
 /********************** Bildschirm: Breite unter 720 px **********************/
 /*****************************************************************************/
