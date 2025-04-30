@@ -26,7 +26,7 @@ const responseCategory = (response, data) => {
 
   //response.locals.products_html = pug.renderFile(import.meta.dirname + '/views/all_product_heads.pug', { products: data.products });
 
-  response.render(import.meta.dirname + '/views/page', data, (error, html) => {
+  response.render(import.meta.dirname + '/views/category_page', data, (error, html) => {
     if (error) {
       logger.error(error);
       logger.debug(error.stack);
