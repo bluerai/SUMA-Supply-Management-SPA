@@ -46,7 +46,6 @@ async function validate() {
       }
       case 401: {
         console.log(data.error);
-        document.getElementById('prodlist').innerHTML = "";
         document.getElementById('login').innerHTML = data.html;
         document.querySelectorAll('.right').forEach(el => el.style.display = 'none');
         break;
@@ -104,11 +103,16 @@ async function getCategory(id) {
   const response = await fetch("/app/get/" + (parseInt(id) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
   if (response.status === 200) {
     const data = await response.json();
-    
+
     CATEGORY_ID = data.categoryId;  //falls ohne id aufgerufen
     const container = document.getElementById('swipe-container')
-    const currentPage = document.createElement('div');
-    container.appendChild(currentPage);
+    let currentPage = container.querySelector('.current');
+    if (!currentPage) {
+      currentPage = document.createElement('div');
+      container.appendChild(currentPage); currentPage.innerHTML = data.html;
+      currentPage.classList.add('swipe-page');
+      currentPage.classList.add('current');
+    }
     currentPage.innerHTML = data.html;
     currentPage.classList.add('swipe-page');
     currentPage.classList.add('current');
@@ -172,9 +176,9 @@ async function transitionToCategory(direction) {
 
     currentPage.classList.remove('current');
     currentPage.classList.add(direction === 'prev' ? 'next' : 'prev');
-  
+
     setTimeout(() => {
-      currentPage.remove(); 
+      currentPage.remove();
 
       // Vorbereitung für Animation
       container.appendChild(newPage);
@@ -186,7 +190,7 @@ async function transitionToCategory(direction) {
       // Animation starten
       newPage.classList.remove('prev', 'next');
       newPage.classList.add('current');
-    }, 350); 
+    }, 350);
 
 
     // Nach Animation aufräumen
