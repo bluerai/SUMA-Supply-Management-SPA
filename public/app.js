@@ -470,7 +470,7 @@ async function updateEntry(id, action) {
   if (response.status === 200) {
     const data = await response.json();
     document.getElementById('sum' + id).innerHTML = data.product.sum;
-    document.getElementById('next_date' + id).innerHTML = (data.product.next_date) ? (" &gt;" + data.product.next_date) : "";
+    document.getElementById('next_date' + id).innerHTML = (data.product.next_date) ? (data.product.next_date) : "";
     document.getElementById('details' + id).outerHTML = data.html;
     if (document.getElementById('state' + id)) document.getElementById('state' + id).style.color = data.product.state;
   } else {
