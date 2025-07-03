@@ -1,5 +1,11 @@
-.box(id="details" + item.id style="position: relative; min-height: 52px")
+.box(id="details" + item.id style="position: relative")
 
+  .div(style="min-height: 52px")
+
+    .right(style="position: absolute; top: 0px; right: 0px")
+      button.orange(title="Artkel hinzufüghen/entnehmen" onClick="toggleEdit(" + item.id + ")")
+        i.fa.fa-pencil
+ 
   if item.entry_list && item.entry_list.length > 0
     table.tab
       thead
@@ -12,10 +18,6 @@
             onClick=`transferEntry(${item.id}, '${entry.year}', '${entry.month}', '${entry.day}')`)
             td= ((isNaN(entry.day)) ? "" : entry.day + ".") + entry.month + "." + entry.year
             td #{entry.count}
-
-  .right(style="position: absolute; top: 0px; right: 0px")
-    button.orange(title="Artkel hinzufüghen/entnehmen" onClick="toggleEdit(" + item.id + ")")
-      i.fa.fa-pencil
         
   div(id="edit" + item.id style="display: none")
     table.tab

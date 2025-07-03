@@ -24,8 +24,6 @@ const responseCategory = (response, data) => {
   logger.debug("getCategoryAction: data=" + JSON.stringify(data));
   response.locals.categoryId = data.category.id;
 
-  //response.locals.products_html = pug.renderFile(import.meta.dirname + '/views/all_product_heads.pug', { products: data.products });
-
   response.render(import.meta.dirname + '/views/category_page', data, (error, html) => {
     if (error) {
       logger.error(error);
@@ -117,7 +115,7 @@ export async function getAllHeadsAction(request, response) {
     const category = getCategory(categoryId, prodsort);
     logger.silly("getAllHeadsAction: category=" + JSON.stringify(category));
 
-    renderView(response, import.meta.dirname + '/views/all_product_heads', { products: category.products }, (html) => {
+    renderView(response, import.meta.dirname + '/views/product_head_list', { products: category.products }, (html) => {
       logger.debug("getAllHeadsAction: html.length=" + html.length);
       logger.silly("getAllHeadsAction: html=" + html);
       response.json({ html });

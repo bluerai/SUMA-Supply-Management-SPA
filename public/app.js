@@ -274,6 +274,16 @@ function toggleEdit(id) {
   }
 }
 
+function toggleNotes(id) {
+  const notes = document.getElementById('notes' + id).style;
+  if (notes.display === "block") {
+    notes.display = "none";
+  } else {
+    notes.display = "block";
+    document.getElementById('info' + id).scrollIntoView();
+  }
+}
+
 // Categories
 async function renameCategory() {
   const catName = document.getElementById("edit_category_name").value;
