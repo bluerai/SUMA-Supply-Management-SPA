@@ -7,7 +7,7 @@ import packagejson from '../package.json' with { type: 'json' };
 import {
   getCategory, getNextCategory, getPrevCategory, getProduct, allCategories,
   createCategory, renameCategory, deleteCategory, toggleCategoryStar,
-  createProduct, renameProduct, moveProductToCategory, deleteProduct,
+  createProduct, updateProduct, moveProductToCategory, deleteProduct,
   updateEntry
 } from './model.js';
 
@@ -111,7 +111,7 @@ export async function getAllHeadsAction(request, response) {
   try {
     logger.debug("getAllHeadsAction: request.url=" + request.url.substr(0, 32));
     const categoryId = (request.params.id) && parseInt(request.params.id, 10) || 0;
-    const prodsort = request.params.sort.trim() || 'date';
+    const prodsort = request.params.sort.trim() || 'relevance';
     const category = getCategory(categoryId, prodsort);
     logger.silly("getAllHeadsAction: category=" + JSON.stringify(category));
 
@@ -133,11 +133,23 @@ export async function getDetailsAction(request, response) {
     logger.silly("getDetailsAction: item=" + JSON.stringify(item));
 
     renderView(response, import.meta.dirname + '/views/product_details', { item: item }, (html) => {
-      logger.debug("getDetailsAction: html.length=" + html.length);
+      logger.silly("getDetailsAction: html.length=" + html.length);
       response.json({ html });
     });
   } catch (error) {
     errorHandler(error, 'getDetailsAction', response);
+  }
+}
+
+
+export async function getProdDataAction(request, response) {
+  try {
+    logger.debug("getProdDataAction: request.params=" + request.url.substr(0, 32));
+    const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
+    const item = getProduct(curItemId);
+    response.json(item);
+  } catch (error) {
+    errorHandler(error, 'getProdDataAction', response);
   }
 }
 
@@ -230,18 +242,22 @@ export async function toggleCategoryStarAction(request, response) {
   }
 }
 
-export async function renameProductAction(request, response) {
+export async function updateProductAction(request, response) {
   try {
-    logger.debug("renameAction: request.params=" + request.url.substr(0, 32));
+    logger.debug("updateProductAction: request.params=" + request.url.substr(0, 32));
     const id = (request.params.id) && parseInt(request.params.id, 10);
-    let name = request.params.nam;
-    name = (!name || name.trim() === "") ? "Produkt" : name.trim();
+    const data = request.body;
+
+    const name = (!data.prodName) ? "Produkt" : data.prodName.trim();
+    const preAlert = data.preAlert;
+    const notes = data.notes;
+
     if (id) {
-      const timestamp = renameProduct(id, name);
-      response.json({ name, timestamp });
+      const item = updateProduct(id, name, preAlert, notes);
+      response.json(item);
     }
   } catch (error) {
-    errorHandler(error, 'renameAction', response);
+    errorHandler(error, 'updateProductAction', response);
   }
 }
 
@@ -260,9 +276,13 @@ export async function moveProductAction(request, response) {
 export async function createProductAction(request, response) {
   try {
     logger.debug("createProductAction: request.params=" + request.url.substr(0, 32));
-    const itemName = (!request.params.nam) ? "Produkt" : request.params.nam.trim();
+    const data = request.body;
+    const itemName = (!data.prodName) ? "Produkt" : data.prodName.trim();
+    const preAlert = data.preAlert;
+    const notes = data.notes;
+
     const categoryId = (request.params.catid) && parseInt(request.params.catid, 10);
-    const newItemId = createProduct(categoryId, itemName);
+    const newItemId = createProduct(categoryId, itemName, preAlert, notes);
 
     logger.debug("createProductAction: id=" + newItemId);
     const item = getProduct(newItemId);

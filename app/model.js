@@ -30,7 +30,7 @@ fs.pathExists(databasefile, (err, exists) => {
         name        TEXT    NOT NULL,
         notes       TEXT,
         sum         INTEGER,
-        state       TEXT,
+        color       TEXT,
         entry_list  TEXT,
         moddate     INTEGER DEFAULT (strftime('%s')) 
       );
@@ -65,7 +65,7 @@ const oneCategory = (id) => {
 };
 
 export const allCategories = () => {
-  const selectAllCategoriesStmt = database.prepare(`SELECT id, name, prio FROM category ORDER BY prio DESC, name ASC`);
+  const selectAllCategoriesStmt = database.prepare(`SELECT id, name, prio FROM category ORDER BY prio DESC, LOWER(name) ASC`);
   return selectAllCategoriesStmt.all();
 };
 
@@ -82,20 +82,22 @@ export const getCategory = (categoryId, prodsort) => {
   const category = oneCategory(categoryId);
   logger.silly(`getCategory: category=${JSON.stringify(category)}`);
 
-  const selectProductsStmt = database.prepare(`SELECT id, name, sum, state, entry_list FROM product WHERE category_id = ? ORDER BY name ASC`);
+  const selectProductsStmt = database.prepare(`SELECT id, name, sum, color, state, entry_list FROM product WHERE category_id = ? ORDER BY LOWER(name) ASC`);
 
-  const products = selectProductsStmt.all(categoryId).map(product => ({
+  let products = selectProductsStmt.all(categoryId).map(product => ({
     ...product,
     entry_list: JSON.parse(product.entry_list),
     next_date: getNextDate(JSON.parse(product.entry_list))
   }));
 
-  if (!prodsort || prodsort === 'date') {
-    products.sort((prod1, prod2) => {
-      const date1 = expDate(prod1.entry_list[0]);
-      const date2 = expDate(prod2.entry_list[0]);
-      return date1.localeCompare(date2);
-    });
+  if (!prodsort || prodsort === 'relevance') {
+    products.sort((a, b) =>
+      (a.state ?? 999) - (b.state ?? 999) ||
+      expDate(a.entry_list[0]).localeCompare(expDate(b.entry_list[0]))
+    );
+
+  } else if (prodsort === 'date') {
+    products.sort((prod1, prod2) => { return expDate(prod1.entry_list[0]).localeCompare(expDate(prod2.entry_list[0])); });
   }
 
   return { category, products };
@@ -113,7 +115,7 @@ export const getPrevCategory = (categoryId) => {
   return num >= 0 ? getCategory(categories[num].id) : null;
 };
 
-const expDate = (entry) => (!entry || !entry.year || !entry.month) ? "9999/99" : `${entry.year}/${entry.month}`;
+const expDate = (entry) => (!entry || !entry.year || !entry.month) ? "9999/99" : `${entry.year}/${entry.month}/${entry.day}`;
 
 export const createCategory = (itemName) => {
   const insertStmt = database.prepare(`INSERT INTO category (name) VALUES (?)`);
@@ -142,15 +144,16 @@ export const toggleCategoryStar = (categoryId) => {
   return { category: oneCategory(categoryId) };
 };
 
-export const createProduct = (categoryId, itemName) => {
-  const insertStmt = database.prepare(`INSERT INTO product (name, category_id, entry_list) VALUES (?, ?, ?)`);
-  const { lastInsertRowid } = insertStmt.run(itemName, categoryId, "[]");
+export const createProduct = (categoryId, itemName, preAlert, notes) => {
+  const insertStmt = database.prepare(`INSERT INTO product (name, category_id, entry_list, pre_alert, notes) VALUES (?, ?, ?, ?, ?)`);
+  const { lastInsertRowid } = insertStmt.run(itemName, categoryId, "[]", preAlert, notes);
   logger.debug(`createProduct: item ${lastInsertRowid} created`);
   return lastInsertRowid;
 };
 
+
 export const getProduct = (id) => {
-  const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product WHERE id=?`);
+  const selectByIdStmt = database.prepare(`SELECT id, name, sum, color, state, entry_list, pre_alert, notes, datetime(moddate,'unixepoch','localtime') as timestamp FROM product WHERE id=?`);
   const item = selectByIdStmt.get(id);
   item.entry_list = JSON.parse(item.entry_list);
   item.entry_list = item.entry_list || [];
@@ -161,10 +164,8 @@ export const getProduct = (id) => {
   return item;
 };
 
-
-
 export const getAllProducts = () => {
-  const selectAllStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product ORDER BY name ASC`);
+  const selectAllStmt = database.prepare(`SELECT id, name, sum, color, entry_list, pre_alert, notes, datetime(moddate,'unixepoch','localtime') as timestamp FROM product ORDER BY LOWER(name) ASC`);
   const data = selectAllStmt.all().map(item => ({
     ...item,
     entry_list: item.entry_list ? JSON.parse(item.entry_list) : [],
@@ -174,13 +175,16 @@ export const getAllProducts = () => {
   return data;
 };
 
-export const renameProduct = (id, name) => {
-  const updateNameStmt = database.prepare(`UPDATE product SET name = ? WHERE id = ?`);
-  const { changes } = updateNameStmt.run(name, id);
-  logger.debug(`renameProduct: item ${id} renamed - rows changed=${changes}`);
+export const updateProduct = (id, name, pre_alert, notes) => {
+  const updateStmt = database.prepare(`UPDATE product SET name = ?, pre_alert = ?, notes = ? WHERE id = ?`);
+  const { changes } = updateStmt.run(name, pre_alert, notes, id);
+  logger.debug(`updateProduct: item ${id} updated - rows changed=${changes}`);
 
+  const item = evalProduct(getProduct(id));
   const selectByIdStmt = database.prepare(`SELECT datetime(moddate,'unixepoch','localtime') as timestamp FROM product WHERE id=?`);
-  return selectByIdStmt.get(id).timestamp;
+  item.timestamp = selectByIdStmt.get(id).timestamp;
+
+  return item
 };
 
 export const moveProductToCategory = (prodId, catId) => {
@@ -199,17 +203,17 @@ export const deleteProduct = (id) => {
 export const updateEntry = (data) => {
   logger.debug(`updateEntry: data=${JSON.stringify(data)}`);
 
-  const selectByIdStmt = database.prepare(`SELECT id, name, sum, state, entry_list, datetime(moddate,'unixepoch','localtime') as timestamp FROM product WHERE id=?`);
+  const selectByIdStmt = database.prepare(`SELECT id, name, sum, color, state, entry_list, pre_alert, notes, datetime(moddate,'unixepoch','localtime') as timestamp FROM product WHERE id=?`);
   const item = selectByIdStmt.get(data.id);
   item.entry_list = JSON.parse(item.entry_list);
   logger.silly(`updateEntry: selected item=${JSON.stringify(item)}`);
 
-  const index = item.entry_list.findIndex(e => 
-    e.year === data.year && 
-    e.month === data.month && 
-    (e.day === data.day  || (isNaN(e.day) && isNaN(data.day)))
+  const index = item.entry_list.findIndex(e =>
+    e.year === data.year &&
+    e.month === data.month &&
+    (e.day === data.day || (isNaN(e.day) && isNaN(data.day)))
   );
-  
+
   const entry = item.entry_list[index];
 
   if (entry) {
@@ -235,46 +239,54 @@ export const updateEntry = (data) => {
 };
 
 export const evalProduct = (item) => {
-  let minDays = 150;
-  item.entry_list.forEach(entry => {
-    const curDate = new Date(); curDate.setHours(0, 0, 0, 0);
-    const mhdDate = new Date(entry.year, entry.month - 1, (isNaN(entry.day) ? 1 : entry.day), 0, 0, 0, 0);
+  const minDays = 5 * item.pre_alert;
+  item.days_left = minDays;
 
-    entry.state = Math.ceil((mhdDate.getTime() - curDate.getTime()) / oneDay);
+  item.state = null;
+  item.color = 'lightgrey';
 
-    minDays = Math.min(minDays, entry.state);
-    if (entry.state === 30) {
-      push.warn(`Das Mindesthaltbarkeitsdatum für ${item.sum} Einheit(en) des Produkts "${item.name}" wird in ${entry.state} Tagen überschritten!`, "SUMA evaluate");
-    }
-  });
-  item.state = wertZuFarbe(minDays / 1.5);
-  logger.silly(`evalProduct: item.id=${item.id}, item.state=${item.state}`);
+  if (item.entry_list && item.entry_list.length > 0) {
+    item.entry_list.forEach(entry => {
+      const curDate = new Date(); curDate.setHours(0, 0, 0, 0);
+      const mhdDate = new Date(entry.year, entry.month - 1, (isNaN(entry.day) ? 1 : entry.day), 0, 0, 0, 0);
 
-  const updateStmt = database.prepare(`UPDATE product SET state = ? WHERE id = ?`);
-  const { changes } = updateStmt.run(item.state, item.id);
-  logger.silly(`evalProduct: item state saved - rows changed=${changes}`);
+      entry.days_left = Math.max(0, Math.ceil((mhdDate.getTime() - curDate.getTime()) / oneDay));
+
+      item.days_left = Math.min(item.days_left, entry.days_left);
+      if (entry.days_left === item.pre_alert) {
+        push.warn(`Das Mindesthaltbarkeitsdatum für ${item.sum} Einheit(en) des Produkts "${item.name}" wird in ${entry.color} Tagen überschritten!`, "SUMA evaluate");
+      }
+    });
+
+    item.state = Math.ceil(item.days_left / minDays * 100)
+    item.color = stateToColor(item.state);
+  }
+
+  //console.log(item.id, item.name, item.state, item.color, );
+
+  const updateStmt = database.prepare(`UPDATE product SET color = ?, state = ? WHERE id = ?`);
+  const { changes } = updateStmt.run(item.color, item.state, item.id);
+  logger.silly(`evalProduct: item state + color saved - rows changed=${changes}`);
 
   item.next_date = getNextDate(item.entry_list);
 
   return item;
 };
 
-const wertZuFarbe = (wert) => {
-  wert = Math.max(0, Math.min(100, wert));
+const stateToColor = (state) => { //state = 0..100
   let r, g, b = 0;
 
-  if (wert <= 40) {
+  if (state <= 40) {
     r = 230;
-    g = Math.round((wert / 40) * 230);
+    g = Math.round((state / 40) * 230);
   } else {
-    r = Math.round(230 - ((wert - 40) / 60) * 230);
+    r = Math.round(230 - ((state - 40) / 60) * 230);
     g = 230;
   }
   return `rgb(${r},${g},${b})`;
 };
 
 const getNextDate = (entry_list) => {
-  //console.log("getNextDate", JSON.stringify(item));  
   if (entry_list && entry_list.length > 0) {
     const entry = entry_list[0];
     return ((isNaN(entry.day)) ? "" : entry.day + ".") + entry.month + "." + entry.year;

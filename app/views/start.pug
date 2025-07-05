@@ -91,20 +91,36 @@ html(lang="en")
 
     //- New product panel
     .panel#new_product
-      input#new_product_name(type="text" placeholder="Neues Product" autofocus title="" )
+      input#new_product_name(type="text" placeholder="Neues Product" autofocus title="Produktname" )
+      p Vorwarnzeit: 
+        select(id="new_pre_alert")
+            option(value="7") 7 Tage
+            option(value="14") 14 Tage
+            option(value="30" selected) 30 Tage
+            option(value="60") 60 Tage
+            option(value="90") 90 Tage
+      textarea(id="new_notes" placeholder="Anmerkungen" defaultValue="")
       p.orange(title="Neues Produkt erstellen" onclick="createProduct()")
         i.fa-regular.fa-square-check(aria-hidden="true")
 
     //- Edit product panel
     .panel(id="edit_product")
-      input(id='edit_product_name' type="text" placeholder="Produktname" autofocus title="Produktname" value="")
+      input(id='edit_product_name' type="text" placeholder="Produktname" autofocus title="Produktname")
+      p Vorwarnzeit: 
+        select(id="select_pre_alert")
+            option(value="7") 7 Tage
+            option(value="14") 14 Tage
+            option(value="30") 30 Tage
+            option(value="60") 60 Tage
+            option(value="90") 90 Tage
+      textarea(id="edit_notes" placeholder="Anmerkungen" defaultValue="Some notes")
 
       .left(style="margin-left: auto; margin-right: auto; width: 33%")
         p.lightgrey(itle="Gesamtes Produkt entfernen" onclick="deleteProduct()")
           i.fa-solid.fa-trash-can(aria-hidden="true")
 
       .left(style="margin-left: auto; margin-right: auto; width: 34%")
-        p.yellow(title="Neuen Namen des Produkts speichen" onclick="renameProduct()")
+        p.yellow(title="Neuen Namen des Produkts speichen" onclick="updateProduct()")
           i.fa-regular.fa-square-check(aria-hidden="true")
 
       .left(style="margin-left: auto; margin-right: auto; width: 33%")

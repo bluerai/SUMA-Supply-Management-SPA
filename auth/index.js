@@ -10,7 +10,6 @@ import { logger } from '../modules/log.js';
 
 const SUMA_CONFIG = process.env.SUMA_CONFIG || "../config";
 fs.ensureDirSync(SUMA_CONFIG, (error, exists) => {
-  console.log(21);
   if (error) { errorLogger(error); process.exit(1) }
 })
 
@@ -78,7 +77,6 @@ export function loginAction(req, res) {
       if (fs.existsSync(USERSFILE)) {
         users = fs.readJsonSync(USERSFILE);
       } else {
-        console.log("No users file");
         users[username] = password;
         fs.writeJsonSync(USERSFILE, users);
         logger.info(`User ${username}: Password saved`);

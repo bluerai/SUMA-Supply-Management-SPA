@@ -3,7 +3,7 @@
 
 let CATEGORY_ID;
 let PRODUCT_ID;
-let PRODUCT_SORT = 'date';
+let PRODUCT_SORT = 'relevance';
 let TOKEN = localStorage.getItem('token');
 
 
@@ -21,7 +21,7 @@ const error_Handler = (functionName, error, msg) => {
 };
 
 const displayMessage = (msg, sec) => {
-  document.getElementById('message').innerHTML = "<p>" + msg + "</p>";
+  document.getElementById('message').innerHTML = msg;
   if (displayMessageTimeoutHandler) clearTimeout(displayMessageTimeoutHandler);
   if (sec) {
     displayMessageTimeoutHandler = setTimeout(() => {
@@ -147,6 +147,7 @@ async function createNextCategory() {
 
 async function createPrevCategory() {
   const response = await fetch("/app/prev/" + (parseInt(CATEGORY_ID) || ""), { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+
   let page;
   if (response.status === 200) {
     const data = await response.json();
@@ -213,12 +214,15 @@ async function createCategoryPage(direction) {
 }
 
 function changeSort() {
-  if (PRODUCT_SORT === 'date') {
-    PRODUCT_SORT = 'name';
-  } else {
+  if (PRODUCT_SORT === 'name') {
     PRODUCT_SORT = 'date';
-  }
+  } else
+    if (PRODUCT_SORT === 'date') {
+      PRODUCT_SORT = 'relevance';
+    } else
+      PRODUCT_SORT = 'name';
   updateCategoryProducts(CATEGORY_ID);
+  displayMessage('sorted by '+ PRODUCT_SORT, 8);
   hidePanels();
 }
 
@@ -255,12 +259,11 @@ async function toggleDetails(id) {
       if (document.getElementById('sum' + id).innerHTML == "0") {
         const edit = document.getElementById('edit' + id).style;
         edit.display = "block";
-        document.getElementById('details' + id).scrollIntoView();
       }
     } else {
       responseFail_Handler("toggleDetails", response);
     }
-    document.getElementById('edit' + id).scrollIntoView();
+    document.getElementById('prod' + id).scrollIntoView();
   }
 }
 
@@ -356,20 +359,27 @@ async function toggleCategoryPrio() {
 }
 
 // Products
-async function renameProduct() {
+async function updateProduct() {
   const prodName = document.getElementById("edit_product_name").value;
+  const preAlert = document.getElementById("select_pre_alert").value;
+  const notes = document.getElementById("edit_notes").value;
+
   if (prodName && prodName.trim().length !== 0) {
-    const response = await fetch(
-      "/app/pro/ren/" + encodeURIComponent(prodName.trim()) + "/" + PRODUCT_ID,
-      { headers: { 'Authorization': `Bearer ${TOKEN}` } }
-    );
+    const response = await fetch("/app/pro/upd/" + PRODUCT_ID, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+      body: JSON.stringify({ "prodName": prodName.trim(), "preAlert": preAlert, "notes": notes })
+    });
 
     if (response.status === 200) {
-      const data = await response.json();
-      document.getElementById("product_name" + PRODUCT_ID).innerHTML = data.name;
-      if (document.getElementById("timestamp" + PRODUCT_ID)) document.getElementById("timestamp" + PRODUCT_ID).innerHTML = data.timestamp;
+      const item = await response.json();
+      document.getElementById("product_name" + PRODUCT_ID).innerHTML = item.name;
+      document.getElementById("color" + PRODUCT_ID).style.color = item.color;
+      if (document.getElementById("notes" + PRODUCT_ID)) document.getElementById("notes" + PRODUCT_ID).innerHTML = item.notes;
+      if (document.getElementById("pre_alert" + PRODUCT_ID)) document.getElementById("pre_alert" + PRODUCT_ID).innerHTML = item.pre_alert;
+      if (document.getElementById("timestamp" + PRODUCT_ID)) document.getElementById("timestamp" + PRODUCT_ID).innerHTML = item.timestamp;
     } else {
-      responseFail_Handler("renameProduct", response);
+      responseFail_Handler("updateProduct", response);
     }
   }
   hidePanels(PRODUCT_ID);
@@ -394,11 +404,14 @@ async function moveToCategory(catId) {
 
 async function createProduct() {
   const prodName = document.getElementById("new_product_name").value;
+  const preAlert = document.getElementById("new_pre_alert").value;
+  const notes = document.getElementById("new_notes").value;
   if (prodName && prodName.trim().length !== 0) {
-    const response = await fetch(
-      "/app/pro/" + CATEGORY_ID + "/" + encodeURIComponent(prodName.trim()),
-      { headers: { 'Authorization': `Bearer ${TOKEN}` } }
-    );
+    const response = await fetch("/app/pro/" + CATEGORY_ID, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+      body: JSON.stringify({ "prodName": prodName.trim(), "preAlert": preAlert, "notes": notes })
+    });
 
     if (response.status === 200) {
       const data = await response.json();
@@ -482,7 +495,7 @@ async function updateEntry(id, action) {
     document.getElementById('sum' + id).innerHTML = data.product.sum;
     document.getElementById('next_date' + id).innerHTML = (data.product.next_date) ? (data.product.next_date) : "";
     document.getElementById('details' + id).outerHTML = data.html;
-    if (document.getElementById('state' + id)) document.getElementById('state' + id).style.color = data.product.state;
+    if (document.getElementById('color' + id)) document.getElementById('color' + id).style.color = data.product.color;
   } else {
     responseFail_Handler("updateEntry", response);
   }
@@ -520,15 +533,25 @@ function createProductPanel() {
   document.getElementById('transparent').style.display = 'block';
   document.getElementById('select_category').style.display = 'none';
   document.getElementById('new_product_name').focus();
+  document.getElementById('new_notes').value = "";
 }
 
-function editProductPanel(productId) {
+async function editProductPanel(productId) {
   PRODUCT_ID = productId;
-  document.getElementById('edit_product_name').value = document.getElementById("product_name" + productId).innerHTML;
-  document.getElementById('edit_product').style.display = 'block';
-  document.getElementById('transparent').style.display = 'block';
-  document.getElementById('edit_product_name').focus();
+  const response = await fetch("/app/proddata/" + productId, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  if (response.status === 200) {
+    const item = await response.json();
+    document.getElementById('edit_product_name').value = item.name;
+    document.getElementById('select_pre_alert').value = item.pre_alert;
+    document.getElementById('edit_notes').value = item.notes;
+    document.getElementById('edit_product').style.display = 'block';
+    document.getElementById('transparent').style.display = 'block';
+    document.getElementById('edit_product_name').focus();
+  } else {
+    responseFail_Handler("toggleDetails", response);
+  }
 }
+
 function hidePanels() {
   document.getElementById('select_category').style.display = 'none';
   document.getElementById('select_category2').style.display = 'none';

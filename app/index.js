@@ -5,8 +5,8 @@ import { Router } from 'express';
 import {
   startAction, getAllHeadsAction, getDetailsAction, getCategoryAction, getNextCategoryAction, 
   getPrevCategoryAction, getCategoryListAction, renameCategoryAction, createCategoryAction, 
-  deleteCategoryAction, toggleCategoryStarAction, renameProductAction, moveProductAction,
-  createProductAction, deleteProductAction, updateAction
+  deleteCategoryAction, toggleCategoryStarAction, updateProductAction, moveProductAction,
+  createProductAction, deleteProductAction, updateAction, getProdDataAction
 } from './controller.js';
 
 export const appRouter = Router();
@@ -24,10 +24,11 @@ appRouter.get('/cat/:nam/:id', renameCategoryAction);
 appRouter.get('/cat/:nam', createCategoryAction);
 
 appRouter.get('/heads/:id/:sort?', getAllHeadsAction);
+appRouter.get('/proddata/:id', getProdDataAction);
 appRouter.get('/details/:id', getDetailsAction);
 appRouter.get('/pro/del/:id', deleteProductAction);
-appRouter.get('/pro/ren/:nam/:id', renameProductAction);
-appRouter.get('/pro/:catid/:nam', createProductAction);
+appRouter.post('/pro/upd/:id', updateProductAction);
+appRouter.post('/pro/:catid', createProductAction);
 
 appRouter.post('/upd', updateAction);
 

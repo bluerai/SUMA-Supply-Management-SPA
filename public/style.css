@@ -33,6 +33,7 @@ h2 {
   background-color: lightgrey;
   margin-left: auto;
   margin-right: auto;
+  padding-bottom: 20px;
   max-width: 600px;
   min-height: 100vh;
   /*für Swipe*/
@@ -155,11 +156,13 @@ select {
   cursor: pointer;
 }
 
-input:focus {
+input:focus,
+textarea:focus {
   outline: 3px solid rgb(0, 172, 234);
 }
 
-input {
+input,
+textarea {
   font-size: 16px;
 }
 
@@ -203,6 +206,7 @@ input[type="number"] {
 }
 
 .panel input,
+.panel textarea,
 .panel p {
   float: none;
   font-size: 18px;
@@ -217,10 +221,11 @@ input[type="number"] {
   margin: 0px
 }
 
-.panel input {
+.panel input,
+.panel textarea {
   color: black;
   width: calc(100% - 10px);
-  padding: 10px;
+  padding: 5px;
   margin: 5px;
 }
 
@@ -280,7 +285,8 @@ input[type="number"] {
   bottom: 0px;
   left: 0px;
   width: 100%;
-  background-color: darkgrey;
+  background-color: white;
+  padding: 5px;
 }
 
 #logo {
