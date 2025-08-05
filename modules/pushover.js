@@ -35,35 +35,35 @@ if (messagingfile) {
     }
 
     error(msg, title) {
-      if (this.valid) this._send(msg, title || "Fehler", 0, "intermission");
+      if (this.valid) this._send(msg, title || "SUMA Fehler", 0, "intermission");
     }
 
     warn(msg, title) {
-      if (this.valid) this._send(msg, title || "Warnung", 0, "none");
+      if (this.valid) this._send(msg, title || "SUMA Warnung", 0, "none");
     }
 
     info(msg, title) {
-      if (this.valid) this._send(msg, title || "Info", 0, "none");
+      if (this.valid) this._send(msg, title || "SUMA Info", 0, "none");
     }
 
     note(msg, title) {
-      if (this.valid) this._send(msg, title || "Hinweis", -1, "none");
+      if (this.valid) this._send(msg, title || "SUMA Hinweis", -1, "none");
     }
 
     syserror(msg, title) {
-      if (this.valid) this._send(msg, title || "System-Fehler", 0, "intermission", "admin");
+      if (this.valid) this._send(msg, title || "SUMA System-Fehler", 0, "intermission", "admin");
     }
 
     syswarn(msg, title) {
-      if (this.valid) this._send(msg, title || "System-Warnung", 0, "none", "admin");
+      if (this.valid) this._send(msg, title || "SUMA ystem-Warnung", 0, "none", "admin");
     }
 
     sysinfo(msg, title) {
-      if (this.valid) this._send(msg, title || "System-Info", 0, "none", "admin");
+      if (this.valid) this._send(msg, title || "SUMA System-Info", 0, "none", "admin");
     }
 
     sysnote(msg, title) {
-      if (this.valid) this._send(msg, title || "System-Hinweis", -1, "none", "admin");
+      if (this.valid) this._send(msg, title || "SUMA System-Hinweis", -1, "none", "admin");
     }
 
     async _send(msg, title, prio, sound, userKey = "user") {

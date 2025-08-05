@@ -165,7 +165,7 @@ export const getProduct = (id) => {
 };
 
 export const getAllProducts = () => {
-  const selectAllStmt = database.prepare(`SELECT id, name, sum, color, entry_list, pre_alert, notes, datetime(moddate,'unixepoch','localtime') as timestamp FROM product ORDER BY LOWER(name) ASC`);
+  const selectAllStmt = database.prepare(`SELECT id, name, sum, color, state,entry_list, pre_alert, notes, datetime(moddate,'unixepoch','localtime') as timestamp FROM product ORDER BY LOWER(name) ASC`);
   const data = selectAllStmt.all().map(item => ({
     ...item,
     entry_list: item.entry_list ? JSON.parse(item.entry_list) : [],
@@ -239,6 +239,8 @@ export const updateEntry = (data) => {
 };
 
 export const evalProduct = (item) => {
+  const old_state = item.state
+  
   const minDays = 5 * item.pre_alert;
   item.days_left = minDays;
 
@@ -262,11 +264,11 @@ export const evalProduct = (item) => {
     item.color = stateToColor(item.state);
   }
 
-  //console.log(item.id, item.name, item.state, item.color, );
-
-  const updateStmt = database.prepare(`UPDATE product SET color = ?, state = ? WHERE id = ?`);
-  const { changes } = updateStmt.run(item.color, item.state, item.id);
-  logger.silly(`evalProduct: item state + color saved - rows changed=${changes}`);
+  if (item.state !== old_state ) {
+    const updateStmt = database.prepare(`UPDATE product SET color = ?, state = ? WHERE id = ?`);
+    const { changes } = updateStmt.run(item.color, item.state, item.id);
+    logger.silly(`evalProduct: tate + color saved - rows changed=${changes}`);
+  }
 
   item.next_date = getNextDate(item.entry_list);
 

@@ -26,8 +26,8 @@ function evaluateJob() {
     logger.info("Cron: evaluateJob startet.");
     evaluate();
   } catch (error) {
-    const msg = 'SUMA: Fehler in CronJob "evaluateJob": ' + error.message;
-    logger.error(msg);
+    const msg = 'Fehler in CronJob "evaluateJob": ' + error.message;
+    logger.error("SUMA error:" + msg);
     logger.debug(error.stack);
     push.error(msg);
   }
@@ -40,8 +40,8 @@ async function backupDatabaseJob() {
     databaseBackup();
 
   } catch (error) {
-    const msg = 'SUMA: Fehler in CronJob "backupDatabaseJob": ' + error.message;
-    logger.error(msg);
+    const msg = 'Fehler in CronJob "backupDatabaseJob": ' + error.message;
+    logger.error("SUMA error: " + msg);
     logger.debug(error.stack);
     push.error(msg);
   }

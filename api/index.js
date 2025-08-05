@@ -25,11 +25,11 @@ export function evalAction(request, response) {
     response.json(evaluate());
   }
   catch (error) {
-    const msg = "SUMA: Interner Fehler in 'evalAction': " + error.message;
-    logger.error(msg);
+    const msg = "Interner Fehler in 'evalAction': " + error.message;
+    logger.error("SUMA Error: " + msg);
     logger.debug(error.stack);
     push.syserror(msg);
-    response.json({ state: false, msg: msg });
+    response.json({ state: false, msg: "SUMA Error: " + msg });
   }
 }
 
@@ -37,25 +37,27 @@ export function evalAction(request, response) {
 setTimeout(() => { evaluate(true) }, 10000)
 
 export function evaluate() {
-  let msg = "SUMA evaluate: ";
+  let msg = "Evaluate: ";
   try {
     connectDb();
     let data = getAllProducts();
     let changeCount = 0;
     for (let item of data) {
       if (item.sum > 0) {
-        (evalProduct(item)) && changeCount++;
+        const old_state = item.state;
+        item = evalProduct(item);
+        if (item.state !== old_state) changeCount++;
       }
     }
-    msg += "Der Status von " + changeCount + "/" + data.length + " Produkten wurde aktualisiert. ";
+    msg += "Der Status von " + changeCount + " von " + data.length + " Produkten wurde aktualisiert. ";
     logger.info(msg);
-    push.sysinfo(msg);
-    return { state: true, msg: msg };
+    if (changeCount > 0) push.sysinfo(msg);
+    return { state: true, msg: "SUMA: " + msg };
   } catch (err) {
     msg += `Fehler beim Evaluieren der Produkte: ${err}`
-    logger.error(msg);
+    logger.error("SUMA Error: " + msg);
     push.syserror(msg);
-    return ({ "state": false, "msg": msg });
+    return ({ "state": false, "msg": "SUMA Error: " + msg });
   }
 }
 
@@ -99,8 +101,9 @@ export function backupAction(request, response) {
     response.json(databaseBackup());
   }
   catch (error) {
-    const msg = "SUMA: Interner Fehler in 'databaseBackup': " + error.message;
-    logger.error(msg);
+    const msg = "Interner Fehler in 'databaseBackup': " + error.message;
+    logger.error("SUMA Error: " + msg);
+    PushManager.syserror(msg)
     response.json({ state: false, msg: msg });
   }
 }
@@ -112,7 +115,7 @@ const backupdir = process.env.SUMA_BACKUP;
 // Kopiere die Datei SUMA.db in ein Verzeichnis backups, wenn das Verzeichnis backups leer ist 
 // oder wenn SUMA.db neuer ist als jede Datei im Verzeichnis backups
 export function databaseBackup() {
-  let msg = "SUMA backup: ";
+  let msg = "Backup: ";
   try {
     logger.info("databaseBackup");
     // Prüfen, ob Datei SUMA_DB existiert und lesbar ist
@@ -151,20 +154,20 @@ export function databaseBackup() {
       push.sysinfo(msg);
     }
     logger.debug(msg);
-    return ({ "state": true, "msg": msg });
+    return ({ "state": true, "msg": "SUMA: " + msg });
 
   } catch (err) {
     msg += `Fehler beim Backup der Datenbank-Datei ${databasefile}: err`
-    logger.error(msg);
+    logger.error("SUMA Error: " + msg);
     push.syserror(msg);
-    return ({ "state": false, "msg": msg });
+    return ({ "state": false, "msg": "SUMA: " + msg });
   }
 }
 
 //Backup-Verzeichnis aufräumen
 //Solange es mindestens 3 Backups gibt, werden die ältesten Backups gelöscht löschen, wenn diese älter als 7 Tage sind
 function cleanupBackupFiles() {
-  let msg = "SUMA cleanup: ";
+  let msg = "Cleanup: ";
   try {
     // BackupDateien finden und nach Änderungsdatum sortieren
     const backupFiles = fs.readdirSync(backupdir);
@@ -185,22 +188,22 @@ function cleanupBackupFiles() {
 
         if (fileAgeInDays > 7) {
           fs.removeSync(filepath);
-          logger.silly(`${msg}Alte Backup-Datei gelöscht: ${filepath}`);
+          logger.silly(`SUMA: ${msg}Alte Backup-Datei gelöscht: ${filepath}`);
           deletedCount++;
         }
       }
       msg = deletedCount > 0 ?
-        `SUMA: Alte Backup-Dateien aufgeräumt! Löschungen: ${deletedCount}` :
-        "SUMA: Keine alten Backup-Dateien gelöscht.";
+        `Alte Backup-Dateien aufgeräumt! Löschungen: ${deletedCount}` :
+        "Keine alten Backup-Dateien gelöscht.";
     }
-    logger.debug(msg);
+    logger.debug("SUMA: " + msg);
     push.sysinfo(msg);
-    return ({ "state": true, "msg": msg });
+    return ({ "state": true, "msg": "SUMA: " + msg });
 
   } catch (err) {
     msg += `Fehler beim Cleanup der Datenbank-Backups: ${err}`
-    logger.error(msg);
+    logger.error("SUMA: " + msg);
     push.syserror(msg);
-    return ({ "state": false, "msg": msg });
+    return ({ "state": false, "msg": "SUMA Error: " + msg });
   }
 }
