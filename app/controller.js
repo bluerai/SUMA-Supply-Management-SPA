@@ -21,7 +21,7 @@ logger.info(appInfo.version + " - " + appInfo.author);
 // Helper functions ==========================================================
 const responseCategory = (response, data) => {
   if (!data) return response.status(204).json({});
-  logger.debug("getCategoryAction: data=" + JSON.stringify(data));
+  //logger.debug("getCategoryAction: data=" + JSON.stringify(data));
   response.locals.categoryId = data.category.id;
 
   response.render(import.meta.dirname + '/views/category_page', data, (error, html) => {
@@ -211,9 +211,8 @@ export async function createCategoryAction(request, response) {
 
 export async function deleteCategoryAction(request, response) {
   try {
-    logger.info("deleteCategoryAction");
-    logger.debug("deleteCategoryAction: request.params=" + request.url.substr(0, 32));
     const id = (request.params.id) && parseInt(request.params.id, 10);
+    logger.info("deleteCategoryAction: id=" + id);
     deleteCategory(id);
 
     const data = getCategory();
@@ -226,17 +225,14 @@ export async function deleteCategoryAction(request, response) {
 
 export async function toggleCategoryStarAction(request, response) {
   try {
-    logger.info("toggleCategoryStarAction");
-    logger.debug("toggleCategoryStarAction" + request.url.substr(0, 32));
     const categoryId = parseInt(request.params.id);
-    const data = toggleCategoryStar(categoryId);
+    logger.debug("toggleCategoryStarAction: id=" + categoryId);
 
-    logger.debug("toggleCategoryStarAction: id=" + data.category.id);
-    logger.silly("toggleCategoryStarAction: data=" + JSON.stringify(data));
-    renderView(response, import.meta.dirname + '/views/category_head', data.category, (html) => {
-      logger.debug("Category_head: html.length=" + html.length);
-      response.status(200).json({ html });
-    });
+    toggleCategoryStar(categoryId);
+
+    const data = getCategory(categoryId);
+    responseCategory(response, data);
+
   } catch (error) {
     errorHandler(error, 'toggleCategoryStarAction', response);
   }

@@ -19,26 +19,74 @@ fs.pathExists(databasefile, (err, exists) => {
     }
   } else {
     database.exec(`
-      CREATE TABLE IF NOT EXISTS category (
-        id   INTEGER PRIMARY KEY ON CONFLICT ROLLBACK AUTOINCREMENT UNIQUE NOT NULL,
-        name TEXT (16) NOT NULL UNIQUE,
-        prio INTEGER DEFAULT (0) 
-      );
-      CREATE TABLE IF NOT EXISTS product (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-        category_id INTEGER REFERENCES category (id) ON DELETE RESTRICT,
-        name        TEXT    NOT NULL,
-        notes       TEXT,
-        sum         INTEGER,
-        color       TEXT,
-        entry_list  TEXT,
-        moddate     INTEGER DEFAULT (strftime('%s')) 
-      );
+CREATE TABLE IF NOT EXISTS category (
+    id   INTEGER   PRIMARY KEY ON CONFLICT ROLLBACK AUTOINCREMENT UNIQUE NOT NULL,
+    name TEXT (16) NOT NULL UNIQUE,
+    prio INTEGER   DEFAULT (0) 
+);
+CREATE TABLE IF NOT EXISTS product (
+    id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    category_id INTEGER REFERENCES category (id) ON DELETE RESTRICT,
+    name        TEXT    NOT NULL,
+    notes       TEXT,
+    sum         INTEGER,
+    color       TEXT,
+    entry_list  TEXT,
+    moddate     INTEGER DEFAULT (strftime('%s') ),
+    pre_alert   INTEGER NOT NULL DEFAULT (30),
+    state       INTEGER DEFAULT (100) 
+);
+CREATE TRIGGER IF NOT EXISTS update_moddate
+         AFTER UPDATE
+            ON product
+          WHEN OLD.name IS NOT NEW.name OR
+               OLD.pre_alert IS NOT NEW.pre_alert OR
+               OLD.notes IS NOT NEW.notes OR
+               OLD.entry_list IS NOT NEW.entry_list OR
+               OLD.category_id IS NOT NEW.category_id
+BEGIN
+    UPDATE product
+       SET moddate = strftime('%s') 
+     WHERE id = OLD.id;
+END;
     `);
     logger.info(`A new SUMA database was successfully created and opened at "${databasefile}".`);
   }
 });
 
+/* 
+PRAGMA foreign_keys = 0;
+
+CREATE TABLE sqlitestudio_temp_table AS SELECT *
+  FROM category;
+
+DROP TABLE category;
+
+CREATE TABLE category(
+    id   INTEGER   PRIMARY KEY ON CONFLICT ROLLBACK AUTOINCREMENT
+                   UNIQUE
+                   NOT NULL,
+    name TEXT(16) NOT NULL
+                   UNIQUE,
+    prio INTEGER   DEFAULT(0),
+    auto INTEGER
+  );
+
+INSERT INTO category(
+    id,
+    name,
+    prio
+  )
+                     SELECT id,
+  name,
+  prio
+                       FROM sqlitestudio_temp_table;
+
+DROP TABLE sqlitestudio_temp_table;
+
+PRAGMA foreign_keys = 1;
+
+ */
 export function connectDb() {
   try {
     database.open();
@@ -80,11 +128,14 @@ export const getCategory = (categoryId, prodsort) => {
 
   categoryId = categoryId || categories[0].id;
   const category = oneCategory(categoryId);
-  logger.silly(`getCategory: category=${JSON.stringify(category)}`);
 
-  const selectProductsStmt = database.prepare(`SELECT id, name, sum, color, state, entry_list FROM product WHERE category_id = ? ORDER BY LOWER(name) ASC`);
+  const sqlStmt = (category.prio == 2) ?
+    `SELECT id, name, sum, color, state, entry_list FROM product WHERE state IS NOT NULL ORDER BY state ASC LIMIT 10` :
+    `SELECT id, name, sum, color, state, entry_list FROM product WHERE category_id = ${categoryId} ORDER BY LOWER(name) ASC`;
 
-  let products = selectProductsStmt.all(categoryId).map(product => ({
+  const selectProductsStmt = database.prepare(sqlStmt);
+
+  let products = selectProductsStmt.all().map(product => ({
     ...product,
     entry_list: JSON.parse(product.entry_list),
     next_date: getNextDate(JSON.parse(product.entry_list))
@@ -137,8 +188,12 @@ export const deleteCategory = (id) => {
   logger.debug(`deleteCategory: category ${id} deleted - rows deleted=${changes}`);
 };
 
-export const toggleCategoryStar = (categoryId) => {
-  const toggleStmt = database.prepare(`UPDATE category SET prio = CASE WHEN prio = 0 THEN 1 ELSE 0 END WHERE id = ?`);
+export const toggleCategoryStar = (categoryId, prioToggle) => {
+  const countProductsStmt = database.prepare(`SELECT count(*) as count FROM product WHERE category_id = ${categoryId}`);
+  const productCount = countProductsStmt.get();
+  prioToggle = (productCount.count > 0) ? 2 : 3;
+
+  const toggleStmt = database.prepare(`UPDATE category SET prio = (prio + 1) % ${prioToggle} WHERE id = ?;`);
   const { changes } = toggleStmt.run(categoryId);
   logger.debug(`toggleCategoryStar: category ${categoryId} toggled - rows changed=${changes}`);
   return { category: oneCategory(categoryId) };
@@ -240,7 +295,7 @@ export const updateEntry = (data) => {
 
 export const evalProduct = (item) => {
   const old_state = item.state
-  
+
   const minDays = 5 * item.pre_alert;
   item.days_left = minDays;
 
@@ -264,7 +319,7 @@ export const evalProduct = (item) => {
     item.color = stateToColor(item.state);
   }
 
-  if (item.state !== old_state ) {
+  if (item.state !== old_state) {
     const updateStmt = database.prepare(`UPDATE product SET color = ?, state = ? WHERE id = ?`);
     const { changes } = updateStmt.run(item.color, item.state, item.id);
     logger.silly(`evalProduct: tate + color saved - rows changed=${changes}`);

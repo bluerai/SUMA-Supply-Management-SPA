@@ -58,7 +58,7 @@ html(lang="en")
 
     //- Edit category panel
     .panel#edit_category
-      input#edit_category_name(type="text" placeholder="Kategorie" autofocus title="" value=name)
+      input#edit_category_name(type="text" placeholder="Kategorie" autofocus title="")
 
       .left(style="width: 50%")
         p.lightgrey(title="Kategorie löschen" onclick="deleteCategory()")
@@ -69,11 +69,12 @@ html(lang="en")
           i.fa-regular.fa-square-check(aria-hidden="true")
 
       .left(style="width: 50%")
-        p.yellow(title="Priorität bearbeiten" onclick="toggleCategoryPrio()")
-          i.fa-solid.fa-star#category_star(class="prio1" aria-hidden="true")
+        p#edit_category_prio.yellow(title="Priorität bearbeiten" onclick="toggleCategoryPrio()")
+          i.fa-solid.fa-star#category_star(aria-hidden="true") 
+          span#category_text
 
       .left(style="width: 50%")
-        p.orange(title="Sortierung ändern" onclick="changeSort()")
+        p.orange(title="Sortierung der Produkte ändern" onclick="changeSort()")
           i.fa.fa-arrows-v(aria-hidden="true")
 
     //- category list panel

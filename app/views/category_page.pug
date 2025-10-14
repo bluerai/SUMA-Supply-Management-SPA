@@ -10,7 +10,8 @@
     button.orange(title="Neues Produkt hinzufügen" onclick="createProductPanel()")
       i.fa-regular.fa-square-plus(aria-hidden="true")
   
-  #category_head.pointer(title="Kategorie bearbeiten" onclick="editCategoryPanel('" + category.name + "')") 
+  #category_head.pointer(title="Kategorie bearbeiten" 
+    onclick=`editCategoryPanel('${category.name}', '${category.prio}')`)
     
     #flex_left
       i.fa-solid.fa-star(class="prio" + category.prio style="font-size: 14px")

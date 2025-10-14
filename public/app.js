@@ -222,7 +222,7 @@ function changeSort() {
     } else
       PRODUCT_SORT = 'name';
   updateCategoryProducts(CATEGORY_ID);
-  displayMessage('sorted by '+ PRODUCT_SORT, 8);
+  displayMessage('sorted by ' + PRODUCT_SORT, 8);
   hidePanels();
 }
 
@@ -332,13 +332,28 @@ async function deleteCategory() {
 
     if (response.status === 200) {
       const data = await response.json();
-      CATEGORY_ID = data.categoryId;
-      document.getElementById('category_head').outerHTML = data.category_html;
-      document.getElementById("prodlist").outerHTML = data.products_html;
+
+      CATEGORY_ID = data.categoryId;  //falls ohne id aufgerufen
+      const container = document.getElementById('swipe-container')
+      let currentPage = container.querySelector('.current');
+      if (!currentPage) {
+        currentPage = document.createElement('div');
+        container.appendChild(currentPage); currentPage.innerHTML = data.html;
+        currentPage.classList.add('swipe-page');
+        currentPage.classList.add('current');
+      }
+      currentPage.innerHTML = data.html;
+      currentPage.classList.add('swipe-page');
+      currentPage.classList.add('current');
+
       updateCategoryList('category_list', 'get');
+      displayMessage(data.appInfo.version + ", " + location.protocol + "//" + location.host, 4);
+    } else if (response.status === 204) {
+      // nothing to do
     } else {
-      responseFail_Handler("deleteCategory", response);
+      responseFail_Handler("getCategory", response);
     }
+
   } else {
     alert("Zum Löschen müssen zunächst alle Produkte dieser Kategorie entfernt werden.");
   }
@@ -346,15 +361,34 @@ async function deleteCategory() {
 }
 
 async function toggleCategoryPrio() {
-  const response = await fetch("/app/cat/star/" + CATEGORY_ID, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+
+  const url = "/app/cat/star/" + CATEGORY_ID;
+  const response = await fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}` } });;
 
   if (response.status === 200) {
     const data = await response.json();
-    document.getElementById('category_head').outerHTML = data.html;
+
+    CATEGORY_ID = data.categoryId;  //falls ohne id aufgerufen
+    const container = document.getElementById('swipe-container')
+    let currentPage = container.querySelector('.current');
+    if (!currentPage) {
+      currentPage = document.createElement('div');
+      container.appendChild(currentPage); currentPage.innerHTML = data.html;
+      currentPage.classList.add('swipe-page');
+      currentPage.classList.add('current');
+    }
+    currentPage.innerHTML = data.html;
+    currentPage.classList.add('swipe-page');
+    currentPage.classList.add('current');
+
     updateCategoryList('category_list', 'get');
+    displayMessage(data.appInfo.version + ", " + location.protocol + "//" + location.host, 4);
+  } else if (response.status === 204) {
+    // nothing to do
   } else {
-    responseFail_Handler("toggleCategoryPrio", response);
+    responseFail_Handler("getCategory", response);
   }
+
   hidePanels();
 }
 
@@ -521,8 +555,14 @@ function createCategoryPanel() {
   document.getElementById('new_category_name').focus();
 }
 
-function editCategoryPanel(oldName) {
-  document.getElementById('edit_category_name').value = oldName;
+function editCategoryPanel(currentName, currentPrio) {
+  document.getElementById('edit_category_name').value = currentName;
+  //document.getElementById('edit_category_prio').setAttribute('data-value', prio);
+  document.getElementById('category_star').classList.remove(`prio0`);
+  document.getElementById('category_star').classList.remove(`prio1`);
+  document.getElementById('category_star').classList.remove(`prio2`);
+  document.getElementById('category_star').classList.add(`prio${currentPrio}`);
+  document.getElementById('category_text').textContent = (currentPrio == 0) ? ' normal' : (currentPrio == 1) ? ' Prioriät' : ' Top Ten';
   document.getElementById('edit_category').style.display = 'block';
   document.getElementById('transparent').style.display = 'block';
   document.getElementById('edit_category_name').focus();

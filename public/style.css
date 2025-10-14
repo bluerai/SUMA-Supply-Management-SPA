@@ -197,6 +197,10 @@ input[type="number"] {
   cursor: pointer;
 }
 
+.prio2 {
+  color: rgb(230, 0, 0);
+}
+
 .prio1 {
   color: rgb(0, 172, 234);
 }

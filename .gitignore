@@ -144,3 +144,4 @@ logs
 .env.dev
 public/.DS_Store
 public/.DS_Store
+.vscode
