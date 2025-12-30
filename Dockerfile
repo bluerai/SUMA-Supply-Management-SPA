@@ -22,7 +22,7 @@ ENV SUMA_CERTFILE=cert.pem
 ENV CRON_EVAL="0 0 10,22 * * *"
 ENV CRON_BACKUP="0 0 23 * * *"
 
-HEALTHCHECK --interval=5m --timeout=5s --retries=3 \
+HEALTHCHECK --interval=60m --timeout=5s --retries=3 \
   CMD ["sh", "healthcheck.sh"]
 
 CMD [ "node", "server.js" ]

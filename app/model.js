@@ -311,7 +311,7 @@ export const evalProduct = (item) => {
 
       item.days_left = Math.min(item.days_left, entry.days_left);
       if (entry.days_left === item.pre_alert) {
-        push.warn(`Das Mindesthaltbarkeitsdatum für ${item.sum} Einheit(en) des Produkts "${item.name}" wird in ${entry.color} Tagen überschritten!`, "SUMA evaluate");
+        push.warn(`Das Mindesthaltbarkeitsdatum für ${item.sum} Einheit(en) des Produkts "${item.name}" wird in ${entry.days_left} Tagen überschritten!`, "SUMA evaluate");
       }
     });
 
