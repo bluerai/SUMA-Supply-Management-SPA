@@ -5,21 +5,20 @@ import { push } from '../modules/pushover.js';
 import { evaluate, databaseBackup } from '../api/index.js';
 import { logger } from './log.js';
 
-export const evaluateCronJob = new CronJob(
-  process.env.CRON_EVAL, // cronTime
-  evaluateJob, // onTick
-  null, // onComplete
-  false, // start
-  process.env.TZ // timeZone
-);
+const createCronJob = (cronTime, onTick) => {
+  if (!cronTime) {
+    // Provide a no-op stub to avoid crashing when the environment isn't configured.
+    return {
+      start: () => {},
+      stop: () => {},
+      nextDate: () => null,
+    };
+  }
+  return new CronJob(cronTime, onTick, null, false, process.env.TZ);
+};
 
-export const databaseBackupCronJob = new CronJob(
-  process.env.CRON_BACKUP, // cronTime
-  backupDatabaseJob, // onTick
-  null, // onComplete
-  false, // start
-  process.env.TZ // timeZone
-);
+export const evaluateCronJob = createCronJob(process.env.CRON_EVAL, evaluateJob);
+export const databaseBackupCronJob = createCronJob(process.env.CRON_BACKUP, backupDatabaseJob);
 
 function evaluateJob() {
   try {

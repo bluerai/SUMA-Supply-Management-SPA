@@ -1,15 +1,31 @@
 'use strict';
 
-import { DatabaseSync } from 'node:sqlite';
 import fs from 'fs-extra';
 import { logger } from '../modules/log.js';
 import { push } from '../modules/pushover.js';
 
-const databasefile = process.env.SUMA_DB;
+let DatabaseSync;
+try {
+  // Node >= 22 ships an (experimental) SQLite module under node:sqlite.
+  ({ DatabaseSync } = await import('node:sqlite'));
+} catch (error) {
+  // If not available, fall back to a maintained SQLite library with a similar
+  // synchronous API (used throughout this project).
+  const betterSqlite = await import('better-sqlite3');
+  DatabaseSync = betterSqlite.default;
+}
+
+const databasefile = process.env.SUMA_DB || './SUMA.db';
 let database;
 
 fs.pathExists(databasefile, (err, exists) => {
-  database = new DatabaseSync(databasefile, { open: true });
+  try {
+    database = new DatabaseSync(databasefile, { open: true });
+  } catch (error) {
+    // some sqlite libraries (e.g. better-sqlite3) do not support an "open" option.
+    database = new DatabaseSync(databasefile);
+  }
+
   if (exists) {
     if (!database) {
       logger.info(`Could not connect to SUMA database at "${databasefile}".`);

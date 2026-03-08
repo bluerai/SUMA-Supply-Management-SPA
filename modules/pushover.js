@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 import { logger } from './log.js';
 import { join } from 'path';
 
-const messagingfile = join(process.env.SUMA_CONFIG, "pushover.json");
+const messagingfile = process.env.SUMA_CONFIG ? join(process.env.SUMA_CONFIG, "pushover.json") : null;
 
 class PushMessage {
   constructor(credentials) {
