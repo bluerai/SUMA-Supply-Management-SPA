@@ -424,10 +424,10 @@ async function moveToCategory(catId) {
 
   if (response.status === 200) {
     const data = await response.json();
+    
     CATEGORY_ID = data.categoryId;
-    document.getElementById('category_head').outerHTML = data.category_html;;
-    document.getElementById("prodlist").outerHTML = data.products_html;
-    updateCategoryList('category_list', 'get');
+    document.getElementById('prodlist').remove();
+    document.getElementById('header').outerHTML = data.html;
   } else if (response.status === 204) {
     // nothing to do
   } else {
