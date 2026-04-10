@@ -1,7 +1,7 @@
 'use strict';
 
 import pug from 'pug';
-import { logger } from '../modules/log.js';
+import { log } from '../modules/log.js';
 import packagejson from '../package.json' with { type: 'json' };
 
 import {
@@ -16,29 +16,29 @@ const appInfo = {
   author: packagejson.license + " - " + packagejson.author
 };
 
-logger.info(appInfo.version + " - " + appInfo.author);
+log(appInfo.version + " - " + appInfo.author);
 
 // Helper functions ==========================================================
 const responseCategory = (response, data) => {
   if (!data) return response.status(204).json({});
-  //logger.debug("getCategoryAction: data=" + JSON.stringify(data));
+  //log.debug("getCategoryAction: data=" + JSON.stringify(data));
   response.locals.categoryId = data.category.id;
 
   response.render(import.meta.dirname + '/views/category_page', data, (error, html) => {
     if (error) {
-      logger.error(error);
-      logger.debug(error.stack);
+      log.error(error);
+      log.debug(error.stack);
       return;
     }
-    logger.debug("Category_list: html.length=" + html.length);
+    log.debug("Category_list: html.length=" + html.length);
     response.status(200).json({ categoryId: response.locals.categoryId, html: html, appInfo });
   });
 };
 
 const errorHandler = (error, actionName, response) => {
   const message = "SUMA: Fehler in '" + actionName + "': " + error.message;
-  logger.error(message);
-  if (error.stack) logger.debug(error.stack);
+  log.error(message);
+  if (error.stack) log.debug(error.stack);
   if (response) {
     response.status(500).json({ message: message });
   }
@@ -57,7 +57,7 @@ const renderView = (response, viewPath, data, callback) => {
 // Actions ===================================================================
 export async function startAction(request, response) {
   try {
-    logger.info("startAction: request.url=" + request.url.substr(0, 32));
+    log("startAction: request.url=" + request.url.substr(0, 32));
     response.render(import.meta.dirname + '/views/start');
   } catch (error) {
     errorHandler(error, 'startAction', response);
@@ -66,7 +66,7 @@ export async function startAction(request, response) {
 
 export async function getCategoryAction(request, response) {
   try {
-    logger.debug("getCategoryAction: request.url=" + request.url.substr(0, 32));
+    log.debug("getCategoryAction: request.url=" + request.url.substr(0, 32));
     const data = getCategory((request.params.id) && parseInt(request.params.id, 10));
     responseCategory(response, data);
   } catch (error) {
@@ -76,7 +76,7 @@ export async function getCategoryAction(request, response) {
 
 export async function getNextCategoryAction(request, response) {
   try {
-    logger.debug("getNextCategoryAction: request.url=" + request.url.substr(0, 32));
+    log.debug("getNextCategoryAction: request.url=" + request.url.substr(0, 32));
     const data = getNextCategory((request.params.id) && parseInt(request.params.id, 10));
     responseCategory(response, data);
   } catch (error) {
@@ -86,7 +86,7 @@ export async function getNextCategoryAction(request, response) {
 
 export async function getPrevCategoryAction(request, response) {
   try {
-    logger.debug("getPrevCategoryAction: request.url=" + request.url.substr(0, 32));
+    log.debug("getPrevCategoryAction: request.url=" + request.url.substr(0, 32));
     const data = getPrevCategory((request.params.id) && parseInt(request.params.id, 10));
     responseCategory(response, data);
   } catch (error) {
@@ -96,10 +96,10 @@ export async function getPrevCategoryAction(request, response) {
 
 export async function getCategoryListAction(request, response) {
   try {
-    logger.debug("getCategoryListAction: request.url=" + request.url.substr(0, 32));
+    log.debug("getCategoryListAction: request.url=" + request.url.substr(0, 32));
     const func = request.params.func;
     renderView(response, import.meta.dirname + '/views/category_list', { allCategories: allCategories(), func: func }, (html) => {
-      logger.debug("Category_list: html.length=" + html.length);
+      log.debug("Category_list: html.length=" + html.length);
       response.status(200).json({ category: response.locals.category, html: html });
     });
   } catch (error) {
@@ -109,15 +109,15 @@ export async function getCategoryListAction(request, response) {
 
 export async function getAllHeadsAction(request, response) {
   try {
-    logger.debug("getAllHeadsAction: request.url=" + request.url.substr(0, 32));
+    log.debug("getAllHeadsAction: request.url=" + request.url.substr(0, 32));
     const categoryId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     const prodsort = request.params.sort.trim() || 'relevance';
     const category = getCategory(categoryId, prodsort);
-    logger.silly("getAllHeadsAction: category=" + JSON.stringify(category));
+    log.silly("getAllHeadsAction: category=" + JSON.stringify(category));
 
     renderView(response, import.meta.dirname + '/views/product_head_list', { products: category.products }, (html) => {
-      logger.debug("getAllHeadsAction: html.length=" + html.length);
-      logger.silly("getAllHeadsAction: html=" + html);
+      log.debug("getAllHeadsAction: html.length=" + html.length);
+      log.silly("getAllHeadsAction: html=" + html);
       response.json({ html });
     });
   } catch (error) {
@@ -127,13 +127,13 @@ export async function getAllHeadsAction(request, response) {
 
 export async function getDetailsAction(request, response) {
   try {
-    logger.debug("getDetailsAction: request.params=" + request.url.substr(0, 32));
+    log.debug("getDetailsAction: request.params=" + request.url.substr(0, 32));
     const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     const item = getProduct(curItemId);
-    logger.silly("getDetailsAction: item=" + JSON.stringify(item));
+    log.silly("getDetailsAction: item=" + JSON.stringify(item));
 
     renderView(response, import.meta.dirname + '/views/product_details', { item: item }, (html) => {
-      logger.silly("getDetailsAction: html.length=" + html.length);
+      log.silly("getDetailsAction: html.length=" + html.length);
       response.json({ html });
     });
   } catch (error) {
@@ -144,7 +144,7 @@ export async function getDetailsAction(request, response) {
 
 export async function getProdDataAction(request, response) {
   try {
-    logger.debug("getProdDataAction: request.params=" + request.url.substr(0, 32));
+    log.debug("getProdDataAction: request.params=" + request.url.substr(0, 32));
     const curItemId = (request.params.id) && parseInt(request.params.id, 10) || 0;
     const item = getProduct(curItemId);
     response.json(item);
@@ -157,7 +157,7 @@ export async function updateAction(request, response) {
   try {
     const data = request.body;
     const item = updateEntry(data);
-    logger.silly("updateAction: item=" + JSON.stringify(item));
+    log.silly("updateAction: item=" + JSON.stringify(item));
 
     if (item) {
       response.locals.item = item;
@@ -174,16 +174,16 @@ export async function updateAction(request, response) {
 
 export async function renameCategoryAction(request, response) {
   try {
-    logger.debug("renameCategoryAction: request.params=" + request.url.substr(0, 32));
+    log.debug("renameCategoryAction: request.params=" + request.url.substr(0, 32));
 
     const categoryName = (!request.params.nam) ? "Produkt" : request.params.nam.trim();
     const categoryId = (request.params.id) && parseInt(request.params.id, 10);
     const data = renameCategory(categoryId, categoryName);
 
-    logger.debug("renameCategoryAction: id=" + data.category.id);
-    logger.silly("renameCategoryAction: data=" + JSON.stringify(data));
+    log.debug("renameCategoryAction: id=" + data.category.id);
+    log.silly("renameCategoryAction: data=" + JSON.stringify(data));
     renderView(response, import.meta.dirname + '/views/category_head', data.category, (html) => {
-      logger.debug("Category_head: html.length=" + html.length);
+      log.debug("Category_head: html.length=" + html.length);
       response.status(200).json({ html });
     });
   } catch (error) {
@@ -193,15 +193,15 @@ export async function renameCategoryAction(request, response) {
 
 export async function createCategoryAction(request, response) {
   try {
-    logger.debug("createCategoryAction: request.params=" + request.url.substr(0, 32));
+    log.debug("createCategoryAction: request.params=" + request.url.substr(0, 32));
     const categoryName = (!request.params.nam) ? "Produkt" : request.params.nam.trim();
     const data = createCategory(categoryName);
 
-    logger.debug("createCategoryAction: categoryId=" + data.category.id);
-    logger.silly("createCategoryAction: data=" + JSON.stringify(data));
+    log.debug("createCategoryAction: categoryId=" + data.category.id);
+    log.silly("createCategoryAction: data=" + JSON.stringify(data));
     response.locals.categoryId = data.category.id;
     renderView(response, import.meta.dirname + '/views/category_head', data.category, (html) => {
-      logger.debug("Category_list: html.length=" + html.length);
+      log.debug("Category_list: html.length=" + html.length);
       response.status(200).json({ categoryId: response.locals.categoryId, html: html });
     });
   } catch (error) {
@@ -212,7 +212,7 @@ export async function createCategoryAction(request, response) {
 export async function deleteCategoryAction(request, response) {
   try {
     const id = (request.params.id) && parseInt(request.params.id, 10);
-    logger.info("deleteCategoryAction: id=" + id);
+    log("deleteCategoryAction: id=" + id);
     deleteCategory(id);
 
     const data = getCategory();
@@ -226,7 +226,7 @@ export async function deleteCategoryAction(request, response) {
 export async function toggleCategoryStarAction(request, response) {
   try {
     const categoryId = parseInt(request.params.id);
-    logger.debug("toggleCategoryStarAction: id=" + categoryId);
+    log.debug("toggleCategoryStarAction: id=" + categoryId);
 
     toggleCategoryStar(categoryId);
 
@@ -240,7 +240,7 @@ export async function toggleCategoryStarAction(request, response) {
 
 export async function updateProductAction(request, response) {
   try {
-    logger.debug("updateProductAction: request.params=" + request.url.substr(0, 32));
+    log.debug("updateProductAction: request.params=" + request.url.substr(0, 32));
     const id = (request.params.id) && parseInt(request.params.id, 10);
     const data = request.body;
 
@@ -259,7 +259,7 @@ export async function updateProductAction(request, response) {
 
 export async function moveProductAction(request, response) {
   try {
-    logger.debug("moveProductAction: request.params=" + request.url.substr(0, 32));
+    log.debug("moveProductAction: request.params=" + request.url.substr(0, 32));
     const prodId = (request.params.prodid) && parseInt(request.params.prodid, 10);
     const catId = (request.params.catid) && parseInt(request.params.catid, 10);
 
@@ -271,7 +271,7 @@ export async function moveProductAction(request, response) {
 
 export async function createProductAction(request, response) {
   try {
-    logger.debug("createProductAction: request.params=" + request.url.substr(0, 32));
+    log.debug("createProductAction: request.params=" + request.url.substr(0, 32));
     const data = request.body;
     const itemName = (!data.prodName) ? "Produkt" : data.prodName.trim();
     const preAlert = data.preAlert;
@@ -280,7 +280,7 @@ export async function createProductAction(request, response) {
     const categoryId = (request.params.catid) && parseInt(request.params.catid, 10);
     const newItemId = createProduct(categoryId, itemName, preAlert, notes);
 
-    logger.debug("createProductAction: id=" + newItemId);
+    log.debug("createProductAction: id=" + newItemId);
     const item = getProduct(newItemId);
     renderView(response, import.meta.dirname + '/views/product_head', { item: item }, (html) => {
       response.json({ html });
@@ -292,8 +292,8 @@ export async function createProductAction(request, response) {
 
 export async function deleteProductAction(request, response) {
   try {
-    logger.info("deleteProductAction");
-    logger.debug("deleteProductAction: request.params=" + request.url.substr(0, 32));
+    log("deleteProductAction");
+    log.debug("deleteProductAction: request.params=" + request.url.substr(0, 32));
     const id = (request.params.id) && parseInt(request.params.id, 10);
     deleteProduct(id);
     response.status(200).json({ message: "Änderungen gesichert." });

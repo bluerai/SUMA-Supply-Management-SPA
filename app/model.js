@@ -1,7 +1,7 @@
 'use strict';
 
 import fs from 'fs-extra';
-import { logger } from '../modules/log.js';
+import { log } from '../modules/log.js';
 import { push } from '../modules/pushover.js';
 
 let DatabaseSync;
@@ -28,10 +28,10 @@ fs.pathExists(databasefile, (err, exists) => {
 
   if (exists) {
     if (!database) {
-      logger.info(`Could not connect to SUMA database at "${databasefile}".`);
+      log(`Could not connect to SUMA database at "${databasefile}".`);
       process.exit(1);
     } else {
-      logger.info(`Connected to SUMA database at "${databasefile}".`);
+      log(`Connected to SUMA database at "${databasefile}".`);
     }
   } else {
     database.exec(`
@@ -66,7 +66,7 @@ BEGIN
      WHERE id = OLD.id;
 END;
     `);
-    logger.info(`A new SUMA database was successfully created and opened at "${databasefile}".`);
+    log(`A new SUMA database was successfully created and opened at "${databasefile}".`);
   }
 });
 
@@ -187,21 +187,21 @@ const expDate = (entry) => (!entry || !entry.year || !entry.month) ? "9999/99" :
 export const createCategory = (itemName) => {
   const insertStmt = database.prepare(`INSERT INTO category (name) VALUES (?)`);
   const { lastInsertRowid } = insertStmt.run(itemName);
-  logger.debug(`createCategory: category ${lastInsertRowid} created`);
+  log.debug(`createCategory: category ${lastInsertRowid} created`);
   return { category: oneCategory(lastInsertRowid) };
 };
 
 export const renameCategory = (id, name) => {
   const updateNameStmt = database.prepare(`UPDATE category SET name = ? WHERE id = ?`);
   const { changes } = updateNameStmt.run(name, id);
-  logger.debug(`renameCategory: item renamed - rows changed=${changes}`);
+  log.debug(`renameCategory: item renamed - rows changed=${changes}`);
   return { category: oneCategory(id) };
 };
 
 export const deleteCategory = (id) => {
   const deleteStmt = database.prepare(`DELETE FROM category WHERE id = ?`);
   const { changes } = deleteStmt.run(id);
-  logger.debug(`deleteCategory: category ${id} deleted - rows deleted=${changes}`);
+  log.debug(`deleteCategory: category ${id} deleted - rows deleted=${changes}`);
 };
 
 export const toggleCategoryStar = (categoryId, prioToggle) => {
@@ -211,14 +211,14 @@ export const toggleCategoryStar = (categoryId, prioToggle) => {
 
   const toggleStmt = database.prepare(`UPDATE category SET prio = (prio + 1) % ${prioToggle} WHERE id = ?;`);
   const { changes } = toggleStmt.run(categoryId);
-  logger.debug(`toggleCategoryStar: category ${categoryId} toggled - rows changed=${changes}`);
+  log.debug(`toggleCategoryStar: category ${categoryId} toggled - rows changed=${changes}`);
   return { category: oneCategory(categoryId) };
 };
 
 export const createProduct = (categoryId, itemName, preAlert, notes) => {
   const insertStmt = database.prepare(`INSERT INTO product (name, category_id, entry_list, pre_alert, notes) VALUES (?, ?, ?, ?, ?)`);
   const { lastInsertRowid } = insertStmt.run(itemName, categoryId, "[]", preAlert, notes);
-  logger.debug(`createProduct: item ${lastInsertRowid} created`);
+  log.debug(`createProduct: item ${lastInsertRowid} created`);
   return lastInsertRowid;
 };
 
@@ -242,14 +242,14 @@ export const getAllProducts = () => {
     entry_list: item.entry_list ? JSON.parse(item.entry_list) : [],
     next_date: getNextDate(JSON.parse(item.entry_list))
   }));
-  logger.debug(`getAllProducts: data.length=${data.length}`);
+  log.debug(`getAllProducts: data.length=${data.length}`);
   return data;
 };
 
 export const updateProduct = (id, name, pre_alert, notes) => {
   const updateStmt = database.prepare(`UPDATE product SET name = ?, pre_alert = ?, notes = ? WHERE id = ?`);
   const { changes } = updateStmt.run(name, pre_alert, notes, id);
-  logger.debug(`updateProduct: item ${id} updated - rows changed=${changes}`);
+  log.debug(`updateProduct: item ${id} updated - rows changed=${changes}`);
 
   const item = evalProduct(getProduct(id));
   const selectByIdStmt = database.prepare(`SELECT datetime(moddate,'unixepoch','localtime') as timestamp FROM product WHERE id=?`);
@@ -261,23 +261,23 @@ export const updateProduct = (id, name, pre_alert, notes) => {
 export const moveProductToCategory = (prodId, catId) => {
   const updateStmt = database.prepare(`UPDATE product SET category_id = ? WHERE id = ? AND EXISTS (SELECT 1 FROM category WHERE id = ?)`);
   const { changes } = updateStmt.run(catId, prodId, catId);
-  logger.debug(`moveProductToCategory: item ${prodId} moved to category ${catId} - rows changed=${changes}`);
+  log.debug(`moveProductToCategory: item ${prodId} moved to category ${catId} - rows changed=${changes}`);
   return changes ? getCategory(catId) : null;
 };
 
 export const deleteProduct = (id) => {
   const deleteStmt = database.prepare(`DELETE FROM product WHERE id = ?`);
   const { changes } = deleteStmt.run(id);
-  logger.debug(`deleteProduct: item ${id} deleted - rows deleted=${changes}`);
+  log.debug(`deleteProduct: item ${id} deleted - rows deleted=${changes}`);
 };
 
 export const updateEntry = (data) => {
-  logger.debug(`updateEntry: data=${JSON.stringify(data)}`);
+  log.debug(`updateEntry: data=${JSON.stringify(data)}`);
 
   const selectByIdStmt = database.prepare(`SELECT id, name, sum, color, state, entry_list, pre_alert, notes, datetime(moddate,'unixepoch','localtime') as timestamp FROM product WHERE id=?`);
   const item = selectByIdStmt.get(data.id);
   item.entry_list = JSON.parse(item.entry_list);
-  logger.silly(`updateEntry: selected item=${JSON.stringify(item)}`);
+  log.silly(`updateEntry: selected item=${JSON.stringify(item)}`);
 
   const index = item.entry_list.findIndex(e =>
     e.year === data.year &&
@@ -304,7 +304,7 @@ export const updateEntry = (data) => {
 
   const updateStmt = database.prepare(`UPDATE product SET sum = ?, entry_list = ? WHERE id = ?`);
   const { changes } = updateStmt.run(item.sum, JSON.stringify(item.entry_list), item.id);
-  logger.debug(`updateEntry: item sum, item entry_list saved - rows changed=${changes}`);
+  log.debug(`updateEntry: item sum, item entry_list saved - rows changed=${changes}`);
 
   return evalProduct(item);
 };
@@ -338,7 +338,7 @@ export const evalProduct = (item) => {
   if (item.state !== old_state) {
     const updateStmt = database.prepare(`UPDATE product SET color = ?, state = ? WHERE id = ?`);
     const { changes } = updateStmt.run(item.color, item.state, item.id);
-    logger.silly(`evalProduct: tate + color saved - rows changed=${changes}`);
+    log.silly(`evalProduct: tate + color saved - rows changed=${changes}`);
   }
 
   item.next_date = getNextDate(item.entry_list);

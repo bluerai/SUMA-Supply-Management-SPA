@@ -1,7 +1,7 @@
 'use strict';
 
 import fs from 'fs-extra';
-import { logger } from './log.js';
+import { log } from './log.js';
 import { join } from 'path';
 
 const messagingfile = process.env.SUMA_CONFIG ? join(process.env.SUMA_CONFIG, "pushover.json") : null;
@@ -86,12 +86,12 @@ if (messagingfile) {
 
         if (response.ok) {
           const data = await response.json();
-          logger.debug("Pushover message successfully sent: " + JSON.stringify(data));
+          log.debug("Pushover message successfully sent: " + JSON.stringify(data));
         } else {
-          logger.error(`Pushover: ${response.statusText} (#${response.status})`);
+          log.error(`Pushover: ${response.statusText} (#${response.status})`);
         }
       } catch (error) {
-        logger.error(error);
+        log.error(error);
       }
     }
   }
@@ -102,7 +102,7 @@ if (messagingfile) {
       cred = await fs.readJson(messagingfile);
     }
   } catch (error) {
-    logger.error(error);
+    log.error(error);
   }
 
   Push = new Pushover(cred);
@@ -111,5 +111,5 @@ if (messagingfile) {
   }
 }
 
-logger.info("Messaging by " + Push.name);
+log("Messaging by " + Push.name);
 export const push = Push;

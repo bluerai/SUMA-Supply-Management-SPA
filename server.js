@@ -10,7 +10,7 @@ import { join } from 'path';
 import { appRouter } from './app/index.js';
 import { apiRouter } from './api/index.js';
 import { verifyAction, loginAction, protect } from './auth/index.js';
-import { logger } from './modules/log.js';
+import { log } from './modules/log.js';
 import { evaluateCronJob, databaseBackupCronJob } from './modules/cron.js';
 
 const app = express();
@@ -26,9 +26,8 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.json());
 
-//app.use(/\/verify|\/login|\/app\/get|\/app\/upd/, morgan('combined', { immediate: true }));
-app.use(morgan('combined', { immediate: true }));
-
+// Morgan Stream auf Winston log umleiten
+app.use(morgan('short', { stream: { write: (message) => log('\x1b[32m' + message.trim()) } }));
 
 app.get('/verify', verifyAction);
 app.post('/login', loginAction);
@@ -40,13 +39,9 @@ app.use('/', (request, response) => response.redirect('/app'));
 evaluateCronJob.start();
 databaseBackupCronJob.start();
 
-if (logger.isLevelEnabled('debug')) {
-  try {
-    logger.debug(`Cron: Next evaluateJob: ${evaluateCronJob.nextDate().toISO()}`);
-    logger.debug(`Cron: Next databaseBackupJob: ${databaseBackupCronJob.nextDate().toISO()}`);
-  } catch (error) {
-    logger.error(error)
-  }
+if (log.isLevelEnabled('debug')) {
+    log.debug(`Cron: Next evaluateJob: ${evaluateCronJob.nextDate().toISO()}`);
+    log.debug(`Cron: Next databaseBackupJob: ${databaseBackupCronJob.nextDate().toISO()}`);
 }
 
 if (HTTPS_PORT >= 0) {
@@ -60,14 +55,14 @@ if (HTTPS_PORT >= 0) {
       cert: fs.readFileSync(certfile),
     };
     https.createServer(options, app).listen(HTTPS_PORT, () => {
-      logger.info(`Https-Server is listening to https://${getLocalIp()}:${HTTPS_PORT}`)
+      log(`Https-Server is listening to https://${getLocalIp()}:${HTTPS_PORT}`)
     });
   }
 }
 
 if (HTTP_PORT >= 0) {
   app.listen(HTTP_PORT, () => {
-    logger.info(`Http-Server is listening to http://${getLocalIp()}:${HTTP_PORT}`)
+    log(`Http-Server is listening to http://${getLocalIp()}:${HTTP_PORT}`)
   })
 }
 
@@ -90,12 +85,12 @@ const getLocalIp = () => {
 
 function lanOnly(req, res, next) {
   const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-  logger.info("lanOnly: ClientIP=" + clientIP)
+  log("lanOnly: ClientIP=" + clientIP)
   if (isPrivateIP(clientIP)) {
-    logger.debug(`LAN access from: ${clientIP}`);
+    log.debug(`LAN access from: ${clientIP}`);
     return next();
   } else {
-    logger.warn(`WAN access from ip ${clientIP} blocked`);
+    log.warn(`WAN access from ip ${clientIP} blocked`);
     return res.status(403).json({ message: "No access." });
   }
 };

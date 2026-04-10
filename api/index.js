@@ -3,7 +3,7 @@
 import { Router } from 'express';
 
 import { push } from '../modules/pushover.js';
-import { logger } from '../modules/log.js';
+import { log } from '../modules/log.js';
 import { getAllProducts, connectDb, unconnectDb, evalProduct } from '../app/model.js';
 
 import { join, basename } from "path";
@@ -26,8 +26,8 @@ export function evalAction(request, response) {
   }
   catch (error) {
     const msg = "Interner Fehler in 'evalAction': " + error.message;
-    logger.error("SUMA Error: " + msg);
-    logger.debug(error.stack);
+    log.error("SUMA Error: " + msg);
+    log.debug(error.stack);
     push.syserror(msg);
     response.json({ state: false, msg: "SUMA Error: " + msg });
   }
@@ -50,12 +50,12 @@ export function evaluate() {
       }
     }
     msg += "Der Status von " + changeCount + " von " + data.length + " Produkten wurde aktualisiert. ";
-    logger.info(msg);
+    log(msg);
     if (changeCount > 0) push.sysinfo(msg);
     return { state: true, msg: "SUMA: " + msg };
   } catch (err) {
     msg += `Fehler beim Evaluieren der Produkte: ${err}`
-    logger.error("SUMA Error: " + msg);
+    log.error("SUMA Error: " + msg);
     push.syserror(msg);
     return ({ "state": false, "msg": "SUMA Error: " + msg });
   }
@@ -63,16 +63,16 @@ export function evaluate() {
 
 export async function healthAction(request, response) {
   try {
-    logger.isLevelEnabled('debug') && logger.debug("healthAction");
+    log.isLevelEnabled('debug') && log.debug("healthAction");
     const count = getAllProducts().length;
 
-    logger.debug(request.protocol + "-Server still healthy!");
+    log.debug(request.protocol + "-Server still healthy!");
     response.json({ healthy: true, count });
   }
   catch (error) {
     const message = "SUMA: Error on " + request.protocol + "-Server: " + error.message;
-    logger.error(message);
-    if (error.stack) logger.debug(error.stack);
+    log.error(message);
+    if (error.stack) log.debug(error.stack);
     if (response) {
       response.json({ healthy: false, error: error.message });
     }
@@ -87,7 +87,7 @@ export async function dbAction(request, response) {
       case "/connectdb": result = connectDb(); break;
       default: result = { state: "error", msg: "Cannot GET /app" + request.url };
     }
-    logger.isLevelEnabled('debug') && logger.debug(JSON.stringify(result));
+    log.isLevelEnabled('debug') && log.debug(result);
     response.json(result);
 
   }
@@ -97,12 +97,12 @@ export async function dbAction(request, response) {
 
 export function backupAction(request, response) {
   try {
-    logger.info("backupAction");
+    log("backupAction");
     response.json(databaseBackup());
   }
   catch (error) {
     const msg = "Interner Fehler in 'databaseBackup': " + error.message;
-    logger.error("SUMA Error: " + msg);
+    log.error("SUMA Error: " + msg);
     PushManager.syserror(msg)
     response.json({ state: false, msg: msg });
   }
@@ -117,7 +117,7 @@ const backupdir = process.env.SUMA_BACKUP;
 export function databaseBackup() {
   let msg = "Backup: ";
   try {
-    logger.info("databaseBackup");
+    log("databaseBackup");
     // Prüfen, ob Datei SUMA_DB existiert und lesbar ist
     fs.accessSync(databasefile, fs.constants.F_OK);
     // Backup-Verzeichnis erstellen, falls nicht vorhanden
@@ -153,12 +153,12 @@ export function databaseBackup() {
       msg += "Kein Datenbank-Backup erforderlich."
       push.sysinfo(msg);
     }
-    logger.debug(msg);
+    log.debug(msg);
     return ({ "state": true, "msg": "SUMA: " + msg });
 
   } catch (err) {
     msg += `Fehler beim Backup der Datenbank-Datei ${databasefile}: err`
-    logger.error("SUMA Error: " + msg);
+    log.error("SUMA Error: " + msg);
     push.syserror(msg);
     return ({ "state": false, "msg": "SUMA: " + msg });
   }
@@ -188,7 +188,7 @@ function cleanupBackupFiles() {
 
         if (fileAgeInDays > 7) {
           fs.removeSync(filepath);
-          logger.silly(`SUMA: ${msg}Alte Backup-Datei gelöscht: ${filepath}`);
+          log.silly(`SUMA: ${msg}Alte Backup-Datei gelöscht: ${filepath}`);
           deletedCount++;
         }
       }
@@ -196,13 +196,13 @@ function cleanupBackupFiles() {
         `Alte Backup-Dateien aufgeräumt! Löschungen: ${deletedCount}` :
         "Keine alten Backup-Dateien gelöscht.";
     }
-    logger.debug("SUMA: " + msg);
+    log.debug("SUMA: " + msg);
     push.sysinfo(msg);
     return ({ "state": true, "msg": "SUMA: " + msg });
 
   } catch (err) {
     msg += `Fehler beim Cleanup der Datenbank-Backups: ${err}`
-    logger.error("SUMA: " + msg);
+    log.error("SUMA: " + msg);
     push.syserror(msg);
     return ({ "state": false, "msg": "SUMA Error: " + msg });
   }
