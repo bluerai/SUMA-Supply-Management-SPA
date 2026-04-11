@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // Morgan Stream auf Winston log umleiten
-app.use(morgan('short', { stream: { write: (message) => log('\x1b[32m' + message.trim()) } }));
+app.use(morgan('short', { stream: { write: (message) => log.http(message.trim().replace('::ffff:', '')) } }));
 
 app.get('/verify', verifyAction);
 app.post('/login', loginAction);
@@ -40,8 +40,8 @@ evaluateCronJob.start();
 databaseBackupCronJob.start();
 
 if (log.isLevelEnabled('debug')) {
-    log.debug(`Cron: Next evaluateJob: ${evaluateCronJob.nextDate().toISO()}`);
-    log.debug(`Cron: Next databaseBackupJob: ${databaseBackupCronJob.nextDate().toISO()}`);
+  log.debug(`Cron: Next evaluateJob: ${evaluateCronJob.nextDate().toISO()}`);
+  log.debug(`Cron: Next databaseBackupJob: ${databaseBackupCronJob.nextDate().toISO()}`);
 }
 
 if (HTTPS_PORT >= 0) {
