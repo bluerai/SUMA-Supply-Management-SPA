@@ -61,23 +61,25 @@ export function evaluate() {
   }
 }
 
-export async function healthAction(request, response) {
+async function healthAction(request, response) {
   try {
-    log.isLevelEnabled('debug') && log.debug("healthAction");
+    //log.debug("healthAction");
     const count = getAllProducts().length;
 
-    log.debug(request.protocol + "-Server still healthy!");
-    response.json({ healthy: true, count });
+    log.info(`healthAction: ${request.protocol}-Server still healthy! (${count})`);
+    response.status(200).json({ healthy: true, count });
   }
   catch (error) {
     const message = "SUMA: Error on " + request.protocol + "-Server: " + error.message;
     log.error(message);
+    push.syserror(message, "UNHEALTHY: Suma - Supply Management");
     if (error.stack) log.debug(error.stack);
     if (response) {
-      response.json({ healthy: false, error: error.message });
+      response.status(500).json({ healthy: false, error: error.message });
     }
   }
 }
+
 
 export async function dbAction(request, response) {
   try {

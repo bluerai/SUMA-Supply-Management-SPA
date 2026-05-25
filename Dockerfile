@@ -1,6 +1,5 @@
-FROM node:23.5-alpine3.20
+FROM node:lts-alpine3.23
 RUN apk add tzdata
-RUN apk add curl
 
 USER node
 WORKDIR /home/node
@@ -22,7 +21,7 @@ ENV SUMA_CERTFILE=cert.pem
 ENV CRON_EVAL="0 0 10,22 * * *"
 ENV CRON_BACKUP="0 0 23 * * *"
 
-HEALTHCHECK --interval=60m --timeout=5s --retries=3 \
-  CMD ["sh", "healthcheck.sh"]
+HEALTHCHECK --interval=60m --timeout=5s --start-period=15s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:80/api/health', (r) => {r.statusCode === 200 ? process.exit(0) : process.exit(1)})"
 
 CMD [ "node", "server.js" ]
