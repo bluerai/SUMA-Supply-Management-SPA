@@ -303,14 +303,15 @@ export const updateEntry = (data) => {
   item.sum = item.entry_list.reduce((sum, entry) => sum + parseInt(entry.count), 0);
 
   const updateStmt = database.prepare(`UPDATE product SET sum = ?, entry_list = ? WHERE id = ?`);
-  const { changes } = updateStmt.run(item.sum, JSON.stringify(item.entry_list), item.id);
+  const { changes } = updateStmt.run(item.sum, JSON.stringify(item.entry_list), item.color, item.id);
   log.debug(`updateEntry: item sum, item entry_list saved - rows changed=${changes}`);
 
   return evalProduct(item);
 };
 
 export const evalProduct = (item) => {
-  const old_state = item.state
+  const old_state = item.state;
+  const old_color = item.color;
 
   const minDays = 5 * item.pre_alert;
   item.days_left = minDays;
@@ -335,10 +336,10 @@ export const evalProduct = (item) => {
     item.color = stateToColor(item.state);
   }
 
-  if (item.state !== old_state) {
+  if (item.state !== old_state || item.color !== old_color) {
     const updateStmt = database.prepare(`UPDATE product SET color = ?, state = ? WHERE id = ?`);
     const { changes } = updateStmt.run(item.color, item.state, item.id);
-    log.silly(`evalProduct: tate + color saved - rows changed=${changes}`);
+    //log.debug(`evalProduct: state + color saved - rows changed=${changes}`);
   }
 
   item.next_date = getNextDate(item.entry_list);
