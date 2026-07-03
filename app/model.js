@@ -303,7 +303,7 @@ export const updateEntry = (data) => {
   item.sum = item.entry_list.reduce((sum, entry) => sum + parseInt(entry.count), 0);
 
   const updateStmt = database.prepare(`UPDATE product SET sum = ?, entry_list = ? WHERE id = ?`);
-  const { changes } = updateStmt.run(item.sum, JSON.stringify(item.entry_list), item.color, item.id);
+  const { changes } = updateStmt.run(item.sum, JSON.stringify(item.entry_list), item.id);
   log.debug(`updateEntry: item sum, item entry_list saved - rows changed=${changes}`);
 
   return evalProduct(item);
