@@ -109,7 +109,7 @@ async function getCategory(id) {
     let currentPage = container.querySelector('.current');
     if (!currentPage) {
       currentPage = document.createElement('div');
-      container.appendChild(currentPage); currentPage.innerHTML = data.html;
+      container.appendChild(currentPage); 
       currentPage.classList.add('swipe-page');
       currentPage.classList.add('current');
     }
